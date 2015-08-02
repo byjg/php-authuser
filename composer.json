@@ -1,0 +1,23 @@
+{
+    "name": "byjg/authuser",
+    "description": "A simple customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.",
+    "authors": [
+        {
+            "name": "João Gilberto Magalhães",
+            "email": "joao@byjg.com.br"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ByJG\\Authenticate\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+		"php": ">=5.4.0",
+        "byjg/anydataset": "~1.0",
+        "byjg/cache-engine": "~1.0,>=1.0.1",
+        "byjg/singleton-pattern": "~1.0"
+	},
+    "license": "MIT"
+}
