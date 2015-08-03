@@ -22,7 +22,7 @@ class UserContext
             $this->session = \ByJG\Cache\CacheContext::factory(self::SESSION_PREFIX);
         } catch (\Exception $ex) {
             $this->session = new \ByJG\Cache\SessionCacheEngine();
-            $this->configKey = self::SESSION_PREFIX;
+            $this->session->configKey = self::SESSION_PREFIX;
         }
     }
 
