@@ -1,6 +1,6 @@
 {
     "name": "byjg/authuser",
-    "description": "A simple customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.",
+    "description": "A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.",
     "authors": [
         {
             "name": "João Gilberto Magalhães",

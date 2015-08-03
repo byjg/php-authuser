@@ -4,7 +4,7 @@ require "vendor/autoload.php";
 
 $users = new ByJG\Authenticate\UsersAnyDataset('/tmp/pass.anydata.xml');
 
-$users->addUser('someuser', 'Some User Full Name', 'someuser@someemail.com', '12345');
+$users->addUser('Some User Full Name', 'someuser', 'someuser@someemail.com', '12345');
 //$users->save();
 
 $user = $users->validateUserName('someuser', '12345');

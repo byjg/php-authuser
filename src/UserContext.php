@@ -20,8 +20,8 @@ class UserContext
     {
         try {
             $this->session = \ByJG\Cache\CacheContext::factory(self::SESSION_PREFIX);
-        } catch (Exception $ex) {
-            $this->session = new ByJG\Cache\SessionCacheEngine();
+        } catch (\Exception $ex) {
+            $this->session = new \ByJG\Cache\SessionCacheEngine();
             $this->configKey = self::SESSION_PREFIX;
         }
     }
