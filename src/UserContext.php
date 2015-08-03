@@ -54,6 +54,10 @@ class UserContext
 	*/
 	public function registerLogin($user, $key = 'default')
 	{
+        if (!is_array($user)) {
+            throw new \InvalidArgumentException('User need to be an array');
+        }
+
         $this->session->set("user.$key", $user);
 	}
 
