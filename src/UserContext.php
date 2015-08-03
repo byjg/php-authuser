@@ -31,9 +31,9 @@ class UserContext
 	* @access public
 	* @return bool Return true if authenticated; false otherwise.
 	*/
-	public function isAuthenticated()
+	public function isAuthenticated($key = 'default')
 	{
-		return $this->session->get('user') !== false;
+		return $this->session->get("user.$key") !== false;
 	}
 
 	/**
@@ -41,9 +41,9 @@ class UserContext
 	* @access public
 	* @return string The authenticated username if exists.
 	*/
-	public function userInfo()
+	public function userInfo($key = 'default')
 	{
-        return $this->session->get('user');
+        return $this->session->get("user.$key");
 	}
 
 	/**
@@ -52,9 +52,9 @@ class UserContext
 	* @param string $user
 	* @return void
 	*/
-	public function registerLogin($user)
+	public function registerLogin($user, $key = 'default')
 	{
-        $this->session->set('user', $user);
+        $this->session->set("user.$key", $user);
 	}
 
 	/**
@@ -62,9 +62,9 @@ class UserContext
 	* @access public
 	* @return void
 	*/
-	public function registerLogout()
+	public function registerLogout($key = 'default')
 	{
-		$this->session->release('user');
+		$this->session->release("user.$key");
 
         if ($this->session instanceof ByJG\Cache\SessionCacheEngine)
         {
