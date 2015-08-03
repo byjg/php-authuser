@@ -46,17 +46,25 @@ class UserContext
         return $this->session->get("user.$key");
 	}
 
-	/**
-	* Make login in XMLNuke Engine
-	* @access public
-	* @param string $user
-	* @return void
-	*/
-	public function registerLogin($user, $key = 'default')
+    /**
+     *
+     * @param string $user
+     * @param UsersInterface $usersInstance
+     * @param string $key
+     * @throws \InvalidArgumentException
+     */
+	public function registerLogin($user, $usersInstance, $key = 'default')
 	{
         if (!is_array($user)) {
             throw new \InvalidArgumentException('User need to be an array');
         }
+
+        if (!isset($user[$usersInstance->getUserTable()->id]) || !isset($user[$usersInstance->getUserTable()->username])) {
+            throw new \InvalidArgumentException('Array is not a valid user data');
+        }
+
+        unset($user[$usersInstance->getUserTable()->password]);
+        unset($user[$usersInstance->getUserTable()->admin]);
 
         $this->session->set("user.$key", $user);
 	}
