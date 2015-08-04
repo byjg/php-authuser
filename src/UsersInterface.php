@@ -127,6 +127,23 @@ interface UsersInterface
 	 */
 	public function removeAllProperties($propertyName, $value);
 
+
+    /**
+     * Authenticate a user and create a token if it is valid
+     *
+     * @param string $username
+     * @param string $password
+     * @param array $extraInfo
+     */
+    public function createAuthToken($username, $password, $extraInfo = []);
+
+    /**
+     * Check if the Auth Token is valid
+     * 
+     * @param string $token
+     */
+    public function isValidToken($username, $token);
+
 	/**
 	 * @return UserTable Description
 	 */

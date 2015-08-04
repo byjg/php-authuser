@@ -9,6 +9,7 @@ use ByJG\Authenticate\CustomTable;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\UserTable;
+use InvalidArgumentException;
 
 /**
  * Base implementation to search and handle users in XMLNuke.
@@ -288,17 +289,79 @@ abstract class UsersBase implements UsersInterface
 		$user = $this->getById($userId);
 
 		if (!is_null($user)) {
-            return (
-                ($user->getField($this->getUserTable()->admin) == "yes") ||
-                ($user->getField($this->getUserTable()->admin) == "y") ||
-                ($user->getField($this->getUserTable()->admin) == "true") ||
-                ($user->getField($this->getUserTable()->admin) == "t") ||
-                ($user->getField($this->getUserTable()->admin) == "1")
-            );
-        }
-		else {
+            return (preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getField($this->getUserTable()->admin)) === 1);
+        } else {
 			throw new UserNotFoundException("Cannot find the user");
         }
 	}
-}
 
+    /**
+     * Authenticate a user and create a token if it is valid
+     *
+     * @param string $username
+     * @param string $password
+     * @param array $extraInfo
+     */
+    public function createAuthToken($username, $password, $extraInfo = [])
+    {
+		if (!isset($username) || !isset($password))
+		{
+			throw new InvalidArgumentException('Neither username or password can be empty!');
+		}
+
+		$user = $this->isValidUser($username, $password);
+		if (is_null($user))
+		{
+			throw new UserNotFoundException('User not found');
+		}
+		else
+		{
+            foreach ($extraInfo as $key => $value) {
+    			$user->setField($key, $value);
+            }
+			$user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
+			$user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+
+            $token = sha1(sha1($username)
+                    . sha1($password)
+                    . sha1(serialize($extraInfo))
+                    . sha1(time())
+                    . sha1(rand(0, 30000))
+                    . sha1(rand(0, 30000))
+                    . sha1(rand(0, 30000))
+                    . sha1(rand(0, 30000))
+            );
+
+			$user->setField('TOKEN', $token);
+			$this->save();
+            return true;
+		}
+
+        return false;
+    }
+
+    /**
+     * Check if the Auth Token is valid
+     *
+     * @param string $token
+     */
+    public function isValidToken($username, $token)
+    {
+		$user = $this->getByUsername($username);
+
+		if (is_null($user))
+		{
+			throw new UserNotFoundException('User not found!');
+		}
+
+		if ($user->getField('TOKEN') !== $token)
+		{
+			throw new NotAuthenticatedException('Token does not match');
+		}
+
+		$user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
+		$user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+		$this->save();
+    }
+
+}
