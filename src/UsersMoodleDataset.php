@@ -129,7 +129,7 @@ class UsersMoodleDataset extends UsersDBDataset
 						WHERE userid = [[id]]
 						group by shortname';
 			$param = array("id" => $user->getField($this->getUserTable()->id));
-			$it = $this->_DB->getIterator($sqlRoles, $param);
+			$it = $this->_db->getIterator($sqlRoles, $param);
 			foreach ($it as $sr)
 			{
 				$user->addField("roles", $sr->getField('shortname'));
@@ -138,7 +138,7 @@ class UsersMoodleDataset extends UsersDBDataset
 			// Find the moodle site admin (super user)
 			$user->setField($this->getUserTable()->admin, 'no');
 			$sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
-			$it = $this->_DB->getIterator($sqlAdmin);
+			$it = $this->_db->getIterator($sqlAdmin);
 			if ($it->hasNext())
 			{
 				$sr = $it->moveNext();
@@ -192,15 +192,16 @@ class UsersMoodleDataset extends UsersDBDataset
 	{
 		if ($this->_userTable == null)
 		{
-			parent::getUserTable();
-			$this->_userTable->table = "mdl_user";
-			$this->_userTable->id = "id";
-			$this->_userTable->name = "concat(firstname, ' ', lastname)";  // This disable update data
-			$this->_userTable->email= "email";
-			$this->_userTable->username = "username";
-			$this->_userTable->password = "password";
-			$this->_userTable->created = "created";
-			$this->_userTable->admin = "auth";							// This disable update data
+			$this->_userTable = new UserTable(
+                "mdl_user",
+                "id",
+                "concat(firstname, ' ', lastname)",  // This disable update data
+                "email",
+                "username",
+                "password",
+                "created",
+                "auth"							// This disable update data
+            );
 		}
 		return $this->_userTable;
 	}
@@ -209,11 +210,7 @@ class UsersMoodleDataset extends UsersDBDataset
 	{
 		if ($this->_customTable == null)
 		{
-			parent::getCustomTable();
-			$this->_customTable->table = "mdl_user_info_data";
-			$this->_customTable->id = "id";
-			$this->_customTable->name = "fieldid";
-			$this->_customTable->value = "data";
+			$this->_customTable = new CustomTable("mdl_user_info_data", "id", "fieldid", "data");
 		}
 		return $this->_customTable;
 	}

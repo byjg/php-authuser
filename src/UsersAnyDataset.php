@@ -26,10 +26,12 @@ class UsersAnyDataset extends UsersBase
 	/**
 	 * AnyDataset constructor
 	*/
-	public function __construct($file)
+	public function __construct($file, UserTable $userTable = null, CustomTable $customTable = null)
 	{
 		$this->_usersFile = $file;
 		$this->_anyDataSet = new AnyDataset($this->_usersFile);
+        $this->_userTable = $userTable;
+        $this->_customTable = $customTable;
 	}
 
 	/**
@@ -188,15 +190,4 @@ class UsersAnyDataset extends UsersBase
 			$this->removeProperty($user->getField($this->getUserTable()->username), $propertyName, $value);
 		}
 	}
-
-	public function getUserTable()
-	{
-		if ($this->_userTable == null)
-		{
-			parent::getUserTable();
-			$this->_userTable->id = $this->_userTable->username;
-		}
-		return $this->_userTable;
-	}
-
 }

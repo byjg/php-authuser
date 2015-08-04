@@ -35,14 +35,6 @@ abstract class UsersBase implements UsersInterface
 		if ($this->_userTable == null)
 		{
 			$this->_userTable = new UserTable();
-			$this->_userTable->table = "user";
-			$this->_userTable->id = "userid";
-			$this->_userTable->name = "name";
-			$this->_userTable->email= "email";
-			$this->_userTable->username = "username";
-			$this->_userTable->password = "password";
-			$this->_userTable->created = "created";
-			$this->_userTable->admin = "admin";
 		}
 		return $this->_userTable;
 	}
@@ -56,11 +48,6 @@ abstract class UsersBase implements UsersInterface
 		if ($this->_customTable == null)
 		{
 			$this->_customTable = new CustomTable();
-			$this->_customTable->table = "custom";
-			$this->_customTable->id = "customid";
-			$this->_customTable->name = "name";
-			$this->_customTable->value = "value";
-			// Table "CUSTOM" must have [$this->_UserTable->Id = "userid"].
 		}
 		return $this->_customTable;
 	}
@@ -285,7 +272,7 @@ abstract class UsersBase implements UsersInterface
             }
             $userId = $currentUser[$this->getUserTable()->id];
 		}
-		
+
 		$user = $this->getById($userId);
 
 		if (!is_null($user)) {

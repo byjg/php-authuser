@@ -14,9 +14,9 @@ class UsersDBDataset extends UsersBase
 	/**
 	* @var DBDataset
 	*/
-	protected $_DB;
+	protected $_db;
 
-	protected $_SQLHelper;
+	protected $_sqlHelper;
 
 	protected $_cacheUserWork = array();
     protected $_cacheUserOriginal = array();
@@ -25,10 +25,12 @@ class UsersDBDataset extends UsersBase
 	/**
 	  * DBDataset constructor
 	  */
-	public function __construct($dataBase)
+	public function __construct($dataBase, UserTable $userTable = null, CustomTable $customTable = null)
 	{
-		$this->_DB = new DBDataset($dataBase);
-		$this->_SQLHelper = new SQLHelper($this->_DB);
+		$this->_db = new DBDataset($dataBase);
+		$this->_sqlHelper = new SQLHelper($this->_db);
+        $this->_userTable = $userTable;
+        $this->_customTable = $customTable;
 	}
 
 	/**
@@ -64,7 +66,7 @@ class UsersDBDataset extends UsersBase
 					else
 					{
 						// Erase Old Custom Properties
-						$sql = $this->_SQLHelper->createSafeSQL("DELETE FROM @@Table "
+						$sql = $this->_sqlHelper->createSafeSQL("DELETE FROM @@Table "
 								. " WHERE @@Id = [[id]] "
 								. "   AND @@Name = [[name]] "
 								. "   AND @@Value = [[value]] ",
@@ -81,14 +83,14 @@ class UsersDBDataset extends UsersBase
 							'name' => $fieldname,
 							'value' => $srOri->getField($fieldname)
 						);
-						$this->_DB->execSQL($sql, $param);
+						$this->_db->execSQL($sql, $param);
 
 						// If new Value is_empty does not add
 						if ($srMod->getField($fieldname) == "")
 							continue;
 
 						// Insert new Value
-						$sql = $this->_SQLHelper->createSafeSQL("INSERT INTO @@Table "
+						$sql = $this->_sqlHelper->createSafeSQL("INSERT INTO @@Table "
 								. "( @@Id, @@Name, @@Value ) "
 								. " VALUES ( [[id]], [[name]], [[value]] ) ",
 								array(
@@ -104,7 +106,7 @@ class UsersDBDataset extends UsersBase
 						$param["name"] = $fieldname;
 						$param["value"] = $srMod->getField($fieldname);
 
-						$this->_DB->execSQL($sql, $param);
+						$this->_db->execSQL($sql, $param);
 
 					}
                 }
@@ -121,7 +123,7 @@ class UsersDBDataset extends UsersBase
 				$sql .= ", @@Admin = [[admin]] ";
 				$sql .= " WHERE @@Id = [[id]]";
 
-				$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+				$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 						'@@Table' => $this->getUserTable()->table,
 						'@@Name' => $this->getUserTable()->name,
 						'@@Email' => $this->getUserTable()->email,
@@ -130,7 +132,7 @@ class UsersDBDataset extends UsersBase
 						'@@Created' => $this->getUserTable()->created,
 						'@@Admin' => $this->getUserTable()->admin,
 						'@@Id' => $this->getUserTable()->id
-					)	
+					)
 				);
 
 				$param = array();
@@ -142,7 +144,7 @@ class UsersDBDataset extends UsersBase
 				$param['admin'] = $srMod->getField($this->getUserTable()->admin);
 				$param['id'] = $srMod->getField($this->getUserTable()->id);
 
-				$this->_DB->execSQL($sql, $param);
+				$this->_db->execSQL($sql, $param);
 			}
         }
         $this->_cacheUserOriginal = array();
@@ -171,7 +173,7 @@ class UsersDBDataset extends UsersBase
 		$sql = " INSERT INTO @@Table (@@Name, @@Email, @@Username, @@Password, @@Created ) ";
 		$sql .=" VALUES ([[name]], [[email]], [[username]], [[password]], [[created]] ) ";
 
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+		$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 				'@@Table' => $this->getUserTable()->table,
 				'@@Name' => $this->getUserTable()->name,
 				'@@Email' => $this->getUserTable()->email,
@@ -188,7 +190,7 @@ class UsersDBDataset extends UsersBase
 		$param['password'] = $this->getPasswordHash($password);
 		$param['created'] = date("Y-m-d H:i:s");
 
-		$this->_DB->execSQL($sql, $param);
+		$this->_db->execSQL($sql, $param);
 
 		return true;
 	}
@@ -209,7 +211,7 @@ class UsersDBDataset extends UsersBase
 			$filter = new IteratorFilter();
 		}
 		$sql = $filter->getSql($this->getUserTable()->table, $param);
-		return $this->_DB->getIterator($sql, $param);
+		return $this->_db->getIterator($sql, $param);
 	}
 
 	/**
@@ -261,17 +263,17 @@ class UsersDBDataset extends UsersBase
 		$param = array( "login" => $login );
 		if ($this->getCustomTable()->table != "")
 		{
-			$sql = $this->_SQLHelper->createSafeSQL($baseSql, array(
+			$sql = $this->_sqlHelper->createSafeSQL($baseSql, array(
 				'@@Table' => $this->getCustomTable()->table,
 				'@@Username' => $this->getUserTable()->username
 			));
-			$this->_DB->execSQL($sql, $param);
+			$this->_db->execSQL($sql, $param);
 		}
-		$sql = $this->_SQLHelper->createSafeSQL($baseSql, array(
+		$sql = $this->_sqlHelper->createSafeSQL($baseSql, array(
 			'@@Table' => $this->getUserTable()->table,
 			'@@Username' => $this->getUserTable()->username
 		));
-		$this->_DB->execSQL($sql, $param);
+		$this->_db->execSQL($sql, $param);
 		return true;
 	}
 
@@ -287,17 +289,17 @@ class UsersDBDataset extends UsersBase
 		$param = array("id"=>$userId);
 		if ($this->getCustomTable()->table != "")
 		{
-			$sql = $this->_SQLHelper->createSafeSQL($baseSql, array(
+			$sql = $this->_sqlHelper->createSafeSQL($baseSql, array(
 				'@@Table' => $this->getCustomTable()->table,
 				'@@Id' => $this->getUserTable()->id
 			));
-			$this->_DB->execSQL($sql, $param);
+			$this->_db->execSQL($sql, $param);
 		}
-		$sql = $this->_SQLHelper->createSafeSQL($baseSql, array(
+		$sql = $this->_sqlHelper->createSafeSQL($baseSql, array(
 			'@@Table' => $this->getUserTable()->table,
 			'@@Id' => $this->getUserTable()->id
 		));
-		$this->_DB->execSQL($sql, $param);
+		$this->_db->execSQL($sql, $param);
 		return true;
 	}
 
@@ -318,7 +320,7 @@ class UsersDBDataset extends UsersBase
 				$sql = " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) ";
 				$sql .=" VALUES ( [[id]], [[name]], [[value]] ) ";
 
-				$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+				$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 					"@@Table" => $this->getCustomTable()->table,
 					"@@Id" => $this->getUserTable()->id,
 					"@@Name" => $this->getCustomTable()->name,
@@ -330,7 +332,7 @@ class UsersDBDataset extends UsersBase
 				$param["name"] = $propertyName;
 				$param["value"] = $value;
 
-				$this->_DB->execSQL($sql, $param);
+				$this->_db->execSQL($sql, $param);
 			}
 			return true;
 		}
@@ -363,7 +365,7 @@ class UsersDBDataset extends UsersBase
 				$sql .= " AND @@Value = [[value]] ";
 				$param["value"] = $value;
 			}
-			$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+			$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 					'@@Table' => $this->getCustomTable()->table,
 					'@@Name' => $this->getCustomTable()->name,
 					'@@Id' => $this->getUserTable()->id,
@@ -371,7 +373,7 @@ class UsersDBDataset extends UsersBase
 				)
 			);
 
-			$this->_DB->execSQL($sql, $param);
+			$this->_db->execSQL($sql, $param);
 			return true;
 		}
 		else
@@ -396,13 +398,13 @@ class UsersDBDataset extends UsersBase
 
 		$sql = "DELETE FROM @@Table WHERE @@Name = [[name]] AND @@Value = [[value]] ";
 
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+		$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 			"@@Table" => $this->getCustomTable()->table,
 			"@@Name" => $this->getCustomTable()->name,
 			"@@Value" => $this->getCustomTable()->value
 		));
 
-		$this->_DB->execSQL($sql, $param);
+		$this->_db->execSQL($sql, $param);
 	}
 
 
@@ -422,38 +424,17 @@ class UsersDBDataset extends UsersBase
 		$userId = $userRow->getField($this->getUserTable()->id);
 		$sql = "select * from @@Table where @@Id = [[id]]";
 
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
+		$sql = $this->_sqlHelper->createSafeSQL($sql, array(
 			"@@Table" => $this->getCustomTable()->table,
 			"@@Id" => $this->getUserTable()->id
 		));
-				
+
 		$param = array('id' => $userId);
-		$it = $this->_DB->getIterator($sql, $param);
+		$it = $this->_db->getIterator($sql, $param);
 		while ($it->hasNext())
 		{
 			$sr = $it->moveNext();
 			$userRow->addField($sr->getField($this->getCustomTable()->name), $sr->getField($this->getCustomTable()->value));
 		}
 	}
-
-	public function getUserTable()
-	{
-		if ($this->_userTable == null)
-		{
-			parent::getUserTable();
-			$this->_userTable->table = "xmlnuke_users";
-		}
-		return $this->_userTable;
-	}
-
-	public function getCustomTable()
-	{
-		if ($this->_customTable == null)
-		{
-			parent::getCustomTable();
-			$this->_customTable->table = "xmlnuke_custom";
-		}
-		return $this->_customTable;
-	}
-
 }

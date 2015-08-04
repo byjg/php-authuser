@@ -53,21 +53,37 @@ class UserContext
      * @param string $key
      * @throws \InvalidArgumentException
      */
-	public function registerLogin($user, $usersInstance, $key = 'default')
+	public function registerLogin($userId, $key = 'default')
 	{
-        if (!is_array($user)) {
-            throw new \InvalidArgumentException('User need to be an array');
-        }
-
-        if (!isset($user[$usersInstance->getUserTable()->id]) || !isset($user[$usersInstance->getUserTable()->username])) {
-            throw new \InvalidArgumentException('Array is not a valid user data');
-        }
-
-        unset($user[$usersInstance->getUserTable()->password]);
-        unset($user[$usersInstance->getUserTable()->admin]);
-
-        $this->session->set("user.$key", $user);
+        $this->session->set("user.$key", $userId);
 	}
+
+    public function setSessionData($name, $value, $key = 'default')
+    {
+        $oldData = $this->session->get("user.$key.data");
+
+        if (!is_array($oldData)) {
+            $oldData = [];
+        }
+
+        $oldData[$name] = $value;
+
+        $this->session->set("user.$key.data", $oldData);
+    }
+
+    public function getSessionData($name, $key = 'default')
+    {
+        $oldData = $this->session->get("user.$key.data");
+
+        if (!is_array($oldData)) {
+            return false;
+        }
+        if (isset($oldData['name'])) {
+            return $oldData['name'];
+        }
+
+        return false;
+    }
 
 	/**
 	* Make logout from XMLNuke Engine
@@ -77,6 +93,7 @@ class UserContext
 	public function registerLogout($key = 'default')
 	{
 		$this->session->release("user.$key");
+		$this->session->release("user.$key.data");
 
         if ($this->session instanceof ByJG\Cache\SessionCacheEngine)
         {
