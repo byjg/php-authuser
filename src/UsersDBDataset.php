@@ -3,13 +3,11 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Database\SQLHelper;
-use ByJG\AnyDataset\Exception\DatasetException;
 use ByJG\AnyDataset\Repository\AnyDataset;
 use ByJG\AnyDataset\Repository\DBDataset;
 use ByJG\AnyDataset\Repository\IteratorFilter;
 use ByJG\AnyDataset\Repository\IteratorInterface;
 use ByJG\AnyDataset\Repository\SingleRow;
-use ByJG\Authenticate\UserProperty;
 
 class UsersDBDataset extends UsersBase
 {
@@ -162,11 +160,11 @@ class UsersDBDataset extends UsersBase
 	 */
 	public function addUser( $name, $userName, $email, $password )
 	{
-		if ($this->getUserEMail($email) != null)
+		if ($this->getByEmail($email) != null)
 		{
 			return false;
 		}
-		if ($this->getUserName($userName) != null)
+		if ($this->getByUsername($userName) != null)
 		{
 			return false;
 		}
@@ -303,22 +301,19 @@ class UsersDBDataset extends UsersBase
 		return true;
 	}
 
-	/**
-	* Add a specific site to user
-	* Return True or false
-	*
-	* @param int $userId User Id
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
-	* @return bool
-	* */
-	public function addPropertyValueToUser( $userId, $propValue, $userProp )
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
+	public function addProperty($userId, $propertyName, $value)
 	{
 		//anydataset.SingleRow
-		$user = $this->getUserId( $userId );
+		$user = $this->getById( $userId );
 		if ($user != null)
 		{
-			if(!$this->checkUserProperty($userId, $propValue, $userProp))
+			if(!$this->hasProperty($userId, $propertyName, $value))
 			{
 				$sql = " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) ";
 				$sql .=" VALUES ( [[id]], [[name]], [[value]] ) ";
@@ -332,17 +327,15 @@ class UsersDBDataset extends UsersBase
 
 				$param = array();
 				$param["id"] = $userId;
-				$param["name"] = UserProperty::getPropertyNodeName($userProp);
-				$param["value"] = $propValue;
+				$param["name"] = $propertyName;
+				$param["value"] = $value;
 
 				$this->_DB->execSQL($sql, $param);
 			}
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+
+        return false;
 	}
 
 	/**
@@ -350,25 +343,25 @@ class UsersDBDataset extends UsersBase
 	* Return True or false
 	*
 	* @param int $userId User Id
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromUser( $userId, $propValue, $userProp )
+	public function removeProperty( $userId, $propertyName, $value )
 	{
-		$user = $this->getUserId( $userId );
+		$user = $this->getById( $userId );
 		if ($user != null)
 		{
 			$param = array();
 			$param["id"] = $userId;
-			$param["name"] = UserProperty::getPropertyNodeName($userProp);
+			$param["name"] = $propertyName;
 
 			$sql =  "DELETE FROM @@Table ";
 			$sql .= " WHERE @@Id = [[id]] AND @@Name = [[name]] ";
-			if(!is_null($propValue))
+			if(!is_null($value))
 			{
 				$sql .= " AND @@Value = [[value]] ";
-				$param["value"] = $propValue;
+				$param["value"] = $value;
 			}
 			$sql = $this->_SQLHelper->createSafeSQL($sql, array(
 					'@@Table' => $this->getCustomTable()->table,
@@ -391,15 +384,15 @@ class UsersDBDataset extends UsersBase
 	* Remove a specific site from all users
 	* Return True or false
 	*
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromAllUsers($propValue, $userProp)
+	public function removeAllProperties($propertyName, $value)
 	{
 		$param = array();
-		$param["name"] = UserProperty::getPropertyNodeName($userProp);
-		$param["value"] = $propValue;
+		$param["name"] = $propertyName;
+		$param["value"] = $value;
 
 		$sql = "DELETE FROM @@Table WHERE @@Name = [[name]] AND @@Value = [[value]] ";
 
@@ -439,94 +432,8 @@ class UsersDBDataset extends UsersBase
 		while ($it->hasNext())
 		{
 			$sr = $it->moveNext();
-			$userRow->AddField($sr->getField($this->getCustomTable()->name), $sr->getField($this->getCustomTable()->value));
+			$userRow->addField($sr->getField($this->getCustomTable()->name), $sr->getField($this->getCustomTable()->value));
 		}
-	}
-
-	/**
-	 * Get all roles
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @return IteratorInterface
-	 */
-	public function getRolesIterator($site = "_all", $role = "")
-	{
-		$param = array();
-		$param["site"] = $site;
-
-		$sql = "select * from @@Table " .
-			" where (@@Site = [[site]] or @@Site = '_all' ) ";
-
-		if ($role != "")
-		{
-			$sql .= " and  @@Role = [[role]] ";
-			$param["role"] = $role;
-		}
-
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
-			"@@Table" => $this->getRolesTable()->table,
-			"@@Site" => $this->getRolesTable()->site,
-			"@@Role" => $this->getRolesTable()->role
-		));
-
-		return $this->_DB->getIterator($sql, $param);
-	}
-
-
-	/**
-	 * Add a public role into a site
-	 *
-	 * @param string $site
-	 * @param string $role
-	 */
-	public function addRolePublic($site, $role)
-	{
-		$it = $this->getRolesIterator($site, $role);
-		if ($it->hasNext())
-		{
-			throw new DatasetException("Role exists.");
-		}
-
-		$sql = "insert into @@Table ( @@Site, @@Role ) values ( [[site]], [[role]] )";
-
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
-			"@@Table" => $this->getRolesTable()->table,
-			"@@Site" => $this->getRolesTable()->site
-		));
-
-		$param = array("site"=>$site, "role"=>$role);
-
-		$this->_DB->execSQL($sql, $param);
-	}
-
-	/**
-	 * Edit a public role into a site. If new Value == null, remove the role)
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @param string $newValue
-	 */
-	public function editRolePublic($site, $role, $newValue = null)
-	{
-		if (!is_null($newValue))
-		{
-			$this->addRolePublic($site, $newValue);
-		}
-
-		$sql = "DELETE FROM @@Table " .
-			" WHERE @@Site = [[site]] " .
-			" AND @@Role = [[role]] ";
-
-		$sql = $this->_SQLHelper->createSafeSQL($sql, array(
-			"@@Table" => $this->getRolesTable()->table,
-			"@@Site" => $this->getRolesTable()->site,
-			"@@Role" => $this->getRolesTable()->role
-		));
-
-		$param = array("site"=>$site, "role"=>$role);
-
-		$this->_DB->execSQL($sql, $param);
 	}
 
 	public function getUserTable()
@@ -547,16 +454,6 @@ class UsersDBDataset extends UsersBase
 			$this->_customTable->table = "xmlnuke_custom";
 		}
 		return $this->_customTable;
-	}
-
-	public function getRolesTable()
-	{
-		if ($this->_rolesTable == null)
-		{
-			parent::getRolesTable();
-			$this->_rolesTable->table = "xmlnuke_roles";
-		}
-		return $this->_rolesTable;
 	}
 
 }

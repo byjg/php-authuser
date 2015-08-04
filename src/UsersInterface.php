@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\AnyDataset\Repository\IteratorFilter;
+use ByJG\AnyDataset\Repository\SingleRow;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -28,23 +30,32 @@ interface UsersInterface
 	/**
 	 * @desc Get the user based on a filter
 	 * @param IteratorFilter $filter
-	 * @return anydataset.SingleRow if user was found; null, otherwise
+	 * @return SingleRow if user was found; null, otherwise
 	 */
-	public function getUser($filter);
+	function getUser($filter);
+
+	/**
+	 * Enter description here...
+	 *
+	 * @param int $id
+	 * @return SingleRow
+	 */
+	function getById($id);
+
 
 	/**
 	 * @desc Get the user based on his email.
-	 * @param emailEmail to find
-	 * @return anydataset.SingleRow if user was found; null, otherwise
+	 * @param string Email to find
+	 * @return SingleRow if user was found; null, otherwise
 	 */
-	function getUserEMail($email);
+	function getByEmail($email);
 
 	/**
 	 * @desc Get the user based on his login
 	 * @param string $username
-	 * @return anydataset.SingleRow if user was found; null, otherwise
+	 * @return SingleRow if user was found; null, otherwise
 	 */
-	function getUserName($username);
+	function getByUsername($username);
 
 	/**
 	 * @desc Remove the user based on his login.
@@ -64,101 +75,57 @@ interface UsersInterface
 	 * @desc Validate if the user and password exists in the file
 	 * @param string $userName
 	 * @param string $password
-	 * @return anydataset.SingleRow if user was found; null, otherwise
+	 * @return SingleRow if user was found; null, otherwise
 	 */
-	function validateUserName($userName, $password);
+	function isValidUser($userName, $password);
+
+	/**
+	 *
+	 * @param int $userId
+	 * @return bool
+	 */
+	public function isAdmin($userId = "");
 
 	/**
 	 * @desc Check if the user have rights to edit specific site.
-	 * @param string $userName
-	 * @param string $propValue
-	 * @param UserProperty $userProp
+	 * @param int $userId
+	 * @param string $propertyName
+	 * @param string $value
 	 * @return True if have rights; false, otherwisebool
 	 */
-	public function checkUserProperty($userName, $propValue, $userProp);
+	public function hasProperty($userId, $propertyName, $value);
 
 	/**
 	 * @desc Return all sites from a specific user
-	 * @param string $userName
-	 * @param UserProperty $userProp
+	 * @param int $userId
+	 * @param string $propertyName
 	 * @return string[] String vector with all sites
 	 */
-	function returnUserProperty($userName, $userProp);
+	function getProperty($userId, $propertyName);
 
-	/**
-	 * @desc Add a specific site to user
-	 * @param string $userName
-	 * @param string $propValue
-	 * @param UserProperty $userProp
-	 * @return bool
-	 */
-	public function addPropertyValueToUser($userName, $propValue, $userProp);
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
+	public function addProperty($userId, $propertyName, $value);
 
-	/**
-	 * @desc Remove a specific site from user
-	 * @param string $userName
-	 * @param string $propValue
-	 * @param UserProperty $userProp
-	 * @return bool
-	 */
-	public function removePropertyValueFromUser($userName, $propValue, $userProp);
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
+	public function removeProperty($userId, $propertyName, $value);
 
 	/**
 	 * @desc Remove a specific site from all users
-	 * @param string $propValue
-	 * @param UserProperty $userProp
+	 * @param string $propertyName
+	 * @param string $value
 	 * @return bool
 	 */
-	public function removePropertyValueFromAllUsers($propValue, $userProp);
-
-	/**
-	 * Enter description here...
-	 *
-	 * @param int $id
-	 * @return SingleRow
-	 */
-	public function getUserId($id);
-
-	/**
-	 * Get all roles
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @return IteratorInterface
-	 */
-	public function getRolesIterator($site, $role = "");
-
-	/**
-	 * Add a public role into a site
-	 *
-	 * @param string $site
-	 * @param string $role
-	 */
-	public function addRolePublic($site, $role);
-
-	/**
-	 * Edit a public role into a site. If new Value == null, remove the role)
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @param string $newValue
-	 */
-	public function editRolePublic($site, $role, $newValue = null);
-
-	/**
-	 *
-	 * @param int $userId
-	 * @return bool
-	 */
-	public function userIsAdmin($userId = "");
-
-	/**
-	 *
-	 * @param string $role
-	 * @param int $userId
-	 * @return bool
-	 */
-	public function userHasRole($role, $userId = "");
+	public function removeAllProperties($propertyName, $value);
 
 	/**
 	 * @return UserTable Description
@@ -169,10 +136,5 @@ interface UsersInterface
 	 * @return CustomTable Description
 	 */
 	public function getCustomTable();
-
-	/**
-	 * @return RolesTable Description
-	 */
-	public function getRolesTable();
 }
 

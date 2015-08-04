@@ -2,13 +2,10 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\Exception\DatasetException;
 use ByJG\AnyDataset\Repository\AnyDataset;
 use ByJG\AnyDataset\Repository\IteratorFilter;
 use ByJG\AnyDataset\Repository\IteratorInterface;
 use ByJG\AnyDataset\Repository\SingleRow;
-use ByJG\Authenticate\UserProperty;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -54,11 +51,11 @@ class UsersAnyDataset extends UsersBase
 	 */
 	public function addUser( $name, $userName, $email, $password )
 	{
-		if ($this->getUserEMail($email) != null)
+		if ($this->getByEmail($email) != null)
 		{
 			return false;
 		}
-		if ($this->getUserName($userName) != null)
+		if ($this->getByUsername($userName) != null)
 		{
 			return false;
 		}
@@ -103,7 +100,7 @@ class UsersAnyDataset extends UsersBase
 	public function removeUserName( $username )
 	{
 		//anydataset.SingleRow
-		$user = $this->getUserName( $username );
+		$user = $this->getByUsername( $username );
 		if  ($user != null)
 		{
 			$this->_anyDataSet->removeRow( $user );
@@ -126,24 +123,22 @@ class UsersAnyDataset extends UsersBase
 		return $this->_anyDataSet->getIterator($filter);
 	}
 
-	/**
-	* Add a specific site to user
-	* Return True or false
-	*
-	* @param string $userName User login
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
-	* @return bool
-	* */
-	public function addPropertyValueToUser( $userName, $propValue, $userProp )
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
+	public function addProperty($userId, $propertyName, $value)
 	{
 		//anydataset.SingleRow
-		$user = $this->getUserName( $userName );
+		$user = $this->getById( $userId );
 		if ($user != null)
 		{
-			if(!$this->checkUserProperty($user->getField($this->getUserTable()->id), $propValue, $userProp ))
+			if(!$this->hasProperty($user->getField($this->getUserTable()->id), $propertyName, $value ))
 			{
-				$user->AddField(UserProperty::getPropertyNodeName($userProp), $propValue );
+				$user->addField($propertyName, $value);
+                $this->save();
 			}
 			return true;
 		}
@@ -153,21 +148,19 @@ class UsersAnyDataset extends UsersBase
 		}
 	}
 
-	/**
-	* Remove a specific site from user
-	* Return True or false
-	*
-	* @param string $userName User login
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
-	* @return bool
-	* */
-	public function removePropertyValueFromUser( $userName, $propValue, $userProp )
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     * @return boolean
+     */
+	public function removeProperty( $userId, $propertyName, $value )
 	{
-		$user = $this->getUserName( $userName );
+		$user = $this->getById( $userId );
 		if ($user != null)
 		{
-			$user->removeFieldNameValue(UserProperty::getPropertyNodeName($userProp), $propValue);
+			$user->removeFieldNameValue($propertyName, $value);
 			$this->save();
 			return true;
 		}
@@ -181,115 +174,19 @@ class UsersAnyDataset extends UsersBase
 	* Remove a specific site from all users
 	* Return True or false
 	*
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromAllUsers($propValue, $userProp)
+	public function removeAllProperties($propertyName, $value)
 	{
 		$it = $this->getIterator(null);
 		while ($it->hasNext())
 		{
 			//anydataset.SingleRow
 			$user = $it->moveNext();
-			$this->removePropertyValueFromUser($user->getField($this->getUserTable()->username), $propValue, $userProp);
+			$this->removeProperty($user->getField($this->getUserTable()->username), $propertyName, $value);
 		}
-	}
-
-	/**
-	 * Enter description here...
-	 *
-	 * @return AnyDataset
-	 */
-	protected function getRoleAnydataSet()
-	{
-		$fileRole = basename($this->_usersFile) . '.roles.' . pathinfo($this->_usersFile, PATHINFO_EXTENSION);
-		$roleDataSet = new AnyDataset($fileRole);
-		return $roleDataSet;
-	}
-
-	/**
-	 * Get all roles
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @return IteratorInterface
-	 */
-	public function getRolesIterator($site, $role = "")
-	{
-		$itf = new IteratorFilter();
-		if ($role != "")
-		{
-			$itf->addRelation($this->getRolesTable()->role,  Relation::EQUAL, $role);
-		}
-		$itf->startGroup();
-		$itf->addRelation($this->getRolesTable()->site,  Relation::EQUAL, $site);
-		$itf->addRelationOr($this->getRolesTable()->site,  Relation::EQUAL, "_all");
-		$itf->endGroup();
-
-		$roleDataSet = $this->getRoleAnydataSet();
-		return $roleDataSet->getIterator($itf);
-	}
-
-	/**
-	 * Add a public role into a site
-	 *
-	 * @param string $site
-	 * @param string $role
-	 */
-	public function addRolePublic($site, $role)
-	{
-		$dataset = $this->getRoleAnydataSet();
-		$dataFilter = new IteratorFilter();
-		$dataFilter->addRelation($this->getRolesTable()->site,  Relation::EQUAL, $site);
-		$iterator = $dataset->getIterator($dataFilter);
-		if(!$iterator->hasNext())
-		{
-			$dataset->appendRow();
-			$dataset->addField($this->getRolesTable()->site, $site);
-			$dataset->addField($this->getRolesTable()->role, $role);
-		}
-		else
-		{
-			$dataFilter->addRelation($this->getRolesTable()->role,  Relation::EQUAL, $role);
-			$iteratorCheckDupRole = $dataset->getIterator($dataFilter);
-			if (!$iteratorCheckDupRole->hasNext())
-			{
-				$sr = $iterator->moveNext();
-				$sr->AddField($this->getRolesTable()->role, $role);
-			}
-			else
-			{
-				throw new DatasetException("Role exists");
-			}
-		}
-		$dataset->save();
-	}
-
-	/**
-	 * Edit a public role into a site. If new Value == null, remove the role)
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @param string $newValue Null remove the value
-	 */
-	public function editRolePublic($site, $role, $newValue = null)
-	{
-		if ($newValue != null)
-		{
-			$this->addRolePublic($site, $newValue);
-		}
-
-		$roleDataSet = $this->getRoleAnydataSet();
-		$dataFilter = new IteratorFilter();
-		$dataFilter->addRelation($this->getRolesTable()->site,  Relation::EQUAL, $site);
-		$dataFilter->addRelation($this->getRolesTable()->role,  Relation::EQUAL, $role);
-		$it = $roleDataSet->getIterator($dataFilter);
-		if ($it->hasNext()) {
-			$sr = $it->moveNext();
-			$sr->removeFieldName($role);
-		}
-		$roleDataSet->save();
 	}
 
 	public function getUserTable()

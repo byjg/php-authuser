@@ -4,14 +4,10 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\IteratorInterface;
 use ByJG\AnyDataset\Repository\SingleRow;
 use ByJG\Authenticate\CustomTable;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
-use ByJG\Authenticate\Exception\NotImplementedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
-use ByJG\Authenticate\RolesTable;
-use ByJG\Authenticate\UserProperty;
 use ByJG\Authenticate\UserTable;
 
 /**
@@ -28,12 +24,6 @@ abstract class UsersBase implements UsersInterface
 	 * @var CustomTable
 	 */
 	protected $_customTable;
-
-	/**
-	*@var RolesTable
-	*/
-	protected $_rolesTable;
-
 
 	/**
 	 *
@@ -75,22 +65,6 @@ abstract class UsersBase implements UsersInterface
 	}
 
 	/**
-	 *
-	 * @return RolesTable
-	 */
-	public function getRolesTable()
-	{
-		if ($this->_rolesTable == null)
-		{
-			$this->_rolesTable = new RolesTable();
-			$this->_rolesTable->table = "roles";
-			$this->_rolesTable->site  = "site";
-			$this->_rolesTable->role = "role";
-		}
-		return $this->_rolesTable;
-	}
-
-	/**
 	* Save the current UsersAnyDataset
 	* */
 	public function save()
@@ -128,7 +102,7 @@ abstract class UsersBase implements UsersInterface
 	* @param string $email
 	* @return SingleRow
 	* */
-	public function getUserEMail( $email )
+	public function getByEmail( $email )
 	{
 		$filter = new IteratorFilter();
 		$filter->addRelation($this->getUserTable()->email,  Relation::EQUAL , strtolower($email));
@@ -142,7 +116,7 @@ abstract class UsersBase implements UsersInterface
 	* @param string $username
 	* @return SingleRow
 	* */
-	public function getUserName( $username )
+	public function getByUsername( $username )
 	{
 		$filter = new IteratorFilter();
 		$filter->addRelation($this->getUserTable()->username,  Relation::EQUAL , strtolower($username) );
@@ -156,7 +130,7 @@ abstract class UsersBase implements UsersInterface
 	* @param string $id
 	* @return SingleRow
 	* */
-	public function getUserId( $id )
+	public function getById( $id )
 	{
 		$filter = new IteratorFilter();
 		$filter->addRelation($this->getUserTable()->id,  Relation::EQUAL , $id );
@@ -192,7 +166,7 @@ abstract class UsersBase implements UsersInterface
 	* @param string $password Plain text password
 	* @return SingleRow
 	* */
-	public function validateUserName( $userName, $password )
+	public function isValidUser( $userName, $password )
 	{
 		$filter = new IteratorFilter();
 		$filter->addRelation($this->getUserTable()->username,  Relation::EQUAL , strtolower($userName));
@@ -201,29 +175,30 @@ abstract class UsersBase implements UsersInterface
 	}
 
 	/**
-	* Check if the user have a property and it have a specific value.
-	* Return True if have rights; false, otherwise
-	*
-	* @param mixed $userId User identification
-	* @param string $propValue Property value
-	* @param UserProperty $userProp Property name
-	* @return bool
-	* */
-	public function checkUserProperty( $userId, $propValue, $userProp )
+ 	 * Check if the user have a property and it have a specific value.
+	 * Return True if have rights; false, otherwise
+	 *
+	 * @param mixed $userId User identification
+     * @param string $propertyName
+	 * @param string $value Property value
+	 * @return bool
+	 *
+     */
+	public function hasProperty($userId, $propertyName, $value)
 	{
 		//anydataset.SingleRow
-		$user = $this->getUserId( $userId );
+		$user = $this->getById( $userId );
 
 		if ($user != null)
 		{
-			if ($this->userIsAdmin($userId))
+			if ($this->isAdmin($userId))
 			{
 				return true;
 			}
 			else
 			{
-				$values = $user->getFieldArray(UserProperty::getPropertyNodeName($userProp));
-				return ($values != null ? in_array($propValue, $values) : false);
+				$values = $user->getFieldArray($propertyName);
+				return ($values != null ? in_array($value, $values) : false);
 			}
 		}
 		else
@@ -237,55 +212,35 @@ abstract class UsersBase implements UsersInterface
 	* Return String vector with all sites
 	*
 	* @param string $userId User ID
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
 	* @return array
 	* */
-	public function returnUserProperty( $userId, $userProp )
+	public function getProperty( $userId, $propertyName )
 	{
 		//anydataset.SingleRow
-		$user = $this->getUserId( $userId );
+		$user = $this->getById( $userId );
 		if ($user != null)
 		{
-			//XmlNodeList
-			$nodes = $user->getFieldArray(UserProperty::getPropertyNodeName($userProp));
+			$values = $user->getFieldArray($propertyName);
 
-			if ($this->userIsAdmin($userId))
+			if ($this->isAdmin($userId))
 			{
 				return array("admin" => "admin");
 			}
-			else
-			{
-				if (count($nodes) == 0)
-				{
-					return null;
-				}
-				else
-				{
-					foreach($nodes as $node)
-					{
-						$result[$node] = $node;
-					}
-					return $result;
-				}
-			}
 
+            return $values;
 		}
-		else
-		{
-			return null;
-		}
+
+        return null;
 	}
 
-	/**
-	* Add a specific site to user
-	* Return True or false
-	*
-	* @param string $userName User login
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
-	* @return bool
-	* */
-	public function addPropertyValueToUser( $userName, $propValue, $userProp )
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
+	public function addProperty($userId, $propertyName, $value)
 	{
 	}
 
@@ -293,12 +248,12 @@ abstract class UsersBase implements UsersInterface
 	* Remove a specific site from user
 	* Return True or false
 	*
-	* @param string $userName User login
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param int $userId User login
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromUser( $userName, $propValue, $userProp )
+	public function removeProperty( $userId, $propertyName, $value )
 	{
 	}
 
@@ -306,47 +261,12 @@ abstract class UsersBase implements UsersInterface
 	* Remove a specific site from all users
 	* Return True or false
 	*
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromAllUsers($propValue, $userProp)
+	public function removeAllProperties($propertyName, $value)
 	{
-	}
-
-	/**
-	 * Get all roles
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @return IteratorInterface
-	 */
-	public function getRolesIterator($site, $role = "")
-	{
-		throw new NotImplementedException("This method must be implemented");
-	}
-
-	/**
-	 * Add a public role into a site
-	 *
-	 * @param string $site
-	 * @param string $role
-	 */
-	public function addRolePublic($site, $role)
-	{
-		throw new NotImplementedException("This method must be implemented");
-	}
-
-	/**
-	 * Edit a public role into a site. If new Value == null, remove the role)
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @param string $newValue
-	 */
-	public function editRolePublic($site, $role, $newValue = null)
-	{
-		throw new NotImplementedException("This method must be implemented");
 	}
 
 	/**
@@ -354,7 +274,7 @@ abstract class UsersBase implements UsersInterface
 	 * @param int $userId
 	 * @return bool
 	 */
-	public function userIsAdmin($userId = null)
+	public function isAdmin($userId = null)
 	{
 		if (is_null($userId))
 		{
@@ -365,7 +285,7 @@ abstract class UsersBase implements UsersInterface
             $userId = $currentUser[$this->getUserTable()->id];
 		}
 		
-		$user = $this->getUserId($userId);
+		$user = $this->getById($userId);
 
 		if (!is_null($user)) {
             return (
@@ -379,26 +299,6 @@ abstract class UsersBase implements UsersInterface
 		else {
 			throw new UserNotFoundException("Cannot find the user");
         }
-	}
-
-	/**
-	 *
-	 * @param string $role
-	 * @param int $userId
-	 * @return bool
-	 */
-	public function userHasRole($role, $userId = null)
-	{
-		if (!is_null($userId))
-		{
-            $currentUser = UserContext::getInstance()->userInfo();
-			if ($currentUser === false) {
-				throw new NotAuthenticatedException();
-            }
-			$userId = $currentUser[$this->getUserTable()->id];
-		}
-
-		return $this->checkUserProperty($userId, $role, UserProperty::Role);
 	}
 }
 

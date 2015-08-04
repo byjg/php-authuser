@@ -9,7 +9,6 @@ define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password fie
 
 
 use ByJG\Authenticate\Exception\NotImplementedException;
-use ByJG\Authenticate\UserProperty;
 use ErrorException;
 
 class UsersMoodleDataset extends UsersDBDataset
@@ -58,9 +57,9 @@ class UsersMoodleDataset extends UsersDBDataset
 		return (bool) preg_match('/^[0-9a-f]{32}$/', $password);
 	}
 
-	public function validateUserName($userName, $password)
+	public function isValidUser($userName, $password)
 	{
-		$user = $this->getUserName($userName);
+		$user = $this->getByUsername($userName);
 		if ($user == null)
         {
             return null;
@@ -133,7 +132,7 @@ class UsersMoodleDataset extends UsersDBDataset
 			$it = $this->_DB->getIterator($sqlRoles, $param);
 			foreach ($it as $sr)
 			{
-				$user->AddField("roles", $sr->getField('shortname'));
+				$user->addField("roles", $sr->getField('shortname'));
 			}
 
 			// Find the moodle site admin (super user)
@@ -179,38 +178,15 @@ class UsersMoodleDataset extends UsersDBDataset
 	* Remove a specific site from all users
 	* Return True or false
 	*
-	* @param string $propValue Property value with a site
-	* @param UserProperty $userProp Property name
+	* @param string $propertyName Property name
+	* @param string $value Property value with a site
 	* @return bool
 	* */
-	public function removePropertyValueFromAllUsers($propValue, $userProp)
+	public function removeAllProperties($propertyName, $value)
 	{
 		throw new NotImplementedException('Remove property value from all users is not implemented');
 	}
 
-
-	/**
-	 * Add a public role into a site
-	 *
-	 * @param string $site
-	 * @param string $role
-	 */
-	public function addRolePublic($site, $role)
-	{
-		throw new NotImplementedException('Add role public is not implemented');
-	}
-
-	/**
-	 * Edit a public role into a site. If new Value == null, remove the role)
-	 *
-	 * @param string $site
-	 * @param string $role
-	 * @param string $newValue
-	 */
-	public function editRolePublic($site, $role, $newValue = null)
-	{
-		throw new NotImplementedException('Edit role public is not implemented');
-	}
 
 	public function getUserTable()
 	{
@@ -240,17 +216,5 @@ class UsersMoodleDataset extends UsersDBDataset
 			$this->_customTable->value = "data";
 		}
 		return $this->_customTable;
-	}
-
-	public function getRolesTable()
-	{
-		if ($this->_rolesTable == null)
-		{
-			parent::getRolesTable();
-			$this->_rolesTable->table = "mdl_role";
-			$this->_rolesTable->site  = "'_all'";
-			$this->_rolesTable->role = "shortname";
-		}
-		return $this->_rolesTable;
 	}
 }
