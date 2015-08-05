@@ -115,7 +115,7 @@ class UsersMoodleDataset extends UsersDBDataset
 	{
 		$user = parent::getUser($filter);
 
-		if (!is_null($user)
+		if (!is_null($user))
 		{
 			// Get the user's roles from moodle
 			$sqlRoles = 'SELECT shortname
@@ -190,7 +190,7 @@ class UsersMoodleDataset extends UsersDBDataset
 
 	public function getUserTable()
 	{
-		if (is_null($this->_userTable)
+		if (is_null($this->_userTable))
 		{
 			$this->_userTable = new UserTable(
                 "mdl_user",

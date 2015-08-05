@@ -53,11 +53,11 @@ class UsersAnyDataset extends UsersBase
 	 */
 	public function addUser( $name, $userName, $email, $password )
 	{
-		if ($this->getByEmail($email) != null)
+		if ($this->getByEmail($email) !== null)
 		{
 			return false;
 		}
-		if ($this->getByUsername($userName) != null)
+		if ($this->getByUsername($userName) !== null)
 		{
 			return false;
 		}
@@ -103,7 +103,7 @@ class UsersAnyDataset extends UsersBase
 	{
 		//anydataset.SingleRow
 		$user = $this->getByUsername( $username );
-		if  ($user != null)
+		if  ($user !== null)
 		{
 			$this->_anyDataSet->removeRow( $user );
 			return true;
@@ -135,7 +135,7 @@ class UsersAnyDataset extends UsersBase
 	{
 		//anydataset.SingleRow
 		$user = $this->getById( $userId );
-		if ($user != null)
+		if ($user !== null)
 		{
 			if(!$this->hasProperty($user->getField($this->getUserTable()->id), $propertyName, $value ))
 			{
@@ -160,7 +160,7 @@ class UsersAnyDataset extends UsersBase
 	public function removeProperty( $userId, $propertyName, $value )
 	{
 		$user = $this->getById( $userId );
-		if ($user != null)
+		if ($user !== null)
 		{
 			$user->removeFieldNameValue($propertyName, $value);
 			$this->save();

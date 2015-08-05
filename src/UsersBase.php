@@ -32,7 +32,7 @@ abstract class UsersBase implements UsersInterface
 	 */
 	public function getUserTable()
 	{
-		if ($this->_userTable == null)
+		if ($this->_userTable === null)
 		{
 			$this->_userTable = new UserTable();
 		}
@@ -45,7 +45,7 @@ abstract class UsersBase implements UsersInterface
 	 */
 	public function getCustomTable()
 	{
-		if ($this->_customTable == null)
+		if ($this->_customTable === null)
 		{
 			$this->_customTable = new CustomTable();
 		}
@@ -177,7 +177,7 @@ abstract class UsersBase implements UsersInterface
 		//anydataset.SingleRow
 		$user = $this->getById( $userId );
 
-		if ($user != null)
+		if ($user !== null)
 		{
 			if ($this->isAdmin($userId))
 			{
@@ -186,7 +186,7 @@ abstract class UsersBase implements UsersInterface
 			else
 			{
 				$values = $user->getFieldArray($propertyName);
-				return ($values != null ? in_array($value, $values) : false);
+				return ($values !== null ? in_array($value, $values) : false);
 			}
 		}
 		else
@@ -207,7 +207,7 @@ abstract class UsersBase implements UsersInterface
 	{
 		//anydataset.SingleRow
 		$user = $this->getById( $userId );
-		if ($user != null)
+		if ($user !== null)
 		{
 			$values = $user->getFieldArray($propertyName);
 

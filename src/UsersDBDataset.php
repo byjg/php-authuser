@@ -162,11 +162,11 @@ class UsersDBDataset extends UsersBase
 	 */
 	public function addUser( $name, $userName, $email, $password )
 	{
-		if ($this->getByEmail($email) != null)
+		if ($this->getByEmail($email) !== null)
 		{
 			return false;
 		}
-		if ($this->getByUsername($userName) != null)
+		if ($this->getByUsername($userName) !== null)
 		{
 			return false;
 		}
@@ -313,7 +313,7 @@ class UsersDBDataset extends UsersBase
 	{
 		//anydataset.SingleRow
 		$user = $this->getById( $userId );
-		if ($user != null)
+		if ($user !== null)
 		{
 			if(!$this->hasProperty($userId, $propertyName, $value))
 			{
@@ -352,7 +352,7 @@ class UsersDBDataset extends UsersBase
 	public function removeProperty( $userId, $propertyName, $value )
 	{
 		$user = $this->getById( $userId );
-		if ($user != null)
+		if ($user !== null)
 		{
 			$param = array();
 			$param["id"] = $userId;
