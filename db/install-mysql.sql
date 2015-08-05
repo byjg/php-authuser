@@ -32,3 +32,4 @@ TYPE = InnoDB;
 insert into users (name, email, username, password, created, admin) 
 values 
    ('Administrator', 'your@email.com', 'admin', '37FA265330AD83EAA879EFB1E2DB6380896CF639', now(), 'yes' );
+

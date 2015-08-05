@@ -83,8 +83,8 @@ class UserContext
         if (!is_array($oldData)) {
             return false;
         }
-        if (isset($oldData['name'])) {
-            return $oldData['name'];
+        if (isset($oldData[$name])) {
+            return $oldData[$name];
         }
 
         return false;

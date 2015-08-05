@@ -52,7 +52,7 @@ class UsersMoodleDataset extends UsersDBDataset
 		throw new NotImplementedException('Add new user is not implemented');
 	}
 
-	protected function password_is_legacy_hash($password)
+	protected function passwordIsLegacyHash($password)
 	{
 		return (bool) preg_match('/^[0-9a-f]{32}$/', $password);
 	}
@@ -73,7 +73,7 @@ class UsersMoodleDataset extends UsersDBDataset
             return null;
         }
 
-        if ($this->password_is_legacy_hash($savedPassword))
+        if ($this->passwordIsLegacyHash($savedPassword))
 		{
 			if ($savedPassword === md5($password . $this->_siteSalt)
 				|| $savedPassword === md5($password)
@@ -98,7 +98,8 @@ class UsersMoodleDataset extends UsersDBDataset
 			}
 
 			$status = 0;
-			for ($i = 0; $i < strlen($ret); $i++) {
+            $lenRet = strlen($ret);
+			for ($i = 0; $i < $lenRet; $i++) {
 				$status |= (ord($ret[$i]) ^ ord($savedPassword[$i]));
 			}
 
