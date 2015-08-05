@@ -60,7 +60,7 @@ class UsersMoodleDataset extends UsersDBDataset
 	public function isValidUser($userName, $password)
 	{
 		$user = $this->getByUsername($userName);
-		if ($user == null)
+		if (is_null($user))
         {
             return null;
         }
@@ -115,7 +115,7 @@ class UsersMoodleDataset extends UsersDBDataset
 	{
 		$user = parent::getUser($filter);
 
-		if ($user != null)
+		if (!is_null($user)
 		{
 			// Get the user's roles from moodle
 			$sqlRoles = 'SELECT shortname
@@ -190,7 +190,7 @@ class UsersMoodleDataset extends UsersDBDataset
 
 	public function getUserTable()
 	{
-		if ($this->_userTable == null)
+		if (is_null($this->_userTable)
 		{
 			$this->_userTable = new UserTable(
                 "mdl_user",
@@ -208,7 +208,7 @@ class UsersMoodleDataset extends UsersDBDataset
 
 	public function getCustomTable()
 	{
-		if ($this->_customTable == null)
+		if (is_null($this->_customTable))
 		{
 			$this->_customTable = new CustomTable("mdl_user_info_data", "id", "fieldid", "data");
 		}

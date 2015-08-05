@@ -1,7 +1,12 @@
 <?php
 
-
 namespace ByJG\Authenticate;
+
+use ByJG\Cache\CacheContext;
+use ByJG\Cache\CacheEngineInterface;
+use ByJG\Cache\SessionCacheEngine;
+use Exception;
+use InvalidArgumentException;
 
 class UserContext
 {
@@ -12,16 +17,16 @@ class UserContext
 
     /**
      *
-     * @var ByJG\Cache\CacheEngineInterface
+     * @var CacheEngineInterface
      */
     protected $session;
 
     protected function __construct()
     {
         try {
-            $this->session = \ByJG\Cache\CacheContext::factory(self::SESSION_PREFIX);
-        } catch (\Exception $ex) {
-            $this->session = new \ByJG\Cache\SessionCacheEngine();
+            $this->session = CacheContext::factory(self::SESSION_PREFIX);
+        } catch (Exception $ex) {
+            $this->session = new SessionCacheEngine();
             $this->session->configKey = self::SESSION_PREFIX;
         }
     }
@@ -51,7 +56,7 @@ class UserContext
      * @param string $user
      * @param UsersInterface $usersInstance
      * @param string $key
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
 	public function registerLogin($userId, $key = 'default')
 	{
@@ -95,7 +100,7 @@ class UserContext
 		$this->session->release("user.$key");
 		$this->session->release("user.$key.data");
 
-        if ($this->session instanceof ByJG\Cache\SessionCacheEngine)
+        if ($this->session instanceof SessionCacheEngine)
         {
             session_unset();
         }
