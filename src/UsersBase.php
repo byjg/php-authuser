@@ -288,6 +288,8 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @param string $password
      * @param array $extraInfo
+     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function createAuthToken($username, $password, $extraInfo = [])
     {
@@ -321,16 +323,17 @@ abstract class UsersBase implements UsersInterface
 
 			$user->setField('TOKEN', $token);
 			$this->save();
-            return true;
+            return $user;
 		}
 
-        return false;
+        return null;
     }
 
     /**
      * Check if the Auth Token is valid
      *
      * @param string $token
+     * @return \ByJG\AnyDataset\Repository\SingleRow True if it is OK, exception if dont
      */
     public function isValidToken($username, $token)
     {
@@ -349,6 +352,8 @@ abstract class UsersBase implements UsersInterface
 		$user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
 		$user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
 		$this->save();
+
+        return $user;
     }
 
 }

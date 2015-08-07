@@ -134,6 +134,8 @@ interface UsersInterface
      * @param string $username
      * @param string $password
      * @param array $extraInfo
+     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function createAuthToken($username, $password, $extraInfo = []);
 
