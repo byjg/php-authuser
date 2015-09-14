@@ -2,20 +2,20 @@
 
 namespace ByJG\Authenticate;
 
-
 /**
  * Structure to represent the users
  */
 class UserTable
 {
-	public $table;
-	public $id;
-	public $name ;
-	public $email;
-	public $username ;
-	public $password ;
-	public $created;
-	public $admin ;
+
+    public $table;
+    public $id;
+    public $name;
+    public $email;
+    public $username;
+    public $password;
+    public $created;
+    public $admin;
 
     /**
      * Define the name of fields and table to store and retrieve info from database
@@ -30,8 +30,8 @@ class UserTable
      * @param string $admin
      */
     public function __construct(
-        $table = 'users', $id = 'userid', $name = 'name', $email = 'email', $username = 'username',
-        $password = 'password', $created = 'created', $admin = 'admin'
+    $table = 'users', $id = 'userid', $name = 'name', $email = 'email', $username = 'username', $password = 'password',
+        $created = 'created', $admin = 'admin'
     )
     {
         $this->table = $table;

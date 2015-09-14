@@ -10,8 +10,8 @@ use InvalidArgumentException;
 
 class UserContext
 {
-    use \ByJG\DesignPattern\Singleton;
 
+    use \ByJG\DesignPattern\Singleton;
 
     const SESSION_PREFIX = 'authuserpackage';
 
@@ -31,25 +31,25 @@ class UserContext
         }
     }
 
-	/**
-	* Get information about current context is authenticated.
-	* @access public
-	* @return bool Return true if authenticated; false otherwise.
-	*/
-	public function isAuthenticated($key = 'default')
-	{
-		return $this->session->get("user.$key") !== false;
-	}
+    /**
+     * Get information about current context is authenticated.
+     * @access public
+     * @return bool Return true if authenticated; false otherwise.
+     */
+    public function isAuthenticated($key = 'default')
+    {
+        return $this->session->get("user.$key") !== false;
+    }
 
-	/**
-	* Get the authenticated user name
-	* @access public
-	* @return string The authenticated username if exists.
-	*/
-	public function userInfo($key = 'default')
-	{
+    /**
+     * Get the authenticated user name
+     * @access public
+     * @return string The authenticated username if exists.
+     */
+    public function userInfo($key = 'default')
+    {
         return $this->session->get("user.$key");
-	}
+    }
 
     /**
      *
@@ -58,10 +58,10 @@ class UserContext
      * @param string $key
      * @throws InvalidArgumentException
      */
-	public function registerLogin($userId, $key = 'default')
-	{
+    public function registerLogin($userId, $key = 'default')
+    {
         $this->session->set("user.$key", $userId);
-	}
+    }
 
     public function setSessionData($name, $value, $key = 'default')
     {
@@ -90,19 +90,18 @@ class UserContext
         return false;
     }
 
-	/**
-	* Make logout from XMLNuke Engine
-	* @access public
-	* @return void
-	*/
-	public function registerLogout($key = 'default')
-	{
-		$this->session->release("user.$key");
-		$this->session->release("user.$key.data");
+    /**
+     * Make logout from XMLNuke Engine
+     * @access public
+     * @return void
+     */
+    public function registerLogout($key = 'default')
+    {
+        $this->session->release("user.$key");
+        $this->session->release("user.$key.data");
 
-        if ($this->session instanceof SessionCacheEngine)
-        {
+        if ($this->session instanceof SessionCacheEngine) {
             session_unset();
         }
-	}
+    }
 }

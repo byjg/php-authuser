@@ -12,96 +12,95 @@ use ByJG\AnyDataset\Repository\SingleRow;
 interface UsersInterface
 {
 
-	/**
-	 * @desc Save the current DataSet
-	 */
-	function save();
+    /**
+     * @desc Save the current DataSet
+     */
+    function save();
 
-	/**
-	 * @desc Add a new user
-	 * @param string $name
-	 * @param string $userName
-	 * @param string $email
-	 * @param string $password
-	 * @return bool
-	 */
-	function addUser($name, $userName, $email, $password);
+    /**
+     * @desc Add a new user
+     * @param string $name
+     * @param string $userName
+     * @param string $email
+     * @param string $password
+     * @return bool
+     */
+    function addUser($name, $userName, $email, $password);
 
-	/**
-	 * @desc Get the user based on a filter
-	 * @param IteratorFilter $filter
-	 * @return SingleRow if user was found; null, otherwise
-	 */
-	function getUser($filter);
+    /**
+     * @desc Get the user based on a filter
+     * @param IteratorFilter $filter
+     * @return SingleRow if user was found; null, otherwise
+     */
+    function getUser($filter);
 
-	/**
-	 * Enter description here...
-	 *
-	 * @param int $id
-	 * @return SingleRow
-	 */
-	function getById($id);
+    /**
+     * Enter description here...
+     *
+     * @param int $id
+     * @return SingleRow
+     */
+    function getById($id);
 
+    /**
+     * @desc Get the user based on his email.
+     * @param string Email to find
+     * @return SingleRow if user was found; null, otherwise
+     */
+    function getByEmail($email);
 
-	/**
-	 * @desc Get the user based on his email.
-	 * @param string Email to find
-	 * @return SingleRow if user was found; null, otherwise
-	 */
-	function getByEmail($email);
+    /**
+     * @desc Get the user based on his login
+     * @param string $username
+     * @return SingleRow if user was found; null, otherwise
+     */
+    function getByUsername($username);
 
-	/**
-	 * @desc Get the user based on his login
-	 * @param string $username
-	 * @return SingleRow if user was found; null, otherwise
-	 */
-	function getByUsername($username);
+    /**
+     * @desc Remove the user based on his login.
+     * @param string $username
+     * @return bool
+     */
+    function removeUserName($username);
 
-	/**
-	 * @desc Remove the user based on his login.
-	 * @param string $username
-	 * @return bool
-	 */
-	function removeUserName($username);
+    /**
+     * @desc Get the SHA1 string from user password
+     * @param string $password
+     * @return string SHA1 encripted passwordstring
+     */
+    function getPasswordHash($password);
 
-	/**
-	 * @desc Get the SHA1 string from user password
-	 * @param string $password
-	 * @return string SHA1 encripted passwordstring
-	 */
-	function getPasswordHash($password);
+    /**
+     * @desc Validate if the user and password exists in the file
+     * @param string $userName
+     * @param string $password
+     * @return SingleRow if user was found; null, otherwise
+     */
+    function isValidUser($userName, $password);
 
-	/**
-	 * @desc Validate if the user and password exists in the file
-	 * @param string $userName
-	 * @param string $password
-	 * @return SingleRow if user was found; null, otherwise
-	 */
-	function isValidUser($userName, $password);
+    /**
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public function isAdmin($userId = "");
 
-	/**
-	 *
-	 * @param int $userId
-	 * @return bool
-	 */
-	public function isAdmin($userId = "");
+    /**
+     * @desc Check if the user have rights to edit specific site.
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     * @return True if have rights; false, otherwisebool
+     */
+    public function hasProperty($userId, $propertyName, $value);
 
-	/**
-	 * @desc Check if the user have rights to edit specific site.
-	 * @param int $userId
-	 * @param string $propertyName
-	 * @param string $value
-	 * @return True if have rights; false, otherwisebool
-	 */
-	public function hasProperty($userId, $propertyName, $value);
-
-	/**
-	 * @desc Return all sites from a specific user
-	 * @param int $userId
-	 * @param string $propertyName
-	 * @return string[] String vector with all sites
-	 */
-	function getProperty($userId, $propertyName);
+    /**
+     * @desc Return all sites from a specific user
+     * @param int $userId
+     * @param string $propertyName
+     * @return string[] String vector with all sites
+     */
+    function getProperty($userId, $propertyName);
 
     /**
      *
@@ -109,7 +108,7 @@ interface UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-	public function addProperty($userId, $propertyName, $value);
+    public function addProperty($userId, $propertyName, $value);
 
     /**
      *
@@ -117,16 +116,15 @@ interface UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-	public function removeProperty($userId, $propertyName, $value);
+    public function removeProperty($userId, $propertyName, $value);
 
-	/**
-	 * @desc Remove a specific site from all users
-	 * @param string $propertyName
-	 * @param string $value
-	 * @return bool
-	 */
-	public function removeAllProperties($propertyName, $value);
-
+    /**
+     * @desc Remove a specific site from all users
+     * @param string $propertyName
+     * @param string $value
+     * @return bool
+     */
+    public function removeAllProperties($propertyName, $value);
 
     /**
      * Authenticate a user and create a token if it is valid
@@ -146,14 +144,13 @@ interface UsersInterface
      */
     public function isValidToken($username, $token);
 
-	/**
-	 * @return UserTable Description
-	 */
-	public function getUserTable();
+    /**
+     * @return UserTable Description
+     */
+    public function getUserTable();
 
-	/**
-	 * @return CustomTable Description
-	 */
-	public function getCustomTable();
+    /**
+     * @return CustomTable Description
+     */
+    public function getCustomTable();
 }
-

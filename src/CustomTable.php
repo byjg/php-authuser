@@ -4,14 +4,15 @@ namespace ByJG\Authenticate;
 
 class CustomTable
 {
-	public $table;
-	public $id;
-	public $name;
-	public $value;
+
+    public $table;
+    public $id;
+    public $name;
+    public $value;
 
     /**
      * Define the name of fields and table to store and retrieve info from database
-	 * Table "CUSTOM" must have [$this->_UserTable->Id = "userid"].
+     * Table "CUSTOM" must have [$this->_UserTable->Id = "userid"].
      *
      * @param string $table
      * @param string $id
