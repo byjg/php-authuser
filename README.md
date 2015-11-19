@@ -12,11 +12,29 @@ This class can persist into session (or file, memcache, etc) the user data betwe
 
 ### Creating a Users handling class
 
+
+**Using the FileSystem as the user storage**
+
 ```php
 $users = new ByJG\Authenticate\UsersAnyDataset('/tmp/pass.anydata.xml');
 ```
 
-Note: Can be also UsersDBDataset and UsersMoodleDataset
+**Using the Database as the user storage**
+
+```php
+$users = new ByJG\Authenticate\UsersDBDataset(
+    'connection',   // The connection string. Please refer to the project byjg/anydataset
+    new \ByJG\Authenticate\UserTable(),  // The field metadata for store the users
+    new \ByJG\Authenticate\CustomTable()  // The field metadata for store the extra properties
+);
+```
+
+**Using the Moodle as the user storage**
+
+```php
+$users = new \ByJG\Authenticate\UsersMoodleDataset('connection');
+```
+
 
 ### Authenticate a user with your username and password and persist into the session
 
@@ -24,7 +42,7 @@ Note: Can be also UsersDBDataset and UsersMoodleDataset
 $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
-    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($user, $users);
+    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($user->getField($users->getUserTable()->id);
 }
 ```
 
@@ -45,7 +63,22 @@ if (\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated())
 
 ### Saving extra info into the user session 
 
-TODO
+You can save data in the session data exists only during the user is logged in. Once the user logged off the
+data stored with the user session will be released.
+
+**Store the data for the current user session**
+
+```php
+\ByJG\Authenticate\UserContext::getInstance()->setSessionData('key', 'value');
+```
+
+**Get the data for the current user session**
+
+```php
+$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key');
+```
+
+Note: If the user is not logged an error will be throw
 
 ### Adding a custom property to the users;
 
@@ -55,21 +88,37 @@ $user->setField('somefield', 'somevalue');
 $users->save();
 ```
 
-### Multiple authenticate contexts
-
-If you have two set of users in your application:
-- One set of regular users;
-- Another set with different database and tables;
-
-It is possible with AuthUser.
-
-```php
-//TODO
-```
-
 ### Logout from a session
 
-TODO
+```php
+\ByJG\Authenticate\UserContext::getInstance()->registerLogout();
+```
+
+### Multiple authenticate contexts
+
+It is possible have two or more different context of users authenticated,
+including using different authentication methods, like, regular user logins and
+admin user logins.
+
+When you user the UserContext methods all of them can receive an extra parameter with the name
+of the current context. If you do not pass anything, the 'default' context will be
+assigned.
+
+See the example:
+
+```php
+// 'default' context
+\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated();
+\ByJG\Authenticate\UserContext::getInstance()->registerLogin('userId');
+$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key');
+\ByJG\Authenticate\UserContext::getInstance()->registerLogout();
+
+// 'my' context
+\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated('my');
+\ByJG\Authenticate\UserContext::getInstance()->registerLogin('userId', 'my');
+$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key', 'my');
+\ByJG\Authenticate\UserContext::getInstance()->registerLogout('my');
+```
 
 ## Architecture
 
@@ -82,7 +131,7 @@ TODO
 
 TODO
 
-Just type: `composer install "byjg/authuser=~1.0"`
+Just type: `composer require "byjg/authuser=1.0.*"`
 
 ### Database
 
