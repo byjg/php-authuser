@@ -97,13 +97,10 @@ $users->save();
 
 ### Multiple authenticate contexts
 
-It is possible have two or more different context of users authenticated,
-including using different authentication methods, like, regular user logins and
-admin user logins.
-
-When you user the UserContext methods all of them can receive an extra parameter with the name
-of the current context. If you do not pass anything, the 'default' context will be
-assigned.
+You can create and handle more than on context for users. 
+All methods of the UserContext object can
+receive an extra parameter with the name of the current context.
+If you do not pass anything, the 'default' context will be assigned.
 
 See the example:
 
@@ -123,19 +120,90 @@ $value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key', 'm
 
 ## Architecture
 
-Authenticate Objects
-
-User Context
-TODO
+```
+                            +----------------+            +----------------+
+                            |                |            |                |
+                            | UsersInterface |------------|  UserContext   |
+                            |                |            |                |
+                            +----------------+            +----------------+
+                                    ^
+                                    |
+                                    |
+            +-----------------------+--------------------------+
+            |                       |                          |
+   +-----------------+      +----------------+       +--------------------+
+   |                 |      |                |       |                    |
+   | UsersAnyDataset |      | UsersDBDataset |       | UsersMoodleDataset |
+   |                 |      |                |       |                    |
+   +-----------------+      +----------------+       +--------------------+
+```
 
 ### Database
 
+The default structure adopted for store the user data in the database through the
+UsersDBDataset class is the follow:
+
+```sql
+create table users
+(
+    userid integer identity not null,
+    name varchar(50),
+    email varchar(120),
+    username varchar(15) not null,
+    password char(40) not null,
+    created datetime,
+    admin enum('Y','N'),
+
+   	constraint pk_users primary key (userid)
+)
+TYPE = InnoDB;
+
+create table users_property
+(
+   customid integer identity not null,
+   name varchar(20),
+   value varchar(100),
+   userid integer not null,
+
+   constraint pk_custom primary key (customid),
+   constraint fk_custom_user foreign key (userid) references users (userid),
+)
+TYPE = InnoDB;
+```
+
+Using the database structure above you can create the UsersDBDatase as follow:
+
+```php
+$users = new ByJG\Authenticate\UsersDBDataset(
+    'connection',
+    new \ByJG\Authenticate\UserTable(),
+    new \ByJG\Authenticate\CustomTable()
+);
+```
+
 ### Custom Database
 
+If you have an existing database with different names but containing all fields above
+you can use the UserTable and CustomTable classes for customize this info.
 
-### Install
+```php
+$userTable = new UserTable(
+    'users',    // $table
+    'userid',   // $id
+    'name',     // $name
+    'email',    // $email
+    'username', // $username
+    'password', // $password
+    'created',  // $created
+    'admin'     // $admin
+);
+```
+
+
+## Install
 
 Just type: `composer require "byjg/authuser=1.0.*"`
 
 ## Running Tests
 
+TODO
