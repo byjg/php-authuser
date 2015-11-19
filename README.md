@@ -42,7 +42,8 @@ $users = new \ByJG\Authenticate\UsersMoodleDataset('connection');
 $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
-    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($user->getField($users->getUserTable()->id);
+    $userId = $user->getField($users->getUserTable()->id;
+    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($userId);
 }
 ```
 
@@ -72,7 +73,7 @@ data stored with the user session will be released.
 \ByJG\Authenticate\UserContext::getInstance()->setSessionData('key', 'value');
 ```
 
-**Get the data for the current user session**
+**Getting the data from the current user session**
 
 ```php
 $value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key');
@@ -127,17 +128,14 @@ Authenticate Objects
 User Context
 TODO
 
-## Install
-
-TODO
-
-Just type: `composer require "byjg/authuser=1.0.*"`
-
 ### Database
 
 ### Custom Database
 
 
+### Install
+
+Just type: `composer require "byjg/authuser=1.0.*"`
 
 ## Running Tests
 
