@@ -63,8 +63,19 @@ class UserContext
         $this->session->set("user.$key", $userId);
     }
 
+    /**
+     *
+     * @param string $name
+     * @param mixed $value
+     * @param string $key
+     * @throws Exception\NotAuthenticatedException
+     */
     public function setSessionData($name, $value, $key = 'default')
     {
+        if (!$this->isAuthenticated($key)) {
+            throw new Exception\NotAuthenticatedException('There is no active logged user');
+        }
+
         $oldData = $this->session->get("user.$key.data");
 
         if (!is_array($oldData)) {
@@ -76,8 +87,19 @@ class UserContext
         $this->session->set("user.$key.data", $oldData);
     }
 
+    /**
+     *
+     * @param string $name
+     * @param string $key
+     * @return mixed
+     * @throws Exception\NotAuthenticatedException
+     */
     public function getSessionData($name, $key = 'default')
     {
+        if (!$this->isAuthenticated($key)) {
+            throw new Exception\NotAuthenticatedException('There is no active logged user');
+        }
+
         $oldData = $this->session->get("user.$key.data");
 
         if (!is_array($oldData)) {
