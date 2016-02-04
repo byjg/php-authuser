@@ -207,3 +207,4 @@ Just type: `composer require "byjg/authuser=1.0.*"`
 ## Running Tests
 
 TODO
+
