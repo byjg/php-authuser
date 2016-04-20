@@ -2,16 +2,17 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Cache\CacheContext;
 use ByJG\Cache\CacheEngineInterface;
 use ByJG\Cache\SessionCacheEngine;
+use ByJG\DesignPattern\Singleton;
 use Exception;
-use InvalidArgumentException;
 
 class UserContext
 {
 
-    use \ByJG\DesignPattern\Singleton;
+    use Singleton;
 
     const SESSION_PREFIX = 'authuserpackage';
 
@@ -34,6 +35,7 @@ class UserContext
     /**
      * Get information about current context is authenticated.
      * @access public
+     * @param string $key
      * @return bool Return true if authenticated; false otherwise.
      */
     public function isAuthenticated($key = 'default')
@@ -44,6 +46,7 @@ class UserContext
     /**
      * Get the authenticated user name
      * @access public
+     * @param string $key
      * @return string The authenticated username if exists.
      */
     public function userInfo($key = 'default')
@@ -53,10 +56,8 @@ class UserContext
 
     /**
      *
-     * @param string $user
-     * @param UsersInterface $usersInstance
+     * @param $userId
      * @param string $key
-     * @throws InvalidArgumentException
      */
     public function registerLogin($userId, $key = 'default')
     {
@@ -68,12 +69,12 @@ class UserContext
      * @param string $name
      * @param mixed $value
      * @param string $key
-     * @throws Exception\NotAuthenticatedException
+     * @throws NotAuthenticatedException
      */
     public function setSessionData($name, $value, $key = 'default')
     {
         if (!$this->isAuthenticated($key)) {
-            throw new Exception\NotAuthenticatedException('There is no active logged user');
+            throw new NotAuthenticatedException('There is no active logged user');
         }
 
         $oldData = $this->session->get("user.$key.data");
@@ -92,12 +93,12 @@ class UserContext
      * @param string $name
      * @param string $key
      * @return mixed
-     * @throws Exception\NotAuthenticatedException
+     * @throws NotAuthenticatedException
      */
     public function getSessionData($name, $key = 'default')
     {
         if (!$this->isAuthenticated($key)) {
-            throw new Exception\NotAuthenticatedException('There is no active logged user');
+            throw new NotAuthenticatedException('There is no active logged user');
         }
 
         $oldData = $this->session->get("user.$key.data");
@@ -115,7 +116,7 @@ class UserContext
     /**
      * Make logout from XMLNuke Engine
      * @access public
-     * @return void
+     * @param string $key
      */
     public function registerLogout($key = 'default')
     {

@@ -25,6 +25,9 @@ class UsersAnyDataset extends UsersBase
 
     /**
      * AnyDataset constructor
+     * @param string $file
+     * @param UserTable $userTable
+     * @param CustomTable $customTable
      */
     public function __construct($file, UserTable $userTable = null, CustomTable $customTable = null)
     {
@@ -123,6 +126,7 @@ class UsersAnyDataset extends UsersBase
      * @param int $userId
      * @param string $propertyName
      * @param string $value
+     * @return bool|void
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -134,9 +138,9 @@ class UsersAnyDataset extends UsersBase
                 $this->save();
             }
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**

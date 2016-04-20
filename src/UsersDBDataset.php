@@ -22,6 +22,9 @@ class UsersDBDataset extends UsersBase
 
     /**
      * DBDataset constructor
+     * @param string $dataBase
+     * @param UserTable $userTable
+     * @param CustomTable $customTable
      */
     public function __construct($dataBase, UserTable $userTable = null, CustomTable $customTable = null)
     {
@@ -193,8 +196,6 @@ class UsersDBDataset extends UsersBase
      */
     public function getIterator(IteratorFilter $filter = null, $param = array())
     {
-        $sql = "";
-        $param = array();
         if (is_null($filter)) {
             $filter = new IteratorFilter();
         }
@@ -215,7 +216,7 @@ class UsersDBDataset extends UsersBase
         if ($it->hasNext()) {
             // Get the Requested User
             $sr = $it->moveNext();
-            $this->getCustomFields($sr);
+            $this->setCustomFieldsInUser($sr);
 
             // Clone the User Properties
             $anyOri = new AnyDataset();
@@ -294,6 +295,7 @@ class UsersDBDataset extends UsersBase
      * @param int $userId
      * @param string $propertyName
      * @param string $value
+     * @return bool|void
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -393,13 +395,12 @@ class UsersDBDataset extends UsersBase
     /**
      * Return all custom's fields from this user
      *
-     * @param unknown_type $userRow
-     * @return unknown
+     * @param SingleRow $userRow
      */
-    protected function getCustomFields($userRow)
+    protected function setCustomFieldsInUser($userRow)
     {
         if ($this->getCustomTable()->table == "") {
-            return null;
+            return;
         }
 
         $userId = $userRow->getField($this->getUserTable()->id);

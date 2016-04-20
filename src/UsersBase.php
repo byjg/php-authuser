@@ -5,10 +5,8 @@ namespace ByJG\Authenticate;
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Repository\IteratorFilter;
 use ByJG\AnyDataset\Repository\SingleRow;
-use ByJG\Authenticate\CustomTable;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
-use ByJG\Authenticate\UserTable;
 use InvalidArgumentException;
 
 /**
@@ -259,6 +257,8 @@ abstract class UsersBase implements UsersInterface
      *
      * @param int $userId
      * @return bool
+     * @throws NotAuthenticatedException
+     * @throws UserNotFoundException
      */
     public function isAdmin($userId = null)
     {
@@ -317,17 +317,19 @@ abstract class UsersBase implements UsersInterface
 
             $user->setField('TOKEN', $token);
             $this->save();
-            return $user;
         }
 
-        return null;
+        return $user;
     }
 
     /**
      * Check if the Auth Token is valid
      *
+     * @param string $username
      * @param string $token
-     * @return \ByJG\AnyDataset\Repository\SingleRow True if it is OK, exception if dont
+     * @return SingleRow True if it is OK, exception if dont
+     * @throws NotAuthenticatedException
+     * @throws UserNotFoundException
      */
     public function isValidToken($username, $token)
     {

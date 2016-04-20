@@ -20,6 +20,8 @@ class UsersMoodleDataset extends UsersDBDataset
 
     /**
      * DBDataset constructor
+     * @param string $dataBase
+     * @param string $siteSalt
      */
     public function __construct($dataBase, $siteSalt = "")
     {
@@ -45,6 +47,7 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws NotImplementedException
      */
     public function addUser($name, $userName, $email, $password)
     {
@@ -142,7 +145,8 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $login
      * @return bool
-     * */
+     * @throws NotImplementedException
+     */
     public function removeUserName($login)
     {
         throw new NotImplementedException('Remove user is not implemented');
@@ -153,7 +157,8 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param int $userId
      * @return bool
-     * */
+     * @throws NotImplementedException
+     */
     public function removeUserById($userId)
     {
         throw new NotImplementedException('Remove user by Id is not implemented');
@@ -166,7 +171,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * */
+     * @throws NotImplementedException
+     */
     public function removeAllProperties($propertyName, $value)
     {
         throw new NotImplementedException('Remove property value from all users is not implemented');

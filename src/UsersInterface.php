@@ -44,7 +44,7 @@ interface UsersInterface
 
     /**
      * @desc Get the user based on his email.
-     * @param string Email to find
+     * @param string $email Email to find
      * @return SingleRow if user was found; null, otherwise
      */
     function getByEmail($email);
@@ -80,7 +80,7 @@ interface UsersInterface
 
     /**
      *
-     * @param int $userId
+     * @param int|string $userId
      * @return bool
      */
     public function isAdmin($userId = "");
@@ -139,8 +139,10 @@ interface UsersInterface
 
     /**
      * Check if the Auth Token is valid
-     * 
+     *
+     * @param $username
      * @param string $token
+     * @return bool
      */
     public function isValidToken($username, $token);
 
