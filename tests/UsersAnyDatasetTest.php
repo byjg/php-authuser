@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use PHPUnit_Framework_TestCase;
 
 /**
@@ -152,12 +153,33 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
 
         // Check is Admin
         $this->assertTrue($this->object->isAdmin($this->prefix . '3'));
-
-
     }
 
     public function testCreateAuthToken()
     {
+        $user = $this->object->createAuthToken('user2', 'pwd2');
+        $token = $user->getField('TOKEN');
 
+        $user = $this->object->isValidToken('user2', $token);
+        $this->assertEquals('User 2', $user->getField($this->object->getUserTable()->name));
+    }
+
+    /**
+     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
+     */
+    public function testCreateAuthTokenFail()
+    {
+        $user = $this->object->createAuthToken('user2', 'pwd2');
+        $token = $user->getField('TOKEN');
+
+        $this->object->isValidToken('user1', $token);
+    }
+
+    /**
+     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
+     */
+    public function testCreateAuthTokenFail_2()
+    {
+        $this->object->isValidToken('user1', 'does not exists');
     }
 }
