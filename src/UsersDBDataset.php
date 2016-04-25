@@ -8,6 +8,7 @@ use ByJG\AnyDataset\Repository\DBDataset;
 use ByJG\AnyDataset\Repository\IteratorFilter;
 use ByJG\AnyDataset\Repository\IteratorInterface;
 use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersDBDataset extends UsersBase
 {
@@ -152,17 +153,19 @@ class UsersDBDataset extends UsersBase
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws UserExistsException
      */
     public function addUser($name, $userName, $email, $password)
     {
         if ($this->getByEmail($email) !== null) {
-            return false;
+            throw new UserExistsException('Email already exists');
         }
         if ($this->getByUsername($userName) !== null) {
-            return false;
+            throw new UserExistsException('Username already exists');
         }
-        $sql = " INSERT INTO @@Table (@@Name, @@Email, @@Username, @@Password, @@Created ) ";
-        $sql .=" VALUES ([[name]], [[email]], [[username]], [[password]], [[created]] ) ";
+
+        $sql = " INSERT INTO @@Table ( @@UserId, @@Name, @@Email, @@Username, @@Password, @@Created ) ";
+        $sql .=" VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
 
         $sql = $this->_sqlHelper->createSafeSQL($sql,
             array(
@@ -172,6 +175,7 @@ class UsersDBDataset extends UsersBase
                 '@@Username' => $this->getUserTable()->username,
                 '@@Password' => $this->getUserTable()->password,
                 '@@Created' => $this->getUserTable()->created,
+                '@@UserId' => $this->getUserTable()->id
             )
         );
 
@@ -181,6 +185,7 @@ class UsersDBDataset extends UsersBase
         $param['username'] = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName));
         $param['password'] = $this->getPasswordHash($password);
         $param['created'] = date("Y-m-d H:i:s");
+        $param['userid'] = $this->generateUserId();
 
         $this->_db->execSQL($sql, $param);
 
@@ -244,23 +249,9 @@ class UsersDBDataset extends UsersBase
      * */
     public function removeUserName($login)
     {
-        $baseSql = "DELETE FROM @@Table WHERE @@Username = [[login]] ";
-        $param = array("login" => $login);
-        if ($this->getCustomTable()->table != "") {
-            $sql = $this->_sqlHelper->createSafeSQL($baseSql,
-                array(
-                '@@Table' => $this->getCustomTable()->table,
-                '@@Username' => $this->getUserTable()->username
-            ));
-            $this->_db->execSQL($sql, $param);
-        }
-        $sql = $this->_sqlHelper->createSafeSQL($baseSql,
-            array(
-            '@@Table' => $this->getUserTable()->table,
-            '@@Username' => $this->getUserTable()->username
-        ));
-        $this->_db->execSQL($sql, $param);
-        return true;
+        $user = $this->getByUsername($login);
+
+        return $this->removeUserById($user->getField($this->getUserTable()->id));
     }
 
     /**
@@ -271,7 +262,7 @@ class UsersDBDataset extends UsersBase
      * */
     public function removeUserById($userId)
     {
-        $baseSql = "DELETE FROM @@Table WHERE @@Id = [[login]] ";
+        $baseSql = "DELETE FROM @@Table WHERE @@Id = [[id]] ";
         $param = array("id" => $userId);
         if ($this->getCustomTable()->table != "") {
             $sql = $this->_sqlHelper->createSafeSQL($baseSql,

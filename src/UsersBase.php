@@ -349,4 +349,12 @@ abstract class UsersBase implements UsersInterface
 
         return $user;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function generateUserId()
+    {
+        return null;
+    }
 }

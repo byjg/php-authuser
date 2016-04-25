@@ -155,4 +155,10 @@ interface UsersInterface
      * @return CustomTable Description
      */
     public function getCustomTable();
+
+    /**
+     * Return the ID for the user id (if it is not autoincrement)
+     * @return mixed
+     */
+    public function generateUserId();
 }

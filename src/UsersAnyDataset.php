@@ -6,6 +6,7 @@ use ByJG\AnyDataset\Repository\AnyDataset;
 use ByJG\AnyDataset\Repository\IteratorFilter;
 use ByJG\AnyDataset\Repository\IteratorInterface;
 use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -53,24 +54,33 @@ class UsersAnyDataset extends UsersBase
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws UserExistsException
      */
     public function addUser($name, $userName, $email, $password)
     {
         if ($this->getByEmail($email) !== null) {
-            return false;
+            throw new UserExistsException('Email already exists');
         }
         if ($this->getByUsername($userName) !== null) {
-            return false;
+            throw new UserExistsException('Username already exists');
         }
+        
+        $userId = $this->generateUserId();
+        $fixedUsername = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName)); 
+        if (is_null($userId)) {
+            $userId = $fixedUsername;
+        }
+        
         $this->_anyDataSet->appendRow();
 
+        $this->_anyDataSet->addField($this->getUserTable()->id, $userId);
+        $this->_anyDataSet->addField($this->getUserTable()->username, $fixedUsername);
         $this->_anyDataSet->addField($this->getUserTable()->name, $name);
-        $this->_anyDataSet->addField($this->getUserTable()->username,
-            preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName)));
         $this->_anyDataSet->addField($this->getUserTable()->email, strtolower($email));
         $this->_anyDataSet->addField($this->getUserTable()->password, $this->getPasswordHash($password));
         $this->_anyDataSet->addField($this->getUserTable()->admin, "");
         $this->_anyDataSet->addField($this->getUserTable()->created, date("Y-m-d H:i:s"));
+
         return true;
     }
 
