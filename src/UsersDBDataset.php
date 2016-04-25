@@ -48,7 +48,7 @@ class UsersDBDataset extends UsersBase
             // Look for changes
             $changeUser = false;
             foreach ($srMod->getFieldNames() as $keyfld => $fieldname) {
-				$userField = ($fieldname == $this->getUserTable()->name
+                $userField = ($fieldname == $this->getUserTable()->name
                     || $fieldname == $this->getUserTable()->email
                     || $fieldname == $this->getUserTable()->username
                     || $fieldname == $this->getUserTable()->password
@@ -82,7 +82,9 @@ class UsersDBDataset extends UsersBase
                         $this->_db->execSQL($sql, $param);
 
                         // If new Value is_empty does not add
-                        if ($srMod->getField($fieldname) == "") continue;
+                        if ($srMod->getField($fieldname) == "") {
+                            continue;
+                        }
 
                         // Insert new Value
                         $sql = $this->_sqlHelper->createSafeSQL("INSERT INTO @@Table "
@@ -165,7 +167,7 @@ class UsersDBDataset extends UsersBase
         }
 
         $sql = " INSERT INTO @@Table ( @@UserId, @@Name, @@Email, @@Username, @@Password, @@Created ) ";
-        $sql .=" VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
+        $sql .= " VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
 
         $sql = $this->_sqlHelper->createSafeSQL($sql,
             array(
@@ -295,7 +297,7 @@ class UsersDBDataset extends UsersBase
         if ($user !== null) {
             if (!$this->hasProperty($userId, $propertyName, $value)) {
                 $sql = " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) ";
-                $sql .=" VALUES ( [[id]], [[name]], [[value]] ) ";
+                $sql .= " VALUES ( [[id]], [[name]], [[value]] ) ";
 
                 $sql = $this->_sqlHelper->createSafeSQL($sql,
                     array(

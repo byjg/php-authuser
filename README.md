@@ -1,5 +1,7 @@
 # Auth User PHP
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5/mini.png)](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/authuser/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/authuser/?branch=master)
+[![Build Status](https://travis-ci.org/byjg/authuser.svg?branch=master)](https://travis-ci.org/byjg/authuser)
 
 ## Description
 
@@ -206,5 +208,5 @@ Just type: `composer require "byjg/authuser=1.0.*"`
 
 ## Running Tests
 
-TODO
+Just type `phpunit` on the root directory of your project.
 

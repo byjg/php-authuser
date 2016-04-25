@@ -106,7 +106,7 @@ class UsersAnyDataset extends UsersBase
      * Return SingleRow if user was found; null, otherwise
      *
      * @param string $username
-     * @return SingleRow
+     * @return boolean
      * */
     public function removeUserName($username)
     {
@@ -136,7 +136,7 @@ class UsersAnyDataset extends UsersBase
      * @param int $userId
      * @param string $propertyName
      * @param string $value
-     * @return bool|void
+     * @return boolean
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -178,8 +178,8 @@ class UsersAnyDataset extends UsersBase
      *
      * @param string $propertyName Property name
      * @param string $value Property value with a site
-     * @return bool
-     * */
+     * @return bool|void
+     */
     public function removeAllProperties($propertyName, $value)
     {
         $it = $this->getIterator(null);
