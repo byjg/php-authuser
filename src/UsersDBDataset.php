@@ -62,24 +62,7 @@ class UsersDBDataset extends UsersBase
                         $changeUser = true;
                     } else {
                         // Erase Old Custom Properties
-                        $sql = $this->_sqlHelper->createSafeSQL("DELETE FROM @@Table "
-                            . " WHERE @@Id = [[id]] "
-                            . "   AND @@Name = [[name]] "
-                            . "   AND @@Value = [[value]] ",
-                            array(
-                                "@@Table" => $this->getCustomTable()->table,
-                                "@@Id" => $this->getUserTable()->id,
-                                "@@Name" => $this->getCustomTable()->name,
-                                "@@Value" => $this->getCustomTable()->value
-                            )
-                        );
-
-                        $param = array(
-                            'id' => $srMod->getField($this->getUserTable()->id),
-                            'name' => $fieldname,
-                            'value' => $srOri->getField($fieldname)
-                        );
-                        $this->_db->execSQL($sql, $param);
+                        $this->removeProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srOri->getField($fieldname));
 
                         // If new Value is_empty does not add
                         if ($srMod->getField($fieldname) == "") {
@@ -87,64 +70,77 @@ class UsersDBDataset extends UsersBase
                         }
 
                         // Insert new Value
-                        $sql = $this->_sqlHelper->createSafeSQL("INSERT INTO @@Table "
-                            . "( @@Id, @@Name, @@Value ) "
-                            . " VALUES ( [[id]], [[name]], [[value]] ) ",
-                            array(
-                                "@@Table" => $this->getCustomTable()->table,
-                                "@@Id" => $this->getUserTable()->id,
-                                "@@Name" => $this->getCustomTable()->name,
-                                "@@Value" => $this->getCustomTable()->value
-                            )
-                        );
-
-                        $param = array();
-                        $param["id"] = $srMod->getField($this->getUserTable()->id);
-                        $param["name"] = $fieldname;
-                        $param["value"] = $srMod->getField($fieldname);
-
-                        $this->_db->execSQL($sql, $param);
+                        $this->addProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srMod->getField($fieldname));
                     }
                 }
             }
 
             if ($changeUser) {
-                $sql = "UPDATE @@Table ";
-                $sql .= " SET @@Name  = [[name]] ";
-                $sql .= ", @@Email = [[email]] ";
-                $sql .= ", @@Username = [[username]] ";
-                $sql .= ", @@Password = [[password]] ";
-                $sql .= ", @@Created = [[created]] ";
-                $sql .= ", @@Admin = [[admin]] ";
-                $sql .= " WHERE @@Id = [[id]]";
 
-                $sql = $this->_sqlHelper->createSafeSQL($sql,
-                    array(
-                        '@@Table' => $this->getUserTable()->table,
-                        '@@Name' => $this->getUserTable()->name,
-                        '@@Email' => $this->getUserTable()->email,
-                        '@@Username' => $this->getUserTable()->username,
-                        '@@Password' => $this->getUserTable()->password,
-                        '@@Created' => $this->getUserTable()->created,
-                        '@@Admin' => $this->getUserTable()->admin,
-                        '@@Id' => $this->getUserTable()->id
-                    )
+                $this->updateUser(
+                    $srMod->getField($this->getUserTable()->id),
+                    $srMod->getField($this->getUserTable()->name),
+                    $srMod->getField($this->getUserTable()->email),
+                    $srMod->getField($this->getUserTable()->username),
+                    $srMod->getField($this->getUserTable()->password),
+                    $srMod->getField($this->getUserTable()->created),
+                    $srMod->getField($this->getUserTable()->admin)
                 );
-
-                $param = array();
-                $param['name'] = $srMod->getField($this->getUserTable()->name);
-                $param['email'] = $srMod->getField($this->getUserTable()->email);
-                $param['username'] = $srMod->getField($this->getUserTable()->username);
-                $param['password'] = $srMod->getField($this->getUserTable()->password);
-                $param['created'] = $srMod->getField($this->getUserTable()->created);
-                $param['admin'] = $srMod->getField($this->getUserTable()->admin);
-                $param['id'] = $srMod->getField($this->getUserTable()->id);
-
-                $this->_db->execSQL($sql, $param);
             }
         }
         $this->_cacheUserOriginal = array();
         $this->_cacheUserWork = array();
+    }
+
+    /**
+     * @param int $id
+     * @param string $name
+     * @param string $email
+     * @param string $username
+     * @param string $password
+     * @param string $created
+     * @param string $admin
+     */
+    protected function updateUser($id, $name, $email, $username, $password, $created, $admin)
+    {
+        $sql = $this->getUpdateUserSql();
+
+        $sql = $this->_sqlHelper->createSafeSQL($sql,
+            array(
+                '@@Table' => $this->getUserTable()->table,
+                '@@Name' => $this->getUserTable()->name,
+                '@@Email' => $this->getUserTable()->email,
+                '@@Username' => $this->getUserTable()->username,
+                '@@Password' => $this->getUserTable()->password,
+                '@@Created' => $this->getUserTable()->created,
+                '@@Admin' => $this->getUserTable()->admin,
+                '@@Id' => $this->getUserTable()->id
+            )
+        );
+
+        $param = array();
+        $param['name'] = $name;
+        $param['email'] = $email;
+        $param['username'] = $username;
+        $param['password'] = $password;
+        $param['created'] = $created;
+        $param['admin'] = $admin;
+        $param['id'] = $id;
+
+        $this->_db->execSQL($sql, $param);
+    }
+
+    protected function getUpdateUserSql()
+    {
+        return
+            "UPDATE @@Table " .
+            " SET @@Name  = [[name]] " .
+            ", @@Email = [[email]] " .
+            ", @@Username = [[username]] " .
+            ", @@Password = [[password]] " .
+            ", @@Created = [[created]] " .
+            ", @@Admin = [[admin]] " .
+            " WHERE @@Id = [[id]]";
     }
 
     /**
@@ -354,9 +350,9 @@ class UsersDBDataset extends UsersBase
 
             $this->_db->execSQL($sql, $param);
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
