@@ -103,7 +103,7 @@ class UsersDBDataset extends UsersBase
      */
     protected function updateUser($id, $name, $email, $username, $password, $created, $admin)
     {
-        $sql = $this->getUpdateUserSql();
+        $sql = $this->sqlUpdateUser();
 
         $sql = $this->_sqlHelper->createSafeSQL($sql,
             array(
@@ -130,7 +130,7 @@ class UsersDBDataset extends UsersBase
         $this->_db->execSQL($sql, $param);
     }
 
-    protected function getUpdateUserSql()
+    protected function sqlUpdateUser()
     {
         return
             "UPDATE @@Table " .
@@ -162,10 +162,7 @@ class UsersDBDataset extends UsersBase
             throw new UserExistsException('Username already exists');
         }
 
-        $sql = " INSERT INTO @@Table ( @@UserId, @@Name, @@Email, @@Username, @@Password, @@Created ) ";
-        $sql .= " VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
-
-        $sql = $this->_sqlHelper->createSafeSQL($sql,
+        $sql = $this->_sqlHelper->createSafeSQL($this->sqlAdUser(),
             array(
                 '@@Table' => $this->getUserTable()->table,
                 '@@Name' => $this->getUserTable()->name,
@@ -188,6 +185,13 @@ class UsersDBDataset extends UsersBase
         $this->_db->execSQL($sql, $param);
 
         return true;
+    }
+
+    protected function sqlAdUser()
+    {
+        return
+            " INSERT INTO @@Table ( @@UserId, @@Name, @@Email, @@Username, @@Password, @@Created ) "
+            . " VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
     }
 
     /**
@@ -260,7 +264,7 @@ class UsersDBDataset extends UsersBase
      * */
     public function removeUserById($userId)
     {
-        $baseSql = "DELETE FROM @@Table WHERE @@Id = [[id]] ";
+        $baseSql = $this->sqlRemoveUserById();
         $param = array("id" => $userId);
         if ($this->getCustomTable()->table != "") {
             $sql = $this->_sqlHelper->createSafeSQL($baseSql,
@@ -279,6 +283,11 @@ class UsersDBDataset extends UsersBase
         return true;
     }
 
+    protected function sqlRemoveUserById()
+    {
+        return "DELETE FROM @@Table WHERE @@Id = [[id]]" ;
+    }
+
     /**
      *
      * @param int $userId
@@ -292,10 +301,8 @@ class UsersDBDataset extends UsersBase
         $user = $this->getById($userId);
         if ($user !== null) {
             if (!$this->hasProperty($userId, $propertyName, $value)) {
-                $sql = " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) ";
-                $sql .= " VALUES ( [[id]], [[name]], [[value]] ) ";
 
-                $sql = $this->_sqlHelper->createSafeSQL($sql,
+                $sql = $this->_sqlHelper->createSafeSQL($this->sqlAddProperty(),
                     array(
                     "@@Table" => $this->getCustomTable()->table,
                     "@@Id" => $this->getUserTable()->id,
@@ -316,6 +323,13 @@ class UsersDBDataset extends UsersBase
         return false;
     }
 
+    protected function sqlAddProperty()
+    {
+        return
+            " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) "
+            . " VALUES ( [[id]], [[name]], [[value]] ) ";
+    }
+
     /**
      * Remove a specific site from user
      * Return True or false
@@ -332,14 +346,9 @@ class UsersDBDataset extends UsersBase
             $param = array();
             $param["id"] = $userId;
             $param["name"] = $propertyName;
+            $param["value"] = $value;
 
-            $sql = "DELETE FROM @@Table ";
-            $sql .= " WHERE @@Id = [[id]] AND @@Name = [[name]] ";
-            if (!is_null($value)) {
-                $sql .= " AND @@Value = [[value]] ";
-                $param["value"] = $value;
-            }
-            $sql = $this->_sqlHelper->createSafeSQL($sql,
+            $sql = $this->_sqlHelper->createSafeSQL($this->sqlRemoveProperty(!is_null($value)),
                 array(
                     '@@Table' => $this->getCustomTable()->table,
                     '@@Name' => $this->getCustomTable()->name,
@@ -353,6 +362,14 @@ class UsersDBDataset extends UsersBase
         }
 
         return false;
+    }
+
+    protected function sqlRemoveProperty($withValue = false)
+    {
+        return
+            "DELETE FROM @@Table "
+            . " WHERE @@Id = [[id]] AND @@Name = [[name]] "
+            . ($withValue ? " AND @@Value = [[value]] " : '');
     }
 
     /**
@@ -369,9 +386,7 @@ class UsersDBDataset extends UsersBase
         $param["name"] = $propertyName;
         $param["value"] = $value;
 
-        $sql = "DELETE FROM @@Table WHERE @@Name = [[name]] AND @@Value = [[value]] ";
-
-        $sql = $this->_sqlHelper->createSafeSQL($sql,
+        $sql = $this->_sqlHelper->createSafeSQL($this->sqlRemoveAllProperties(),
             array(
             "@@Table" => $this->getCustomTable()->table,
             "@@Name" => $this->getCustomTable()->name,
@@ -379,6 +394,11 @@ class UsersDBDataset extends UsersBase
         ));
 
         $this->_db->execSQL($sql, $param);
+    }
+
+    protected function sqlRemoveAllProperties()
+    {
+        return "DELETE FROM @@Table WHERE @@Name = [[name]] AND @@Value = [[value]] ";
     }
 
     /**
@@ -393,9 +413,8 @@ class UsersDBDataset extends UsersBase
         }
 
         $userId = $userRow->getField($this->getUserTable()->id);
-        $sql = "select * from @@Table where @@Id = [[id]]";
 
-        $sql = $this->_sqlHelper->createSafeSQL($sql,
+        $sql = $this->_sqlHelper->createSafeSQL($this->sqlSetCustomFieldsInUser(),
             array(
             "@@Table" => $this->getCustomTable()->table,
             "@@Id" => $this->getUserTable()->id
@@ -408,5 +427,10 @@ class UsersDBDataset extends UsersBase
             $userRow->addField($sr->getField($this->getCustomTable()->name),
                 $sr->getField($this->getCustomTable()->value));
         }
+    }
+
+    protected function sqlSetCustomFieldsInUser()
+    {
+        return "select * from @@Table where @@Id = [[id]]";
     }
 }
