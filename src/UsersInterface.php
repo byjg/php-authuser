@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Dataset\SingleRow;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -132,7 +132,7 @@ interface UsersInterface
      * @param string $username
      * @param string $password
      * @param array $extraInfo
-     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
+     * @return \ByJG\AnyDataset\Dataset\SingleRow Return the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function createAuthToken($username, $password, $extraInfo = []);

@@ -2,7 +2,6 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use PHPUnit_Framework_TestCase;
 
 /**

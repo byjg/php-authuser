@@ -300,34 +300,34 @@ class UsersDBDataset extends UsersBase
      * @param int $userId
      * @param string $propertyName
      * @param string $value
-     * @return bool|void
+     * @return bool
      */
     public function addProperty($userId, $propertyName, $value)
     {
         //anydataset.SingleRow
         $user = $this->getById($userId);
-        if ($user !== null) {
-            if (!$this->hasProperty($userId, $propertyName, $value)) {
-
-                $sql = $this->_sqlHelper->createSafeSQL($this->sqlAddProperty(),
-                    array(
-                    "@@Table" => $this->getCustomTable()->table,
-                    "@@Id" => $this->getUserTable()->id,
-                    "@@Name" => $this->getCustomTable()->name,
-                    "@@Value" => $this->getCustomTable()->value
-                ));
-
-                $param = array();
-                $param["id"] = $userId;
-                $param["name"] = $propertyName;
-                $param["value"] = $value;
-
-                $this->_db->execute($sql, $param);
-            }
-            return true;
+        if (empty($user)) {
+            return false;
         }
 
-        return false;
+        if (!$this->hasProperty($userId, $propertyName, $value)) {
+
+            $sql = $this->_sqlHelper->createSafeSQL($this->sqlAddProperty(),
+                array(
+                "@@Table" => $this->getCustomTable()->table,
+                "@@Id" => $this->getUserTable()->id,
+                "@@Name" => $this->getCustomTable()->name,
+                "@@Value" => $this->getCustomTable()->value
+            ));
+
+            $param = array();
+            $param["id"] = $userId;
+            $param["name"] = $propertyName;
+            $param["value"] = $value;
+
+            $this->_db->execute($sql, $param);
+        }
+        return true;
     }
 
     protected function sqlAddProperty()
@@ -401,6 +401,8 @@ class UsersDBDataset extends UsersBase
         ));
 
         $this->_db->execute($sql, $param);
+
+        return true;
     }
 
     protected function sqlRemoveAllProperties()

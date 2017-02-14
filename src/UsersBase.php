@@ -66,10 +66,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $password
      * @return bool
      */
-    public function addUser($name, $userName, $email, $password)
-    {
-
-    }
+    abstract public function addUser($name, $userName, $email, $password);
 
     /**
      * Get the user based on a filter.
@@ -78,10 +75,7 @@ abstract class UsersBase implements UsersInterface
      * @param IteratorFilter $filter Filter to find user
      * @return SingleRow
      * */
-    public function getUser($filter)
-    {
-        
-    }
+    abstract public function getUser($filter);
 
     /**
      * Get the user based on his email.
@@ -131,10 +125,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @return bool
      * */
-    public function removeUserName($username)
-    {
-        
-    }
+    abstract public function removeUserName($username);
 
     /**
      * Get the SHA1 string from user password
@@ -235,10 +226,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    public function removeProperty($userId, $propertyName, $value)
-    {
-        
-    }
+    abstract public function removeProperty($userId, $propertyName, $value);
 
     /**
      * Remove a specific site from all users
@@ -248,10 +236,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    public function removeAllProperties($propertyName, $value)
-    {
-
-    }
+    abstract public function removeAllProperties($propertyName, $value);
 
     /**
      *
@@ -287,7 +272,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @param string $password
      * @param array $extraInfo
-     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
+     * @return \ByJG\AnyDataset\Dataset\SingleRow Return the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function createAuthToken($username, $password, $extraInfo = [])
