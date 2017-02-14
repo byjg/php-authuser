@@ -185,22 +185,24 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
 
     public function testUserContext()
     {
-        $this->assertFalse(UserContext::getInstance()->isAuthenticated());
+        $session = new SessionContext();
+        
+        $this->assertFalse($session->isAuthenticated());
 
-        UserContext::getInstance()->registerLogin(10);
+        $session->registerLogin(10);
 
-        $this->assertEquals(10, UserContext::getInstance()->userInfo());
-        $this->assertTrue(UserContext::getInstance()->isAuthenticated());
+        $this->assertEquals(10, $session->userInfo());
+        $this->assertTrue($session->isAuthenticated());
 
-        UserContext::getInstance()->setSessionData('property1', 'value1');
-        UserContext::getInstance()->setSessionData('property2', 'value2');
+        $session->setSessionData('property1', 'value1');
+        $session->setSessionData('property2', 'value2');
 
-        $this->assertEquals('value1', UserContext::getInstance()->getSessionData('property1'));
-        $this->assertEquals('value2', UserContext::getInstance()->getSessionData('property2'));
+        $this->assertEquals('value1', $session->getSessionData('property1'));
+        $this->assertEquals('value2', $session->getSessionData('property2'));
 
-        UserContext::getInstance()->registerLogout();
+        $session->registerLogout();
 
-        $this->assertFalse(UserContext::getInstance()->isAuthenticated());
+        $this->assertFalse($session->isAuthenticated());
     }
 
     /**
@@ -208,7 +210,8 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
      */
     public function testUserContextNotActiveSession()
     {
-        $this->assertEmpty(UserContext::getInstance()->getSessionData('property1'));
+        $session = new SessionContext();
+        $this->assertEmpty($session->getSessionData('property1'));
     }
 
 }

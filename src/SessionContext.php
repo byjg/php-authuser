@@ -5,12 +5,9 @@ namespace ByJG\Authenticate;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Cache\CacheEngineInterface;
 use ByJG\Cache\Engine\SessionCacheEngine;
-use ByJG\DesignPattern\Singleton;
 
-class UserContext
+class SessionContext
 {
-
-    use Singleton;
 
     const SESSION_PREFIX = 'authuserpackage';
 
@@ -20,7 +17,7 @@ class UserContext
      */
     protected $session;
 
-    protected function __construct()
+    public function __construct()
     {
         $this->session = new SessionCacheEngine(self::SESSION_PREFIX);
     }

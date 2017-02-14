@@ -11,10 +11,11 @@ $user = $users->isValidUser('someuser', '12345');
 var_dump($user);
 if (!is_null($user))
 {
-    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($userId);
+    $session = new \ByJG\Authenticate\SessionContext();
+    $session->registerLogin($userId);
 
-    echo "Authenticated: " . \ByJG\Authenticate\UserContext::getInstance()->isAuthenticated();
-    print_r(\ByJG\Authenticate\UserContext::getInstance()->userInfo());
+    echo "Authenticated: " . $session->isAuthenticated();
+    print_r($session->userInfo());
 }
 
 

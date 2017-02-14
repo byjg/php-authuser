@@ -263,7 +263,7 @@ abstract class UsersBase implements UsersInterface
     public function isAdmin($userId = null)
     {
         if (is_null($userId)) {
-            $currentUser = UserContext::getInstance()->userInfo();
+            $currentUser = (new SessionContext())->userInfo();
             if ($currentUser === false) {
                 throw new NotAuthenticatedException();
             }

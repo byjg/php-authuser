@@ -9,5 +9,5 @@ install:
   - composer install
 
 script: 
-  - phpunit
+  - phpunit --stderr
 
