@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use PHPUnit_Framework_TestCase;
 
 /**
@@ -181,4 +182,33 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
     {
         $this->object->isValidToken('user1', 'does not exists');
     }
+
+    public function testUserContext()
+    {
+        $this->assertFalse(UserContext::getInstance()->isAuthenticated());
+
+        UserContext::getInstance()->registerLogin(10);
+
+        $this->assertEquals(10, UserContext::getInstance()->userInfo());
+        $this->assertTrue(UserContext::getInstance()->isAuthenticated());
+
+        UserContext::getInstance()->setSessionData('property1', 'value1');
+        UserContext::getInstance()->setSessionData('property2', 'value2');
+
+        $this->assertEquals('value1', UserContext::getInstance()->getSessionData('property1'));
+        $this->assertEquals('value2', UserContext::getInstance()->getSessionData('property2'));
+
+        UserContext::getInstance()->registerLogout();
+
+        $this->assertFalse(UserContext::getInstance()->isAuthenticated());
+    }
+
+    /**
+     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
+     */
+    public function testUserContextNotActiveSession()
+    {
+        $this->assertEmpty(UserContext::getInstance()->getSessionData('property1'));
+    }
+
 }
