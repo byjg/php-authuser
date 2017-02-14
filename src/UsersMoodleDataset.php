@@ -20,12 +20,13 @@ class UsersMoodleDataset extends UsersDBDataset
 
     /**
      * DBDataset constructor
-     * @param string $dataBase
+     *
+*@param string $connectionString
      * @param string $siteSalt
      */
-    public function __construct($dataBase, $siteSalt = "")
+    public function __construct($connectionString, $siteSalt = "")
     {
-        parent::__construct($dataBase);
+        parent::__construct($connectionString);
 
         $this->_siteSalt = $siteSalt;
     }

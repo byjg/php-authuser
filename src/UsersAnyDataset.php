@@ -2,10 +2,10 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Repository\AnyDataset;
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\IteratorInterface;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\AnyDataset;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\IteratorInterface;
+use ByJG\AnyDataset\Dataset\SingleRow;
 use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersAnyDataset extends UsersBase

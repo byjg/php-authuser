@@ -2,19 +2,21 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Database\SQLHelper;
-use ByJG\AnyDataset\Repository\AnyDataset;
-use ByJG\AnyDataset\Repository\DBDataset;
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\IteratorInterface;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
+use ByJG\AnyDataset\DbDriverInterface;
+use ByJG\AnyDataset\Factory;
+use ByJG\AnyDataset\Store\Helpers\SqlHelper;
+use ByJG\AnyDataset\Dataset\AnyDataset;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\IteratorInterface;
+use ByJG\AnyDataset\Dataset\SingleRow;
 use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersDBDataset extends UsersBase
 {
 
     /**
-     * @var DBDataset
+     * @var DbDriverInterface
      */
     protected $_db;
     protected $_sqlHelper;
@@ -22,15 +24,16 @@ class UsersDBDataset extends UsersBase
     protected $_cacheUserOriginal = array();
 
     /**
-     * DBDataset constructor
-     * @param string $dataBase
+     * UsersDBDataset constructor
+     *
+     * @param string $connectionString
      * @param UserTable $userTable
      * @param CustomTable $customTable
      */
-    public function __construct($dataBase, UserTable $userTable = null, CustomTable $customTable = null)
+    public function __construct($connectionString, UserTable $userTable = null, CustomTable $customTable = null)
     {
-        $this->_db = new DBDataset($dataBase);
-        $this->_sqlHelper = new SQLHelper($this->_db);
+        $this->_db = Factory::getDbRelationalInstance($connectionString);
+        $this->_sqlHelper = new SqlHelper($this->_db);
         $this->_userTable = $userTable;
         $this->_customTable = $customTable;
     }
@@ -127,7 +130,7 @@ class UsersDBDataset extends UsersBase
         $param['admin'] = $admin;
         $param['id'] = $id;
 
-        $this->_db->execSQL($sql, $param);
+        $this->_db->execute($sql, $param);
     }
 
     protected function sqlUpdateUser()
@@ -182,7 +185,7 @@ class UsersDBDataset extends UsersBase
         $param['created'] = date("Y-m-d H:i:s");
         $param['userid'] = $this->generateUserId();
 
-        $this->_db->execSQL($sql, $param);
+        $this->_db->execute($sql, $param);
 
         return true;
     }
@@ -206,7 +209,11 @@ class UsersDBDataset extends UsersBase
         if (is_null($filter)) {
             $filter = new IteratorFilter();
         }
-        $sql = $filter->getSql($this->getUserTable()->table, $param);
+        $sql = $filter->format(
+            new IteratorFilterSqlFormatter(),
+            $this->getUserTable()->table,
+            $param
+        );
         return $this->_db->getIterator($sql, $param);
     }
 
@@ -272,14 +279,14 @@ class UsersDBDataset extends UsersBase
                 '@@Table' => $this->getCustomTable()->table,
                 '@@Id' => $this->getUserTable()->id
             ));
-            $this->_db->execSQL($sql, $param);
+            $this->_db->execute($sql, $param);
         }
         $sql = $this->_sqlHelper->createSafeSQL($baseSql,
             array(
             '@@Table' => $this->getUserTable()->table,
             '@@Id' => $this->getUserTable()->id
         ));
-        $this->_db->execSQL($sql, $param);
+        $this->_db->execute($sql, $param);
         return true;
     }
 
@@ -315,7 +322,7 @@ class UsersDBDataset extends UsersBase
                 $param["name"] = $propertyName;
                 $param["value"] = $value;
 
-                $this->_db->execSQL($sql, $param);
+                $this->_db->execute($sql, $param);
             }
             return true;
         }
@@ -357,7 +364,7 @@ class UsersDBDataset extends UsersBase
                 )
             );
 
-            $this->_db->execSQL($sql, $param);
+            $this->_db->execute($sql, $param);
             return true;
         }
 
@@ -393,7 +400,7 @@ class UsersDBDataset extends UsersBase
             "@@Value" => $this->getCustomTable()->value
         ));
 
-        $this->_db->execSQL($sql, $param);
+        $this->_db->execute($sql, $param);
     }
 
     protected function sqlRemoveAllProperties()

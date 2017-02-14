@@ -2,8 +2,7 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Repository\DBDataset;
-use PHPUnit_Framework_TestCase;
+use ByJG\AnyDataset\Factory;
 
 /**
  * Created by PhpStorm.
@@ -22,8 +21,8 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
     {
         $this->prefix = "";
 
-        $db = new DBDataset('sqlite:///tmp/teste.db');
-        $db->execSQL('create table users (
+        $db = Factory::getDbRelationalInstance('sqlite:///tmp/teste.db');
+        $db->execute('create table users (
             userid integer primary key  autoincrement, 
             name varchar(45), 
             email varchar(200), 
@@ -33,7 +32,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
             admin char(1));'
         );
 
-        $db->execSQL('create table users_property (
+        $db->execute('create table users_property (
             customid integer primary key  autoincrement, 
             userid integer, 
             name varchar(45), 

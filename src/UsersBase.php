@@ -3,8 +3,8 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Dataset\SingleRow;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use InvalidArgumentException;
@@ -272,12 +272,13 @@ abstract class UsersBase implements UsersInterface
 
         $user = $this->getById($userId);
 
-        if (!is_null($user)) {
-            return (preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getField($this->getUserTable()->admin))
-                === 1);
-        } else {
+        if (is_null($user)) {
             throw new UserNotFoundException("Cannot find the user");
         }
+
+        return
+            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getField($this->getUserTable()->admin)) === 1
+        ;
     }
 
     /**
