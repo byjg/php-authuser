@@ -111,15 +111,15 @@ class UsersMoodleDataset extends UsersDBDataset
         if (!is_null($user)) {
             // Get the user's roles from moodle
             $sqlRoles = 'SELECT shortname
-						 FROM
-							mdl_role AS r
-						INNER JOIN
-							mdl_role_assignments AS ra
-								ON ra.roleid = r.id
-						INNER JOIN mdl_user  AS u
-								ON u.id = ra.userid
-						WHERE userid = [[id]]
-						group by shortname';
+                         FROM
+                            mdl_role AS r
+                        INNER JOIN
+                            mdl_role_assignments AS ra
+                                ON ra.roleid = r.id
+                        INNER JOIN mdl_user  AS u
+                                ON u.id = ra.userid
+                        WHERE userid = [[id]]
+                        group by shortname';
             $param = array("id" => $user->getField($this->getUserTable()->id));
             $it = $this->_db->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
@@ -190,7 +190,7 @@ class UsersMoodleDataset extends UsersDBDataset
                 "username",
                 "password",
                 "created",
-                "auth"							// This disable update data
+                "auth"                            // This disable update data
             );
         }
         return $this->_userTable;
