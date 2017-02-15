@@ -63,18 +63,19 @@ class UsersDBDataset extends UsersBase
                     // This change is in the Users table or is a Custom property?
                     if ($userField) {
                         $changeUser = true;
-                    } else {
-                        // Erase Old Custom Properties
-                        $this->removeProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srOri->getField($fieldname));
-
-                        // If new Value is_empty does not add
-                        if ($srMod->getField($fieldname) == "") {
-                            continue;
-                        }
-
-                        // Insert new Value
-                        $this->addProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srMod->getField($fieldname));
+                        continue;
                     }
+
+                    // Erase Old Custom Properties
+                    $this->removeProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srOri->getField($fieldname));
+
+                    // If new Value is_empty does not add
+                    if ($srMod->getField($fieldname) == "") {
+                        continue;
+                    }
+
+                    // Insert new Value
+                    $this->addProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srMod->getField($fieldname));
                 }
             }
 
@@ -227,27 +228,28 @@ class UsersDBDataset extends UsersBase
     public function getUser($filter)
     {
         $it = $this->getIterator($filter);
-        if ($it->hasNext()) {
-            // Get the Requested User
-            $sr = $it->moveNext();
-            $this->setCustomFieldsInUser($sr);
-
-            // Clone the User Properties
-            $anyOri = new AnyDataset();
-            $anyOri->appendRow();
-            foreach ($sr->getFieldNames() as $key => $fieldName) {
-                $anyOri->addField($fieldName, $sr->getField($fieldName));
-            }
-            $itOri = $anyOri->getIterator();
-            $srOri = $itOri->moveNext();
-
-            // Store and return to the user the proper single row.
-            $this->_cacheUserOriginal[$sr->getField($this->getUserTable()->id)] = $srOri;
-            $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)] = $sr;
-            return $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)];
-        } else {
+        if (!$it->hasNext()) {
             return null;
         }
+
+        // Get the Requested User
+        $sr = $it->moveNext();
+        $this->setCustomFieldsInUser($sr);
+
+        // Clone the User Properties
+        $anyOri = new AnyDataset();
+        $anyOri->appendRow();
+        foreach ($sr->getFieldNames() as $key => $fieldName) {
+            $anyOri->addField($fieldName, $sr->getField($fieldName));
+        }
+        $itOri = $anyOri->getIterator();
+        $srOri = $itOri->moveNext();
+
+        // Store and return to the user the proper single row.
+        $this->_cacheUserOriginal[$sr->getField($this->getUserTable()->id)] = $srOri;
+        $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)] = $sr;
+
+        return $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)];
     }
 
     /**
@@ -312,13 +314,15 @@ class UsersDBDataset extends UsersBase
 
         if (!$this->hasProperty($userId, $propertyName, $value)) {
 
-            $sql = $this->_sqlHelper->createSafeSQL($this->sqlAddProperty(),
-                array(
-                "@@Table" => $this->getCustomTable()->table,
-                "@@Id" => $this->getUserTable()->id,
-                "@@Name" => $this->getCustomTable()->name,
-                "@@Value" => $this->getCustomTable()->value
-            ));
+            $sql = $this->_sqlHelper->createSafeSQL(
+                $this->sqlAddProperty(),
+                [
+                    "@@Table" => $this->getCustomTable()->table,
+                    "@@Id" => $this->getUserTable()->id,
+                    "@@Name" => $this->getCustomTable()->name,
+                    "@@Value" => $this->getCustomTable()->value
+                ]
+            );
 
             $param = array();
             $param["id"] = $userId;

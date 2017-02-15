@@ -96,9 +96,9 @@ class UsersAnyDataset extends UsersBase
         $it = $this->_anyDataSet->getIterator($filter);
         if (!$it->hasNext()) {
             return null;
-        } else {
-            return $it->moveNext();
         }
+
+        return $it->moveNext();
     }
 
     /**
@@ -112,12 +112,12 @@ class UsersAnyDataset extends UsersBase
     {
         //anydataset.SingleRow
         $user = $this->getByUsername($username);
-        if ($user !== null) {
+        if (!empty($user)) {
             $this->_anyDataSet->removeRow($user);
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -163,13 +163,13 @@ class UsersAnyDataset extends UsersBase
     public function removeProperty($userId, $propertyName, $value)
     {
         $user = $this->getById($userId);
-        if ($user !== null) {
+        if (!empty($user)) {
             $user->removeFieldNameValue($propertyName, $value);
             $this->save();
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**

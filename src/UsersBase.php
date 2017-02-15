@@ -7,6 +7,7 @@ use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\SingleRow;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Util\JwtWrapper;
 use InvalidArgumentException;
 
 /**
@@ -164,21 +165,21 @@ abstract class UsersBase implements UsersInterface
      * @return bool
      *
      */
-    public function hasProperty($userId, $propertyName, $value)
+    public function hasProperty($userId, $propertyName, $value = null)
     {
         //anydataset.SingleRow
         $user = $this->getById($userId);
 
-        if ($user !== null) {
-            if ($this->isAdmin($userId)) {
-                return true;
-            } else {
-                $values = $user->getFieldArray($propertyName);
-                return ($values !== null ? in_array($value, $values) : false);
-            }
-        } else {
+        if (empty($user)) {
             return false;
         }
+
+        if ($this->isAdmin($userId)) {
+            return true;
+        }
+
+        $values = $user->getFieldArray($propertyName);
+        return ($values !== null ? in_array($value, $values) : false);
     }
 
     /**
@@ -271,11 +272,15 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $username
      * @param string $password
-     * @param array $extraInfo
+     * @param string $uri
+     * @param string $secret
+     * @param int $expires
+     * @param array $updateUserInfo
+     * @param array $updateTokenInfo
      * @return \ByJG\AnyDataset\Dataset\SingleRow Return the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $extraInfo = [])
+    public function createAuthToken($username, $password, $uri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
     {
         if (!isset($username) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
@@ -284,26 +289,26 @@ abstract class UsersBase implements UsersInterface
         $user = $this->isValidUser($username, $password);
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
-        } else {
-            foreach ($extraInfo as $key => $value) {
-                $user->setField($key, $value);
-            }
-            $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
-            $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
-
-            $token = sha1(sha1($username)
-                . sha1($password)
-                . sha1(serialize($extraInfo))
-                . sha1(time())
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-            );
-
-            $user->setField('TOKEN', $token);
-            $this->save();
         }
+
+        foreach ($updateUserInfo as $key => $value) {
+            $user->setField($key, $value);
+        }
+        $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
+        $user->setField('LAST_VISIT', date('Y-m-d H:i:s'));
+        $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+
+        $jwt = new JwtWrapper($uri, $secret);
+        $updateTokenInfo['username'] = $username;
+        $jwtData = $jwt->createJwtData(
+            $updateTokenInfo,
+            $expires
+        );
+
+        $token = $jwt->generateToken($jwtData);
+
+        $user->setField('TOKEN', $token);
+        $this->save();
 
         return $user;
     }
@@ -312,12 +317,14 @@ abstract class UsersBase implements UsersInterface
      * Check if the Auth Token is valid
      *
      * @param string $username
+     * @param string $uri
+     * @param string $secret
      * @param string $token
-     * @return SingleRow True if it is OK, exception if dont
-     * @throws NotAuthenticatedException
-     * @throws UserNotFoundException
+     * @return array
+     * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function isValidToken($username, $token)
+    public function isValidToken($username, $uri, $secret, $token)
     {
         $user = $this->getByUsername($username);
 
@@ -329,11 +336,16 @@ abstract class UsersBase implements UsersInterface
             throw new NotAuthenticatedException('Token does not match');
         }
 
-        $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
-        $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+        $jwt = new JwtWrapper($uri, $secret);
+        $data = $jwt->extractData($user->getField('TOKEN'));
+
+        $user->setField('LAST_VISIT', date('Y-m-d H:i:s'));
         $this->save();
 
-        return $user;
+        return [
+            'user' => $user,
+            'data' => $data->data
+        ];
     }
 
     /**

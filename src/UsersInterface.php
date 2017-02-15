@@ -92,7 +92,7 @@ interface UsersInterface
      * @param string $value
      * @return True if have rights; false, otherwisebool
      */
-    public function hasProperty($userId, $propertyName, $value);
+    public function hasProperty($userId, $propertyName, $value = null);
 
     /**
      * @desc Return all sites from a specific user
@@ -131,20 +131,25 @@ interface UsersInterface
      *
      * @param string $username
      * @param string $password
-     * @param array $extraInfo
+     * @param string $uri
+     * @param string $secret
+     * @param int $expires
+     * @param array $updateUserInfo
+     * @param array $updateTokenInfo
      * @return \ByJG\AnyDataset\Dataset\SingleRow Return the TOKEN or false if dont.
-     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $extraInfo = []);
+    public function createAuthToken($username, $password, $uri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
 
     /**
      * Check if the Auth Token is valid
      *
-     * @param $username
+     * @param string $username
+     * @param string $uri
+     * @param string $secret
      * @param string $token
      * @return bool
      */
-    public function isValidToken($username, $token);
+    public function isValidToken($username, $uri, $secret, $token);
 
     /**
      * @return UserTable Description

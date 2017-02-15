@@ -156,11 +156,21 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
 
     public function testCreateAuthToken()
     {
-        $user = $this->object->createAuthToken('user2', 'pwd2');
+        $user = $this->object->createAuthToken(
+            'user2',
+            'pwd2',
+            'api.test.com',
+            '1234567',
+            1200,
+            ['userData'=>'userValue'],
+            ['tokenData'=>'tokenValue']
+        );
         $token = $user->getField('TOKEN');
 
-        $user = $this->object->isValidToken('user2', $token);
-        $this->assertEquals('User 2', $user->getField($this->object->getUserTable()->name));
+        $user = $this->object->isValidToken('user2', 'api.test.com', '1234567', $token);
+        $this->assertEquals('User 2', $user['user']->getField($this->object->getUserTable()->name));
+        $this->assertEquals('userValue', $user['user']->getField('userData'));
+        $this->assertEquals('tokenValue', $user['data']->tokenData);
     }
 
     /**
@@ -168,10 +178,18 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
      */
     public function testCreateAuthTokenFail()
     {
-        $user = $this->object->createAuthToken('user2', 'pwd2');
+        $user = $this->object->createAuthToken(
+            'user2',
+            'pwd2',
+            'api.test.com',
+            '1234567',
+            1200,
+            ['userData'=>'userValue'],
+            ['tokenData'=>'tokenValue']
+        );
         $token = $user->getField('TOKEN');
 
-        $this->object->isValidToken('user1', $token);
+        $this->object->isValidToken('user1', 'api.test.com', '1234567', $token);
     }
 
     /**
@@ -179,7 +197,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
      */
     public function testCreateAuthTokenFail_2()
     {
-        $this->object->isValidToken('user1', 'does not exists');
+        $this->object->isValidToken('user1', 'api.test.com', '1234567', 'Invalid token');
     }
 
     public function testUserContext()
