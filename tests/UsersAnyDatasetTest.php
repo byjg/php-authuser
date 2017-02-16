@@ -167,16 +167,23 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         );
         $token = $user->getField('TOKEN');
 
-        $user = $this->object->isValidToken('user2', 'api.test.com', '1234567', $token);
-        $this->assertEquals('User 2', $user['user']->getField($this->object->getUserTable()->name));
-        $this->assertEquals('userValue', $user['user']->getField('userData'));
-        $this->assertEquals('tokenValue', $user['data']->tokenData);
+        $dataFromToken = new \stdClass();
+        $dataFromToken->tokenData = 'tokenValue';
+        $dataFromToken->username = 'user2';
+
+        $this->assertEquals(
+            [
+                'user' => $user,
+                'data' => $dataFromToken
+            ],
+            $this->object->isValidToken('user2', 'api.test.com', '1234567', $token)
+        );
     }
 
     /**
      * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
      */
-    public function testCreateAuthTokenFail()
+    public function testValidateTokenWithAnotherUser()
     {
         $user = $this->object->createAuthToken(
             'user2',
