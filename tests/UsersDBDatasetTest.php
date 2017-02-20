@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate;
 
+require_once 'UsersAnyDatasetTest.php';
+
 use ByJG\AnyDataset\Factory;
 
 /**

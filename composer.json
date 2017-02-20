@@ -16,7 +16,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=5.6.0",
-        "byjg/anydataset": "3.0.0.x-dev",
+        "byjg/anydataset": "3.0.*",
         "byjg/cache-engine": "3.0.*",
         "byjg/jwt-wrapper": "1.0.*"
     },
