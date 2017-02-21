@@ -9,7 +9,7 @@ use ByJG\AnyDataset\Store\Helpers\SqlHelper;
 use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\IteratorInterface;
-use ByJG\AnyDataset\Dataset\SingleRow;
+use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersDBDataset extends UsersBase
@@ -59,7 +59,7 @@ class UsersDBDataset extends UsersBase
                     || $fieldname == $this->getUserTable()->admin
                     || $fieldname == $this->getUserTable()->id
                 );
-                if ($srOri->getField($fieldname) != $srMod->getField($fieldname)) {
+                if ($srOri->get($fieldname) != $srMod->get($fieldname)) {
                     // This change is in the Users table or is a Custom property?
                     if ($userField) {
                         $changeUser = true;
@@ -67,28 +67,28 @@ class UsersDBDataset extends UsersBase
                     }
 
                     // Erase Old Custom Properties
-                    $this->removeProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srOri->getField($fieldname));
+                    $this->removeProperty($srMod->get($this->getUserTable()->id), $fieldname, $srOri->get($fieldname));
 
                     // If new Value is_empty does not add
-                    if ($srMod->getField($fieldname) == "") {
+                    if ($srMod->get($fieldname) == "") {
                         continue;
                     }
 
                     // Insert new Value
-                    $this->addProperty($srMod->getField($this->getUserTable()->id), $fieldname, $srMod->getField($fieldname));
+                    $this->addProperty($srMod->get($this->getUserTable()->id), $fieldname, $srMod->get($fieldname));
                 }
             }
 
             if ($changeUser) {
 
                 $this->updateUser(
-                    $srMod->getField($this->getUserTable()->id),
-                    $srMod->getField($this->getUserTable()->name),
-                    $srMod->getField($this->getUserTable()->email),
-                    $srMod->getField($this->getUserTable()->username),
-                    $srMod->getField($this->getUserTable()->password),
-                    $srMod->getField($this->getUserTable()->created),
-                    $srMod->getField($this->getUserTable()->admin)
+                    $srMod->get($this->getUserTable()->id),
+                    $srMod->get($this->getUserTable()->name),
+                    $srMod->get($this->getUserTable()->email),
+                    $srMod->get($this->getUserTable()->username),
+                    $srMod->get($this->getUserTable()->password),
+                    $srMod->get($this->getUserTable()->created),
+                    $srMod->get($this->getUserTable()->admin)
                 );
             }
         }
@@ -220,10 +220,10 @@ class UsersDBDataset extends UsersBase
 
     /**
      * Get the user based on a filter.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return SingleRow
+     * @return Row
      * */
     public function getUser($filter)
     {
@@ -240,16 +240,16 @@ class UsersDBDataset extends UsersBase
         $anyOri = new AnyDataset();
         $anyOri->appendRow();
         foreach ($sr->getFieldNames() as $key => $fieldName) {
-            $anyOri->addField($fieldName, $sr->getField($fieldName));
+            $anyOri->addField($fieldName, $sr->get($fieldName));
         }
         $itOri = $anyOri->getIterator();
         $srOri = $itOri->moveNext();
 
         // Store and return to the user the proper single row.
-        $this->_cacheUserOriginal[$sr->getField($this->getUserTable()->id)] = $srOri;
-        $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)] = $sr;
+        $this->_cacheUserOriginal[$sr->get($this->getUserTable()->id)] = $srOri;
+        $this->_cacheUserWork[$sr->get($this->getUserTable()->id)] = $sr;
 
-        return $this->_cacheUserWork[$sr->getField($this->getUserTable()->id)];
+        return $this->_cacheUserWork[$sr->get($this->getUserTable()->id)];
     }
 
     /**
@@ -262,7 +262,7 @@ class UsersDBDataset extends UsersBase
     {
         $user = $this->getByUsername($login);
 
-        return $this->removeUserById($user->getField($this->getUserTable()->id));
+        return $this->removeUserById($user->get($this->getUserTable()->id));
     }
 
     /**
@@ -306,7 +306,7 @@ class UsersDBDataset extends UsersBase
      */
     public function addProperty($userId, $propertyName, $value)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
         if (empty($user)) {
             return false;
@@ -417,7 +417,7 @@ class UsersDBDataset extends UsersBase
     /**
      * Return all custom's fields from this user
      *
-     * @param SingleRow $userRow
+     * @param Row $userRow
      */
     protected function setCustomFieldsInUser($userRow)
     {
@@ -425,7 +425,7 @@ class UsersDBDataset extends UsersBase
             return;
         }
 
-        $userId = $userRow->getField($this->getUserTable()->id);
+        $userId = $userRow->get($this->getUserTable()->id);
 
         $sql = $this->_sqlHelper->createSafeSQL($this->sqlSetCustomFieldsInUser(),
             array(
@@ -437,8 +437,8 @@ class UsersDBDataset extends UsersBase
         $it = $this->_db->getIterator($sql, $param);
         while ($it->hasNext()) {
             $sr = $it->moveNext();
-            $userRow->addField($sr->getField($this->getCustomTable()->name),
-                $sr->getField($this->getCustomTable()->value));
+            $userRow->addField($sr->get($this->getCustomTable()->name),
+                $sr->get($this->getCustomTable()->value));
         }
     }
 

@@ -39,11 +39,11 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
         $user = $this->object->getByUsername('john');
-        $this->assertEquals('john', $user->getField($this->object->getUserTable()->id));
-        $this->assertEquals('John Doe', $user->getField($this->object->getUserTable()->name));
-        $this->assertEquals('john', $user->getField($this->object->getUserTable()->username));
-        $this->assertEquals('johndoe@gmail.com', $user->getField($this->object->getUserTable()->email));
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getField($this->object->getUserTable()->password));
+        $this->assertEquals('john', $user->get($this->object->getUserTable()->id));
+        $this->assertEquals('John Doe', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('john', $user->get($this->object->getUserTable()->username));
+        $this->assertEquals('johndoe@gmail.com', $user->get($this->object->getUserTable()->email));
+        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
     }
 
     /**
@@ -68,11 +68,11 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $mock->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
         $user = $mock->getByUsername('john');
-        $this->assertEquals('1234', $user->getField($this->object->getUserTable()->id));
-        $this->assertEquals('John Doe', $user->getField($this->object->getUserTable()->name));
-        $this->assertEquals('john', $user->getField($this->object->getUserTable()->username));
-        $this->assertEquals('johndoe@gmail.com', $user->getField($this->object->getUserTable()->email));
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getField($this->object->getUserTable()->password));
+        $this->assertEquals('1234', $user->get($this->object->getUserTable()->id));
+        $this->assertEquals('John Doe', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('john', $user->get($this->object->getUserTable()->username));
+        $this->assertEquals('johndoe@gmail.com', $user->get($this->object->getUserTable()->email));
+        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
     }
 
     public function testAddProperty()
@@ -80,12 +80,12 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $user = $this->object->getByUsername('user2');
-        $this->assertEquals('Rio de Janeiro', $user->getField('city'));
+        $this->assertEquals('Rio de Janeiro', $user->get('city'));
 
         // Add another property (cannot change)
         $this->object->addProperty($this->prefix . '2', 'city', 'Belo Horizonte');
         $user = $this->object->getByUsername('user2');
-        $this->assertEquals('Rio de Janeiro', $user->getField('city'));
+        $this->assertEquals('Rio de Janeiro', $user->get('city'));
 
         // Get Property
         $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $this->object->getProperty($this->prefix . '2', 'city'));
@@ -93,12 +93,12 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         // Add another property
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
         $user = $this->object->getByUsername('user2');
-        $this->assertEquals('RJ', $user->getField('state'));
+        $this->assertEquals('RJ', $user->get('state'));
 
         // Remove Property
         $this->object->removeProperty($this->prefix . '2', 'state', 'RJ');
         $user = $this->object->getByUsername('user2');
-        $this->assertEmpty($user->getField('state'));
+        $this->assertEmpty($user->get('state'));
 
         // Remove Property Again
         $this->object->removeProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
@@ -111,7 +111,9 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $user = $this->object->getByUsername('user1');
         $this->assertNotNull($user);
 
-        $this->object->removeUserName('user1');
+        $result = $this->object->removeUserName('user1');
+        $this->assertTrue($result);
+
         $user = $this->object->getByUsername('user1');
         $this->assertNull($user);
 
@@ -121,22 +123,22 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
     {
         // Getting data
         $user = $this->object->getByUsername('user1');
-        $this->assertEquals('User 1', $user->getField($this->object->getUserTable()->name));
+        $this->assertEquals('User 1', $user->get($this->object->getUserTable()->name));
 
         // Change and Persist data
-        $user->setField($this->object->getUserTable()->name, 'Other name');
+        $user->set($this->object->getUserTable()->name, 'Other name');
         $this->object->save();
 
         // Check if data persists
         $user = $this->object->getById($this->prefix . '1');
-        $this->assertEquals('Other name', $user->getField($this->object->getUserTable()->name));
+        $this->assertEquals('Other name', $user->get($this->object->getUserTable()->name));
     }
 
     public function testIsValidUser()
     {
         // User Exists!
         $user = $this->object->isValidUser('user3', 'pwd3');
-        $this->assertEquals('User 3', $user->getField($this->object->getUserTable()->name));
+        $this->assertEquals('User 3', $user->get($this->object->getUserTable()->name));
 
         // User Does not Exists!
         $user = $this->object->isValidUser('user55', 'pwd5');
@@ -147,7 +149,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
     {
         // Set the Admin Flag
         $user = $this->object->getByUsername('user3');
-        $user->setField($this->object->getUserTable()->admin, 'Y');
+        $user->set($this->object->getUserTable()->admin, 'Y');
         $this->object->save();
 
         // Check is Admin
@@ -165,7 +167,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
             ['userData'=>'userValue'],
             ['tokenData'=>'tokenValue']
         );
-        $token = $user->getField('TOKEN');
+        $token = $user->get('TOKEN');
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = 'tokenValue';
@@ -194,7 +196,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
             ['userData'=>'userValue'],
             ['tokenData'=>'tokenValue']
         );
-        $token = $user->getField('TOKEN');
+        $token = $user->get('TOKEN');
 
         $this->object->isValidToken('user1', 'api.test.com', '1234567', $token);
     }

@@ -5,7 +5,7 @@ namespace ByJG\Authenticate;
 use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\IteratorInterface;
-use ByJG\AnyDataset\Dataset\SingleRow;
+use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersAnyDataset extends UsersBase
@@ -86,10 +86,10 @@ class UsersAnyDataset extends UsersBase
 
     /**
      * Get the user based on a filter.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return SingleRow
+     * @return Row
      * */
     public function getUser($filter)
     {
@@ -103,14 +103,14 @@ class UsersAnyDataset extends UsersBase
 
     /**
      * Get the user based on his login.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $username
      * @return boolean
      * */
     public function removeUserName($username)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getByUsername($username);
         if (!empty($user)) {
             $this->_anyDataSet->removeRow($user);
@@ -140,10 +140,10 @@ class UsersAnyDataset extends UsersBase
      */
     public function addProperty($userId, $propertyName, $value)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            if (!$this->hasProperty($user->getField($this->getUserTable()->id), $propertyName, $value)) {
+            if (!$this->hasProperty($user->get($this->getUserTable()->id), $propertyName, $value)) {
                 $user->addField($propertyName, $value);
                 $this->save();
             }
@@ -164,7 +164,7 @@ class UsersAnyDataset extends UsersBase
     {
         $user = $this->getById($userId);
         if (!empty($user)) {
-            $user->removeFieldNameValue($propertyName, $value);
+            $user->removeValue($propertyName, $value);
             $this->save();
             return true;
         }
@@ -184,9 +184,9 @@ class UsersAnyDataset extends UsersBase
     {
         $it = $this->getIterator(null);
         while ($it->hasNext()) {
-            //anydataset.SingleRow
+            //anydataset.Row
             $user = $it->moveNext();
-            $this->removeProperty($user->getField($this->getUserTable()->username), $propertyName, $value);
+            $this->removeProperty($user->get($this->getUserTable()->username), $propertyName, $value);
         }
     }
 }

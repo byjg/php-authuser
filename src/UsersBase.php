@@ -4,7 +4,7 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\Dataset\SingleRow;
+use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Util\JwtWrapper;
@@ -71,19 +71,19 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Get the user based on a filter.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return SingleRow
+     * @return Row
      * */
     abstract public function getUser($filter);
 
     /**
      * Get the user based on his email.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $email
-     * @return SingleRow
+     * @return Row
      * */
     public function getByEmail($email)
     {
@@ -94,10 +94,10 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Get the user based on his login.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $username
-     * @return SingleRow
+     * @return Row
      * */
     public function getByUsername($username)
     {
@@ -108,10 +108,10 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Get the user based on his id.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $id
-     * @return SingleRow
+     * @return Row
      * */
     public function getById($id)
     {
@@ -141,11 +141,11 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Validate if the user and password exists in the file
-     * Return SingleRow if user exists; null, otherwise
+     * Return Row if user exists; null, otherwise
      *
      * @param string $userName User login
      * @param string $password Plain text password
-     * @return SingleRow
+     * @return Row
      * */
     public function isValidUser($userName, $password)
     {
@@ -167,7 +167,7 @@ abstract class UsersBase implements UsersInterface
      */
     public function hasProperty($userId, $propertyName, $value = null)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
 
         if (empty($user)) {
@@ -178,7 +178,7 @@ abstract class UsersBase implements UsersInterface
             return true;
         }
 
-        $values = $user->getFieldArray($propertyName);
+        $values = $user->getAsArray($propertyName);
         return ($values !== null ? in_array($value, $values) : false);
     }
 
@@ -192,10 +192,10 @@ abstract class UsersBase implements UsersInterface
      * */
     public function getProperty($userId, $propertyName)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            $values = $user->getFieldArray($propertyName);
+            $values = $user->getAsArray($propertyName);
 
             if ($this->isAdmin($userId)) {
                 return array("admin" => "admin");
@@ -263,7 +263,7 @@ abstract class UsersBase implements UsersInterface
         }
 
         return
-            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getField($this->getUserTable()->admin)) === 1
+            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->get($this->getUserTable()->admin)) === 1
         ;
     }
 
@@ -272,15 +272,15 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $username
      * @param string $password
-     * @param string $uri
+     * @param string $serverUri
      * @param string $secret
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
-     * @return \ByJG\AnyDataset\Dataset\SingleRow Return the TOKEN or false if dont.
+     * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $uri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
+    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
     {
         if (!isset($username) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
@@ -292,13 +292,13 @@ abstract class UsersBase implements UsersInterface
         }
 
         foreach ($updateUserInfo as $key => $value) {
-            $user->setField($key, $value);
+            $user->set($key, $value);
         }
-        $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
-        $user->setField('LAST_VISIT', date('Y-m-d H:i:s'));
-        $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+        $user->set('LAST_LOGIN', date('Y-m-d H:i:s'));
+        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
+        $user->set('LOGIN_TIMES', intval($user->get('LOGIN_TIMES')) + 1);
 
-        $jwt = new JwtWrapper($uri, $secret);
+        $jwt = new JwtWrapper($serverUri, $secret);
         $updateTokenInfo['username'] = $username;
         $jwtData = $jwt->createJwtData(
             $updateTokenInfo,
@@ -307,7 +307,7 @@ abstract class UsersBase implements UsersInterface
 
         $token = $jwt->generateToken($jwtData);
 
-        $user->setField('TOKEN', $token);
+        $user->set('TOKEN', $token);
         $this->save();
 
         return $user;
@@ -332,14 +332,14 @@ abstract class UsersBase implements UsersInterface
             throw new UserNotFoundException('User not found!');
         }
 
-        if ($user->getField('TOKEN') !== $token) {
+        if ($user->get('TOKEN') !== $token) {
             throw new NotAuthenticatedException('Token does not match');
         }
 
         $jwt = new JwtWrapper($uri, $secret);
-        $data = $jwt->extractData($user->getField('TOKEN'));
+        $data = $jwt->extractData($user->get('TOKEN'));
 
-        $user->setField('LAST_VISIT', date('Y-m-d H:i:s'));
+        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
         $this->save();
 
         return [
