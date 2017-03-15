@@ -277,7 +277,7 @@ abstract class UsersBase implements UsersInterface
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
-     * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
+     * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
@@ -308,10 +308,10 @@ abstract class UsersBase implements UsersInterface
 
         $token = $jwt->generateToken($jwtData);
 
-        $user->set('TOKEN', $token);
+        $user->set('TOKEN_HASH', sha1($token));
         $this->save();
 
-        return $user;
+        return $token;
     }
 
     /**
@@ -333,12 +333,12 @@ abstract class UsersBase implements UsersInterface
             throw new UserNotFoundException('User not found!');
         }
 
-        if ($user->get('TOKEN') !== $token) {
+        if ($user->get('TOKEN_HASH') !== sha1($token)) {
             throw new NotAuthenticatedException('Token does not match');
         }
 
         $jwt = new JwtWrapper($uri, $secret);
-        $data = $jwt->extractData($user->get('TOKEN'));
+        $data = $jwt->extractData($token);
 
         $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
         $this->save();

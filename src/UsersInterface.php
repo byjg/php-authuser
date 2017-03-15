@@ -128,9 +128,8 @@ interface UsersInterface
 
     /**
      * Authenticate a user and create a token if it is valid
-
      *
-*@param string $username
+     * @param string $username
      * @param string $password
      * @param string $serverUri
      * @param string $secret
