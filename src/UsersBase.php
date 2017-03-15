@@ -300,6 +300,7 @@ abstract class UsersBase implements UsersInterface
 
         $jwt = new JwtWrapper($serverUri, $secret);
         $updateTokenInfo['username'] = $username;
+        $updateTokenInfo['userid'] = $user->get(UsersBase::getUserTable()->id);
         $jwtData = $jwt->createJwtData(
             $updateTokenInfo,
             $expires
