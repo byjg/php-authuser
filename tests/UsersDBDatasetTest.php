@@ -65,4 +65,9 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
     }
 
+    public function testCreateAuthToken()
+    {
+        $this->expectedToken('tokenValue', 'user2', 2);
+    }
+
 }

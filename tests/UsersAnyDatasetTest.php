@@ -156,7 +156,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->object->isAdmin($this->prefix . '3'));
     }
 
-    public function testCreateAuthToken()
+    protected function expectedToken($tokenData, $username, $userId)
     {
         $user = $this->object->createAuthToken(
             'user2',
@@ -170,8 +170,9 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $token = $user->get('TOKEN');
 
         $dataFromToken = new \stdClass();
-        $dataFromToken->tokenData = 'tokenValue';
-        $dataFromToken->username = 'user2';
+        $dataFromToken->tokenData = $tokenData;
+        $dataFromToken->username = $username;
+        $dataFromToken->userid = $userId;
 
         $this->assertEquals(
             [
@@ -180,6 +181,11 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
             ],
             $this->object->isValidToken('user2', 'api.test.com', '1234567', $token)
         );
+    }
+
+    public function testCreateAuthToken()
+    {
+        $this->expectedToken('tokenValue', 'user2', 'user2');
     }
 
     /**
