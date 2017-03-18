@@ -2,15 +2,12 @@
 
 namespace ByJG\Authenticate;
 
-use PHPUnit_Framework_TestCase;
+// backward compatibility
+if (!class_exists('\PHPUnit\Framework\TestCase')) {
+    class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
+}
 
-/**
- * Created by PhpStorm.
- * User: jg
- * Date: 24/04/16
- * Time: 20:21
- */
-class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
+class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var UsersAnyDataset
@@ -27,11 +24,6 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
     }
 
     public function testAddUser()
@@ -158,7 +150,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
 
     protected function expectedToken($tokenData, $username, $userId)
     {
-        $user = $this->object->createAuthToken(
+        $token = $this->object->createAuthToken(
             'user2',
             'pwd2',
             'api.test.com',
@@ -167,7 +159,8 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
             ['userData'=>'userValue'],
             ['tokenData'=>'tokenValue']
         );
-        $token = $user->get('TOKEN');
+
+        $user = $this->object->getByUsername($username);
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = $tokenData;
@@ -193,7 +186,7 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
      */
     public function testValidateTokenWithAnotherUser()
     {
-        $user = $this->object->createAuthToken(
+        $token = $this->object->createAuthToken(
             'user2',
             'pwd2',
             'api.test.com',
@@ -202,7 +195,6 @@ class UsersAnyDatasetTest extends PHPUnit_Framework_TestCase
             ['userData'=>'userValue'],
             ['tokenData'=>'tokenValue']
         );
-        $token = $user->get('TOKEN');
 
         $this->object->isValidToken('user1', 'api.test.com', '1234567', $token);
     }
