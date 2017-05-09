@@ -2,8 +2,9 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Repository\DBDataset;
-use PHPUnit_Framework_TestCase;
+require_once 'UsersAnyDatasetTest.php';
+
+use ByJG\AnyDataset\Factory;
 
 /**
  * Created by PhpStorm.
@@ -22,8 +23,8 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
     {
         $this->prefix = "";
 
-        $db = new DBDataset('sqlite:///tmp/teste.db');
-        $db->execSQL('create table users (
+        $db = Factory::getDbRelationalInstance('sqlite:///tmp/teste.db');
+        $db->execute('create table users (
             userid integer primary key  autoincrement, 
             name varchar(45), 
             email varchar(200), 
@@ -33,7 +34,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
             admin char(1));'
         );
 
-        $db->execSQL('create table users_property (
+        $db->execute('create table users_property (
             customid integer primary key  autoincrement, 
             userid integer, 
             name varchar(45), 
@@ -57,11 +58,16 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
         $user = $this->object->getByUsername('john');
-        $this->assertEquals('4', $user->getField($this->object->getUserTable()->id));
-        $this->assertEquals('John Doe', $user->getField($this->object->getUserTable()->name));
-        $this->assertEquals('john', $user->getField($this->object->getUserTable()->username));
-        $this->assertEquals('johndoe@gmail.com', $user->getField($this->object->getUserTable()->email));
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getField($this->object->getUserTable()->password));
+        $this->assertEquals('4', $user->get($this->object->getUserTable()->id));
+        $this->assertEquals('John Doe', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('john', $user->get($this->object->getUserTable()->username));
+        $this->assertEquals('johndoe@gmail.com', $user->get($this->object->getUserTable()->email));
+        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
+    }
+
+    public function testCreateAuthToken()
+    {
+        $this->expectedToken('tokenValue', 'user2', 2);
     }
 
 }

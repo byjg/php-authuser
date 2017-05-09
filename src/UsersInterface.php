@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Dataset\Row;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -30,7 +30,7 @@ interface UsersInterface
     /**
      * @desc Get the user based on a filter
      * @param IteratorFilter $filter
-     * @return SingleRow if user was found; null, otherwise
+     * @return Row if user was found; null, otherwise
      */
     function getUser($filter);
 
@@ -38,21 +38,21 @@ interface UsersInterface
      * Enter description here...
      *
      * @param int $id
-     * @return SingleRow
+     * @return Row
      */
     function getById($id);
 
     /**
      * @desc Get the user based on his email.
      * @param string $email Email to find
-     * @return SingleRow if user was found; null, otherwise
+     * @return Row if user was found; null, otherwise
      */
     function getByEmail($email);
 
     /**
      * @desc Get the user based on his login
      * @param string $username
-     * @return SingleRow if user was found; null, otherwise
+     * @return Row if user was found; null, otherwise
      */
     function getByUsername($username);
 
@@ -74,7 +74,7 @@ interface UsersInterface
      * @desc Validate if the user and password exists in the file
      * @param string $userName
      * @param string $password
-     * @return SingleRow if user was found; null, otherwise
+     * @return Row if user was found; null, otherwise
      */
     function isValidUser($userName, $password);
 
@@ -92,7 +92,7 @@ interface UsersInterface
      * @param string $value
      * @return True if have rights; false, otherwisebool
      */
-    public function hasProperty($userId, $propertyName, $value);
+    public function hasProperty($userId, $propertyName, $value = null);
 
     /**
      * @desc Return all sites from a specific user
@@ -131,20 +131,25 @@ interface UsersInterface
      *
      * @param string $username
      * @param string $password
-     * @param array $extraInfo
-     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
-     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @param string $serverUri
+     * @param string $secret
+     * @param int $expires
+     * @param array $updateUserInfo
+     * @param array $updateTokenInfo
+     * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
      */
-    public function createAuthToken($username, $password, $extraInfo = []);
+    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
 
     /**
      * Check if the Auth Token is valid
      *
-     * @param $username
+     * @param string $username
+     * @param string $uri
+     * @param string $secret
      * @param string $token
      * @return bool
      */
-    public function isValidToken($username, $token);
+    public function isValidToken($username, $uri, $secret, $token);
 
     /**
      * @return UserTable Description

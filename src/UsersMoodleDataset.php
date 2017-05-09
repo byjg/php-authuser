@@ -20,12 +20,13 @@ class UsersMoodleDataset extends UsersDBDataset
 
     /**
      * DBDataset constructor
-     * @param string $dataBase
+     *
+*@param string $connectionString
      * @param string $siteSalt
      */
-    public function __construct($dataBase, $siteSalt = "")
+    public function __construct($connectionString, $siteSalt = "")
     {
-        parent::__construct($dataBase);
+        parent::__construct($connectionString);
 
         $this->_siteSalt = $siteSalt;
     }
@@ -66,7 +67,7 @@ class UsersMoodleDataset extends UsersDBDataset
             return null;
         }
 
-        $savedPassword = $user->getField($this->getUserTable()->password);
+        $savedPassword = $user->get($this->getUserTable()->password);
         $validatedUser = null;
 
         if ($savedPassword === AUTH_PASSWORD_NOT_CACHED) {
@@ -110,30 +111,30 @@ class UsersMoodleDataset extends UsersDBDataset
         if (!is_null($user)) {
             // Get the user's roles from moodle
             $sqlRoles = 'SELECT shortname
-						 FROM
-							mdl_role AS r
-						INNER JOIN
-							mdl_role_assignments AS ra
-								ON ra.roleid = r.id
-						INNER JOIN mdl_user  AS u
-								ON u.id = ra.userid
-						WHERE userid = [[id]]
-						group by shortname';
-            $param = array("id" => $user->getField($this->getUserTable()->id));
+                         FROM
+                            mdl_role AS r
+                        INNER JOIN
+                            mdl_role_assignments AS ra
+                                ON ra.roleid = r.id
+                        INNER JOIN mdl_user  AS u
+                                ON u.id = ra.userid
+                        WHERE userid = [[id]]
+                        group by shortname';
+            $param = array("id" => $user->get($this->getUserTable()->id));
             $it = $this->_db->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
-                $user->addField("roles", $sr->getField('shortname'));
+                $user->addField("roles", $sr->get('shortname'));
             }
 
             // Find the moodle site admin (super user)
-            $user->setField($this->getUserTable()->admin, 'no');
+            $user->set($this->getUserTable()->admin, 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
             $it = $this->_db->getIterator($sqlAdmin);
             if ($it->hasNext()) {
                 $sr = $it->moveNext();
-                $siteAdmin = ',' . $sr->getField('value') . ',';
-                $isAdmin = (strpos($siteAdmin, ",{$user->getField($this->getUserTable()->id)},") !== false);
-                $user->setField($this->getUserTable()->admin, $isAdmin ? 'yes' : 'no');
+                $siteAdmin = ',' . $sr->get('value') . ',';
+                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->id)},") !== false);
+                $user->set($this->getUserTable()->admin, $isAdmin ? 'yes' : 'no');
             }
         }
 
@@ -189,7 +190,7 @@ class UsersMoodleDataset extends UsersDBDataset
                 "username",
                 "password",
                 "created",
-                "auth"							// This disable update data
+                "auth"                            // This disable update data
             );
         }
         return $this->_userTable;

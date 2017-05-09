@@ -3,16 +3,11 @@
 namespace ByJG\Authenticate;
 
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
-use ByJG\Cache\CacheContext;
 use ByJG\Cache\CacheEngineInterface;
-use ByJG\Cache\SessionCacheEngine;
-use ByJG\DesignPattern\Singleton;
-use Exception;
+use ByJG\Cache\Engine\SessionCacheEngine;
 
-class UserContext
+class SessionContext
 {
-
-    use Singleton;
 
     const SESSION_PREFIX = 'authuserpackage';
 
@@ -22,14 +17,9 @@ class UserContext
      */
     protected $session;
 
-    protected function __construct()
+    public function __construct()
     {
-        try {
-            $this->session = CacheContext::factory(self::SESSION_PREFIX);
-        } catch (Exception $ex) {
-            $this->session = new SessionCacheEngine();
-            $this->session->configKey = self::SESSION_PREFIX;
-        }
+        $this->session = new SessionCacheEngine(self::SESSION_PREFIX);
     }
 
     /**
@@ -40,7 +30,7 @@ class UserContext
      */
     public function isAuthenticated($key = 'default')
     {
-        return $this->session->get("user.$key") !== false;
+        return !empty($this->session->get("user.$key"));
     }
 
     /**

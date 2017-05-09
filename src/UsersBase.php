@@ -3,10 +3,11 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\Repository\IteratorFilter;
-use ByJG\AnyDataset\Repository\SingleRow;
+use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Util\JwtWrapper;
 use InvalidArgumentException;
 
 /**
@@ -66,29 +67,23 @@ abstract class UsersBase implements UsersInterface
      * @param string $password
      * @return bool
      */
-    public function addUser($name, $userName, $email, $password)
-    {
-
-    }
+    abstract public function addUser($name, $userName, $email, $password);
 
     /**
      * Get the user based on a filter.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return SingleRow
+     * @return Row
      * */
-    public function getUser($filter)
-    {
-        
-    }
+    abstract public function getUser($filter);
 
     /**
      * Get the user based on his email.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $email
-     * @return SingleRow
+     * @return Row
      * */
     public function getByEmail($email)
     {
@@ -99,10 +94,10 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Get the user based on his login.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $username
-     * @return SingleRow
+     * @return Row
      * */
     public function getByUsername($username)
     {
@@ -113,10 +108,10 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Get the user based on his id.
-     * Return SingleRow if user was found; null, otherwise
+     * Return Row if user was found; null, otherwise
      *
      * @param string $id
-     * @return SingleRow
+     * @return Row
      * */
     public function getById($id)
     {
@@ -131,10 +126,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @return bool
      * */
-    public function removeUserName($username)
-    {
-        
-    }
+    abstract public function removeUserName($username);
 
     /**
      * Get the SHA1 string from user password
@@ -149,11 +141,11 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * Validate if the user and password exists in the file
-     * Return SingleRow if user exists; null, otherwise
+     * Return Row if user exists; null, otherwise
      *
      * @param string $userName User login
      * @param string $password Plain text password
-     * @return SingleRow
+     * @return Row
      * */
     public function isValidUser($userName, $password)
     {
@@ -173,21 +165,21 @@ abstract class UsersBase implements UsersInterface
      * @return bool
      *
      */
-    public function hasProperty($userId, $propertyName, $value)
+    public function hasProperty($userId, $propertyName, $value = null)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
 
-        if ($user !== null) {
-            if ($this->isAdmin($userId)) {
-                return true;
-            } else {
-                $values = $user->getFieldArray($propertyName);
-                return ($values !== null ? in_array($value, $values) : false);
-            }
-        } else {
+        if (empty($user)) {
             return false;
         }
+
+        if ($this->isAdmin($userId)) {
+            return true;
+        }
+
+        $values = $user->getAsArray($propertyName);
+        return ($values !== null ? in_array($value, $values) : false);
     }
 
     /**
@@ -200,10 +192,10 @@ abstract class UsersBase implements UsersInterface
      * */
     public function getProperty($userId, $propertyName)
     {
-        //anydataset.SingleRow
+        //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            $values = $user->getFieldArray($propertyName);
+            $values = $user->getAsArray($propertyName);
 
             if ($this->isAdmin($userId)) {
                 return array("admin" => "admin");
@@ -235,10 +227,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    public function removeProperty($userId, $propertyName, $value)
-    {
-        
-    }
+    abstract public function removeProperty($userId, $propertyName, $value);
 
     /**
      * Remove a specific site from all users
@@ -248,10 +237,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    public function removeAllProperties($propertyName, $value)
-    {
-
-    }
+    abstract public function removeAllProperties($propertyName, $value);
 
     /**
      *
@@ -263,7 +249,7 @@ abstract class UsersBase implements UsersInterface
     public function isAdmin($userId = null)
     {
         if (is_null($userId)) {
-            $currentUser = UserContext::getInstance()->userInfo();
+            $currentUser = (new SessionContext())->userInfo();
             if ($currentUser === false) {
                 throw new NotAuthenticatedException();
             }
@@ -272,12 +258,13 @@ abstract class UsersBase implements UsersInterface
 
         $user = $this->getById($userId);
 
-        if (!is_null($user)) {
-            return (preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getField($this->getUserTable()->admin))
-                === 1);
-        } else {
+        if (is_null($user)) {
             throw new UserNotFoundException("Cannot find the user");
         }
+
+        return
+            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->get($this->getUserTable()->admin)) === 1
+        ;
     }
 
     /**
@@ -285,11 +272,15 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $username
      * @param string $password
-     * @param array $extraInfo
-     * @return \ByJG\AnyDataset\Repository\SingleRow Return the TOKEN or false if dont.
+     * @param string $serverUri
+     * @param string $secret
+     * @param int $expires
+     * @param array $updateUserInfo
+     * @param array $updateTokenInfo
+     * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $extraInfo = [])
+    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
     {
         if (!isset($username) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
@@ -298,40 +289,43 @@ abstract class UsersBase implements UsersInterface
         $user = $this->isValidUser($username, $password);
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
-        } else {
-            foreach ($extraInfo as $key => $value) {
-                $user->setField($key, $value);
-            }
-            $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
-            $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
-
-            $token = sha1(sha1($username)
-                . sha1($password)
-                . sha1(serialize($extraInfo))
-                . sha1(time())
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-                . sha1(rand(0, 30000))
-            );
-
-            $user->setField('TOKEN', $token);
-            $this->save();
         }
 
-        return $user;
+        foreach ($updateUserInfo as $key => $value) {
+            $user->set($key, $value);
+        }
+        $user->set('LAST_LOGIN', date('Y-m-d H:i:s'));
+        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
+        $user->set('LOGIN_TIMES', intval($user->get('LOGIN_TIMES')) + 1);
+
+        $jwt = new JwtWrapper($serverUri, $secret);
+        $updateTokenInfo['username'] = $username;
+        $updateTokenInfo['userid'] = $user->get(UsersBase::getUserTable()->id);
+        $jwtData = $jwt->createJwtData(
+            $updateTokenInfo,
+            $expires
+        );
+
+        $token = $jwt->generateToken($jwtData);
+
+        $user->set('TOKEN_HASH', sha1($token));
+        $this->save();
+
+        return $token;
     }
 
     /**
      * Check if the Auth Token is valid
      *
      * @param string $username
+     * @param string $uri
+     * @param string $secret
      * @param string $token
-     * @return SingleRow True if it is OK, exception if dont
-     * @throws NotAuthenticatedException
-     * @throws UserNotFoundException
+     * @return array
+     * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function isValidToken($username, $token)
+    public function isValidToken($username, $uri, $secret, $token)
     {
         $user = $this->getByUsername($username);
 
@@ -339,15 +333,20 @@ abstract class UsersBase implements UsersInterface
             throw new UserNotFoundException('User not found!');
         }
 
-        if ($user->getField('TOKEN') !== $token) {
+        if ($user->get('TOKEN_HASH') !== sha1($token)) {
             throw new NotAuthenticatedException('Token does not match');
         }
 
-        $user->setField('LAST_LOGIN', date('Y-m-d H:i:s'));
-        $user->setField('LOGIN_TIMES', intval($user->getField('LOGIN_TIMES')) + 1);
+        $jwt = new JwtWrapper($uri, $secret);
+        $data = $jwt->extractData($token);
+
+        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
         $this->save();
 
-        return $user;
+        return [
+            'user' => $user,
+            'data' => $data->data
+        ];
     }
 
     /**

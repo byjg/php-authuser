@@ -45,7 +45,7 @@ $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
     $userId = $user->getField($users->getUserTable()->id;
-    \ByJG\Authenticate\UserContext::getInstance()->registerLogin($userId);
+    (new \ByJG\Authenticate\SessionContext())->registerLogin($userId);
 }
 ```
 
@@ -53,10 +53,10 @@ if (!is_null($user))
 
 ```php 
 // Check if the user is authenticated
-if (\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated())
+if ((new \ByJG\Authenticate\SessionContext())->isAuthenticated())
     
     // Get the userId of the authenticated users
-    $userId = \ByJG\Authenticate\UserContext::getInstance()->userInfo();
+    $userId = (new \ByJG\Authenticate\SessionContext())->userInfo();
 
     // Get the user and your name
     $user = $users->getById($userId);
@@ -72,13 +72,13 @@ data stored with the user session will be released.
 **Store the data for the current user session**
 
 ```php
-\ByJG\Authenticate\UserContext::getInstance()->setSessionData('key', 'value');
+(new \ByJG\Authenticate\SessionContext())->setSessionData('key', 'value');
 ```
 
 **Getting the data from the current user session**
 
 ```php
-$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key');
+$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
 ```
 
 Note: If the user is not logged an error will be throw
@@ -94,13 +94,13 @@ $users->save();
 ### Logout from a session
 
 ```php
-\ByJG\Authenticate\UserContext::getInstance()->registerLogout();
+(new \ByJG\Authenticate\SessionContext())->registerLogout();
 ```
 
 ### Multiple authenticate contexts
 
 You can create and handle more than on context for users. 
-All methods of the UserContext object can
+All methods of the SessionContext object can
 receive an extra parameter with the name of the current context.
 If you do not pass anything, the 'default' context will be assigned.
 
@@ -108,16 +108,16 @@ See the example:
 
 ```php
 // 'default' context
-\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated();
-\ByJG\Authenticate\UserContext::getInstance()->registerLogin('userId');
-$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key');
-\ByJG\Authenticate\UserContext::getInstance()->registerLogout();
+(new \ByJG\Authenticate\SessionContext())->isAuthenticated();
+(new \ByJG\Authenticate\SessionContext())->registerLogin('userId');
+$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
+(new \ByJG\Authenticate\SessionContext())->registerLogout();
 
 // 'my' context
-\ByJG\Authenticate\UserContext::getInstance()->isAuthenticated('my');
-\ByJG\Authenticate\UserContext::getInstance()->registerLogin('userId', 'my');
-$value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key', 'my');
-\ByJG\Authenticate\UserContext::getInstance()->registerLogout('my');
+(new \ByJG\Authenticate\SessionContext())->isAuthenticated('my');
+(new \ByJG\Authenticate\SessionContext())->registerLogin('userId', 'my');
+$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key', 'my');
+(new \ByJG\Authenticate\SessionContext())->registerLogout('my');
 ```
 
 ## Architecture
@@ -125,7 +125,7 @@ $value = \ByJG\Authenticate\UserContext::getInstance()->getSessionData('key', 'm
 ```
                             +----------------+            +----------------+
                             |                |            |                |
-                            | UsersInterface |------------|  UserContext   |
+                            | UsersInterface |------------|  SessionContext   |
                             |                |            |                |
                             +----------------+            +----------------+
                                     ^
@@ -204,9 +204,13 @@ $userTable = new UserTable(
 
 ## Install
 
-Just type: `composer require "byjg/authuser=1.0.*"`
+Just type: `composer require "byjg/authuser=1.1.*"`
 
 ## Running Tests
 
-Just type `phpunit` on the root directory of your project.
+Because this project uses PHP Session you need to run the unit test the following manner:
+ 
+```
+phpunit --stderr
+```
 
