@@ -3,7 +3,7 @@
 namespace ByJG\Authenticate\Interfaces;
 
 
-interface UserContext
+interface UserContextInterface
 {
     /**
      * Get information about current context is authenticated.

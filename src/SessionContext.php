@@ -3,10 +3,10 @@
 namespace ByJG\Authenticate;
 
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
-use ByJG\Authenticate\Interfaces\UserContext;
+use ByJG\Authenticate\Interfaces\UserContextInterface;
 use ByJG\Cache\Psr\CachePool;
 
-class SessionContext implements UserContext
+class SessionContext implements UserContextInterface
 {
     /**
      *
