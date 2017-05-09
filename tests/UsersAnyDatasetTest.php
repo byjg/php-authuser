@@ -77,7 +77,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
         // Add another property (cannot change)
         $this->object->addProperty($this->prefix . '2', 'city', 'Belo Horizonte');
         $user = $this->object->getByUsername('user2');
-        $this->assertEquals('Rio de Janeiro', $user->get('city'));
+        $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $user->get('city'));
 
         // Get Property
         $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $this->object->getProperty($this->prefix . '2', 'city'));
@@ -94,7 +94,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
         // Remove Property Again
         $this->object->removeProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
-        $this->assertEquals(['Belo Horizonte'], $this->object->getProperty($this->prefix . '2', 'city'));
+        $this->assertEquals('Belo Horizonte', $this->object->getProperty($this->prefix . '2', 'city'));
 
     }
 
@@ -115,22 +115,22 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     {
         // Getting data
         $user = $this->object->getByUsername('user1');
-        $this->assertEquals('User 1', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('User 1', $user->getName());
 
         // Change and Persist data
-        $user->set($this->object->getUserTable()->name, 'Other name');
-        $this->object->save();
+        $user->setName('Other name');
+        $this->object->save($user);
 
         // Check if data persists
         $user = $this->object->getById($this->prefix . '1');
-        $this->assertEquals('Other name', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('Other name', $user->getName());
     }
 
     public function testIsValidUser()
     {
         // User Exists!
         $user = $this->object->isValidUser('user3', 'pwd3');
-        $this->assertEquals('User 3', $user->get($this->object->getUserTable()->name));
+        $this->assertEquals('User 3', $user->getName());
 
         // User Does not Exists!
         $user = $this->object->isValidUser('user55', 'pwd5');
@@ -139,10 +139,13 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
     public function testIsAdmin()
     {
+        // Check is Admin
+        $this->assertFalse($this->object->isAdmin($this->prefix . '3'));
+
         // Set the Admin Flag
         $user = $this->object->getByUsername('user3');
-        $user->set($this->object->getUserTable()->admin, 'Y');
-        $this->object->save();
+        $user->setAdmin('Y');
+        $this->object->save($user);
 
         // Check is Admin
         $this->assertTrue($this->object->isAdmin($this->prefix . '3'));

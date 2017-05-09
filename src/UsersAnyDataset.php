@@ -9,6 +9,7 @@ use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Model\UserModel;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -42,8 +43,10 @@ class UsersAnyDataset extends UsersBase
 
     /**
      * Save the current UsersAnyDataset
+     *
+     * @param \ByJG\Authenticate\Model\UserModel $model
      */
-    public function save()
+    public function save(UserModel $model)
     {
         $this->_anyDataSet->save($this->_usersFile);
     }
@@ -91,7 +94,7 @@ class UsersAnyDataset extends UsersBase
      * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return Row
+     * @return UserModel
      * */
     public function getUser($filter)
     {
@@ -167,7 +170,7 @@ class UsersAnyDataset extends UsersBase
         $user = $this->getById($userId);
         if (!empty($user)) {
             $user->removeValue($propertyName, $value);
-            $this->save();
+            $this->save($user);
             return true;
         }
 

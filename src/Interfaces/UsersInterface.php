@@ -6,6 +6,7 @@ use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Model\UserModel;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -16,8 +17,10 @@ interface UsersInterface
 
     /**
      * @desc Save the current DataSet
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     * @return
      */
-    function save();
+    function save(UserModel $model);
 
     /**
      * @desc Add a new user
@@ -32,7 +35,7 @@ interface UsersInterface
     /**
      * @desc Get the user based on a filter
      * @param IteratorFilter $filter
-     * @return Row if user was found; null, otherwise
+     * @return UserModel if user was found; null, otherwise
      */
     function getUser($filter);
 
@@ -85,7 +88,7 @@ interface UsersInterface
      * @param int|string $userId
      * @return bool
      */
-    public function isAdmin($userId = "");
+    public function isAdmin($userId);
 
     /**
      * @desc Check if the user have rights to edit specific site.
