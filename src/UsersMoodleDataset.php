@@ -7,6 +7,8 @@ namespace ByJG\Authenticate;
  */
 define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password field when password is not stored.
 
+use ByJG\Authenticate\Definition\CustomTable;
+use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\NotImplementedException;
 use ErrorException;
 

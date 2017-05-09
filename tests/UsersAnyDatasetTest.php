@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\Cache\Factory;
+
 // backward compatibility
 if (!class_exists('\PHPUnit\Framework\TestCase')) {
     class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
@@ -209,7 +211,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
     public function testUserContext()
     {
-        $session = new SessionContext();
+        $session = new SessionContext(Factory::createSessionPool());
         
         $this->assertFalse($session->isAuthenticated());
 
@@ -234,7 +236,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
      */
     public function testUserContextNotActiveSession()
     {
-        $session = new SessionContext();
+        $session = new SessionContext(Factory::createSessionPool());
         $this->assertEmpty($session->getSessionData('property1'));
     }
 

@@ -1,9 +1,11 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\CustomTable;
+use ByJG\Authenticate\Definition\UserTable;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.

@@ -10,6 +10,8 @@ use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\IteratorInterface;
 use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\CustomTable;
+use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\UserExistsException;
 
 class UsersDBDataset extends UsersBase

@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace ByJG\Authenticate\Definition;
 
 class CustomTable
 {

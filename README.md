@@ -15,48 +15,57 @@ This class can persist into session (or file, memcache, etc) the user data betwe
 ### Creating a Users handling class
 
 
-**Using the FileSystem as the user storage**
+**Using the FileSystem (XML) as the user storage**
 
 ```php
-$users = new ByJG\Authenticate\UsersAnyDataset('/tmp/pass.anydata.xml');
+<?php
+$users = new UsersAnyDataset('/tmp/pass.anydata.xml');
 ```
 
 **Using the Database as the user storage**
 
 ```php
+<?php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',   // The connection string. Please refer to the project byjg/anydataset
-    new \ByJG\Authenticate\UserTable(),  // The field metadata for store the users
-    new \ByJG\Authenticate\CustomTable()  // The field metadata for store the extra properties
+    new UserTable(),  // The field metadata for store the users
+    new CustomTable()  // The field metadata for store the extra properties
 );
 ```
 
 **Using the Moodle as the user storage**
 
 ```php
-$users = new \ByJG\Authenticate\UsersMoodleDataset('connection');
+<?php
+$users = new UsersMoodleDataset('connection');
 ```
 
 
 ### Authenticate a user with your username and password and persist into the session
 
 ```php
+<?php
 $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
-    $userId = $user->getField($users->getUserTable()->id;
-    (new \ByJG\Authenticate\SessionContext())->registerLogin($userId);
+    $userId = $user->getField($users->getUserTable()->id);
+    
+    $sessionContext = new SessionContext(\ByJG\Cache\Factory::createSessionPool());
+    $sessionContext->registerLogin($userId);
 }
 ```
 
 ### Check if user was previously authenticated
 
-```php 
+```php
+<?php
+$sessionContext = new SessionContext(\ByJG\Cache\Factory::createSessionPool());
+
 // Check if the user is authenticated
-if ((new \ByJG\Authenticate\SessionContext())->isAuthenticated())
+if ($sessionContext->isAuthenticated()) {
     
     // Get the userId of the authenticated users
-    $userId = (new \ByJG\Authenticate\SessionContext())->userInfo();
+    $userId = $sessionContext->userInfo();
 
     // Get the user and your name
     $user = $users->getById($userId);
@@ -72,13 +81,17 @@ data stored with the user session will be released.
 **Store the data for the current user session**
 
 ```php
-(new \ByJG\Authenticate\SessionContext())->setSessionData('key', 'value');
+<?php
+$sessionContext = new SessionContext(\ByJG\Cache\Factory::createSessionPool());
+$sessionContext->setSessionData('key', 'value');
 ```
 
 **Getting the data from the current user session**
 
 ```php
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
+<?php
+$sessionContext = new SessionContext(\ByJG\Cache\Factory::createSessionPool());
+$value = $sessionContext->getSessionData('key');
 ```
 
 Note: If the user is not logged an error will be throw
@@ -86,6 +99,7 @@ Note: If the user is not logged an error will be throw
 ### Adding a custom property to the users;
 
 ```php
+<?php
 $user = $users->getById($userId);
 $user->setField('somefield', 'somevalue');
 $users->save();
@@ -94,38 +108,36 @@ $users->save();
 ### Logout from a session
 
 ```php
-(new \ByJG\Authenticate\SessionContext())->registerLogout();
+<?php
+$sessionContext->registerLogout();
 ```
+### Important note about SessionContext
 
-### Multiple authenticate contexts
+`SessionContext` object will store the info about the current context. 
+As SessionContext uses CachePool interface defined in PSR-6 you can set any storage
+to save your session context. 
 
-You can create and handle more than on context for users. 
-All methods of the SessionContext object can
-receive an extra parameter with the name of the current context.
-If you do not pass anything, the 'default' context will be assigned.
-
-See the example:
+In our examples we are using a regular PHP Session for store the user context
+(`Factory::createSessionPool()`). But if you are using another store like MemCached
+you have to define a UNIQUE prefix for that session. Note if TWO users have the same
+prefix you probably have an unexpected result for the SessionContext.
+ 
+Example for memcached:
 
 ```php
-// 'default' context
-(new \ByJG\Authenticate\SessionContext())->isAuthenticated();
-(new \ByJG\Authenticate\SessionContext())->registerLogin('userId');
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
-(new \ByJG\Authenticate\SessionContext())->registerLogout();
-
-// 'my' context
-(new \ByJG\Authenticate\SessionContext())->isAuthenticated('my');
-(new \ByJG\Authenticate\SessionContext())->registerLogin('userId', 'my');
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key', 'my');
-(new \ByJG\Authenticate\SessionContext())->registerLogout('my');
+<?php
+$sessionContext = new SessionContext(\ByJG\Cache\Factory::createMemcachedPool(), 'UNIQUEPREFIX');
 ```
+
+If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
+
 
 ## Architecture
 
 ```
                             +----------------+            +----------------+
                             |                |            |                |
-                            | UsersInterface |------------|  SessionContext   |
+                            | UsersInterface |------------| SessionContext |
                             |                |            |                |
                             +----------------+            +----------------+
                                     ^
@@ -178,8 +190,8 @@ Using the database structure above you can create the UsersDBDatase as follow:
 ```php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',
-    new \ByJG\Authenticate\UserTable(),
-    new \ByJG\Authenticate\CustomTable()
+    new \ByJG\Authenticate\Defintion\UserTable(),
+    new \ByJG\Authenticate\Definition\CustomTable()
 );
 ```
 
@@ -204,7 +216,7 @@ $userTable = new UserTable(
 
 ## Install
 
-Just type: `composer require "byjg/authuser=1.1.*"`
+Just type: `composer require "byjg/authuser=2.0.*"`
 
 ## Running Tests
 
