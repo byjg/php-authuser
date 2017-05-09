@@ -2,8 +2,6 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\Cache\Factory;
-
 // backward compatibility
 if (!class_exists('\PHPUnit\Framework\TestCase')) {
     class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
@@ -208,36 +206,4 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     {
         $this->object->isValidToken('user1', 'api.test.com', '1234567', 'Invalid token');
     }
-
-    public function testUserContext()
-    {
-        $session = new SessionContext(Factory::createSessionPool());
-        
-        $this->assertFalse($session->isAuthenticated());
-
-        $session->registerLogin(10);
-
-        $this->assertEquals(10, $session->userInfo());
-        $this->assertTrue($session->isAuthenticated());
-
-        $session->setSessionData('property1', 'value1');
-        $session->setSessionData('property2', 'value2');
-
-        $this->assertEquals('value1', $session->getSessionData('property1'));
-        $this->assertEquals('value2', $session->getSessionData('property2'));
-
-        $session->registerLogout();
-
-        $this->assertFalse($session->isAuthenticated());
-    }
-
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
-     */
-    public function testUserContextNotActiveSession()
-    {
-        $session = new SessionContext(Factory::createSessionPool());
-        $this->assertEmpty($session->getSessionData('property1'));
-    }
-
 }
