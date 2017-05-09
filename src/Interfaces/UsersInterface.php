@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\Row;

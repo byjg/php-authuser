@@ -9,6 +9,7 @@ use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\Interfaces\UsersInterface;
 use ByJG\Util\JwtWrapper;
 use InvalidArgumentException;
 
