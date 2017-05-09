@@ -3,71 +3,82 @@
 namespace ByJG\Authenticate;
 
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
-use ByJG\Cache\CacheEngineInterface;
-use ByJG\Cache\Engine\SessionCacheEngine;
+use ByJG\Authenticate\Interfaces\UserContext;
+use ByJG\Cache\Psr\CachePool;
 
-class SessionContext
+class SessionContext implements UserContext
 {
-
-    const SESSION_PREFIX = 'authuserpackage';
-
     /**
      *
-     * @var CacheEngineInterface
+     * @var \ByJG\Cache\Psr\CachePool
      */
     protected $session;
 
-    public function __construct()
+    /**
+     * @var string
+     */
+    protected $key;
+
+    public function __construct(CachePool $cachePool, $key = 'default')
     {
-        $this->session = new SessionCacheEngine(self::SESSION_PREFIX);
+        $this->session = $cachePool;
+        $this->key = $key;
     }
 
     /**
      * Get information about current context is authenticated.
      * @access public
-     * @param string $key
      * @return bool Return true if authenticated; false otherwise.
      */
-    public function isAuthenticated($key = 'default')
+    public function isAuthenticated()
     {
-        return !empty($this->session->get("user.$key"));
+        $item = $this->session->getItem("user.{$this->key}");
+        return $item->isHit();
     }
 
     /**
      * Get the authenticated user name
      * @access public
-     * @param string $key
      * @return string The authenticated username if exists.
      */
-    public function userInfo($key = 'default')
+    public function userInfo()
     {
-        return $this->session->get("user.$key");
+        $item = $this->session->getItem("user.{$this->key}");
+        return $item->get();
     }
 
     /**
      *
      * @param $userId
-     * @param string $key
+     * @param $data
      */
-    public function registerLogin($userId, $key = 'default')
+    public function registerLogin($userId, $data = [])
     {
-        $this->session->set("user.$key", $userId);
+        $item = $this->session->getItem("user.{$this->key}");
+        $item->set($userId);
+        $this->session->saveDeferred($item);
+
+        $data = $this->session->getItem("user.{$this->key}.data");
+        $data->set($data);
+        $this->session->saveDeferred($data);
+
+        $this->session->commit();
     }
 
     /**
      *
      * @param string $name
      * @param mixed $value
-     * @param string $key
      * @throws NotAuthenticatedException
      */
-    public function setSessionData($name, $value, $key = 'default')
+    public function setSessionData($name, $value)
     {
-        if (!$this->isAuthenticated($key)) {
+        if (!$this->isAuthenticated()) {
             throw new NotAuthenticatedException('There is no active logged user');
         }
 
-        $oldData = $this->session->get("user.$key.data");
+        $item = $this->session->getItem("user.{$this->key}.data");
+        $oldData = $item->get();
 
         if (!is_array($oldData)) {
             $oldData = [];
@@ -75,27 +86,29 @@ class SessionContext
 
         $oldData[$name] = $value;
 
-        $this->session->set("user.$key.data", $oldData);
+        $item->set($oldData);
+        $this->session->save($item);
     }
 
     /**
      *
      * @param string $name
-     * @param string $key
      * @return mixed
      * @throws NotAuthenticatedException
      */
-    public function getSessionData($name, $key = 'default')
+    public function getSessionData($name)
     {
-        if (!$this->isAuthenticated($key)) {
+        if (!$this->isAuthenticated()) {
             throw new NotAuthenticatedException('There is no active logged user');
         }
 
-        $oldData = $this->session->get("user.$key.data");
+        $item = $this->session->getItem("user.{$this->key}.data");
 
-        if (!is_array($oldData)) {
+        if (!$item->isHit()) {
             return false;
         }
+
+        $oldData = $item->get();
         if (isset($oldData[$name])) {
             return $oldData[$name];
         }
@@ -110,11 +123,7 @@ class SessionContext
      */
     public function registerLogout($key = 'default')
     {
-        $this->session->release("user.$key");
-        $this->session->release("user.$key.data");
-
-        if ($this->session instanceof SessionCacheEngine) {
-            session_unset();
-        }
+        $this->session->deleteItem("user.{$this->key}");
+        $this->session->deleteItem("user.{$this->key}.data");
     }
 }
