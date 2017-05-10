@@ -2,15 +2,15 @@
 
 namespace ByJG\Authenticate\Model;
 
-class CustomModel
+class UserPropertiesModel
 {
     protected $userid;
-    protected $customid;
+    protected $id;
     protected $name;
     protected $value;
 
     /**
-     * CustomModel constructor.
+     * UserPropertiesModel constructor.
      *
      * @param $name
      * @param $value
@@ -40,17 +40,17 @@ class CustomModel
     /**
      * @return mixed
      */
-    public function getCustomid()
+    public function getId()
     {
-        return $this->customid;
+        return $this->id;
     }
 
     /**
-     * @param mixed $customid
+     * @param mixed $id
      */
-    public function setCustomid($customid)
+    public function setId($id)
     {
-        $this->customid = $customid;
+        $this->id = $id;
     }
 
     /**

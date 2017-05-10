@@ -2,11 +2,11 @@
 
 namespace ByJG\Authenticate\Definition;
 
-class CustomTable
+class UserPropertiesDefinition
 {
 
     protected $table;
-    protected $customid;
+    protected $id;
     protected $name;
     protected $value;
     protected $userid;
@@ -21,11 +21,11 @@ class CustomTable
      * @param string $value
      * @param string $userid
      */
-    public function __construct($table = 'users_property', $id = 'customid', $name = 'name', $value = 'value',
+    public function __construct($table = 'users_property', $id = 'id', $name = 'name', $value = 'value',
         $userid = 'userid')
     {
         $this->table = $table;
-        $this->customid = $id;
+        $this->id = $id;
         $this->name = $name;
         $this->value = $value;
         $this->userid = $userid;
@@ -42,9 +42,9 @@ class CustomTable
     /**
      * @return string
      */
-    public function getCustomid()
+    public function getId()
     {
-        return $this->customid;
+        return $this->id;
     }
 
     /**

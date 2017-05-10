@@ -5,7 +5,7 @@ namespace ByJG\Authenticate\Definition;
 /**
  * Structure to represent the users
  */
-class UserTable
+class UserDefinition
 {
 
     protected $table;

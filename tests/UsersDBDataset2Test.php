@@ -5,8 +5,8 @@ namespace ByJG\Authenticate;
 require_once 'UsersDBDatasetTest.php';
 
 use ByJG\AnyDataset\Factory;
-use ByJG\Authenticate\Definition\CustomTable;
-use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 
 /**
  * Created by PhpStorm.
@@ -37,7 +37,7 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
         );
 
         $db->execute('create table theirproperty (
-            theircustomid integer primary key  autoincrement, 
+            theirid integer primary key  autoincrement, 
             theiruserid integer, 
             theirname varchar(45), 
             theirvalue varchar(45));'
@@ -45,8 +45,8 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
 
         $this->object = new UsersDBDataset(
             'sqlite:///tmp/teste.db',
-            new UserTable('mytable', 'myuserid', 'myname', 'myemail', 'myusername', 'mypassword', 'mycreated', 'myadmin'),
-            new CustomTable('theirproperty', 'theircustomid', 'theirname', 'theirvalue', 'theiruserid')
+            new UserDefinition('mytable', 'myuserid', 'myname', 'myemail', 'myusername', 'mypassword', 'mycreated', 'myadmin'),
+            new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid')
         );
 
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');

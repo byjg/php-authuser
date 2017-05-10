@@ -5,10 +5,10 @@ namespace ByJG\Authenticate;
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
 use ByJG\AnyDataset\Factory;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\Authenticate\Definition\CustomTable;
-use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\UserExistsException;
-use ByJG\Authenticate\Model\CustomModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
@@ -26,7 +26,7 @@ class UsersDBDataset extends UsersBase
     /**
      * @var \ByJG\MicroOrm\Repository
      */
-    protected $_customRepository;
+    protected $_propertiesRepository;
 
     /**
      * @var \ByJG\AnyDataset\DbDriverInterface
@@ -37,17 +37,17 @@ class UsersDBDataset extends UsersBase
      * UsersDBDataset constructor
      *
      * @param string $connectionString
-     * @param UserTable $userTable
-     * @param CustomTable $customTable
+     * @param UserDefinition $userTable
+     * @param UserPropertiesDefinition $propertiesTable
      */
-    public function __construct($connectionString, UserTable $userTable = null, CustomTable $customTable = null)
+    public function __construct($connectionString, UserDefinition $userTable = null, UserPropertiesDefinition $propertiesTable = null)
     {
         if (empty($userTable)) {
-            $userTable = new UserTable();
+            $userTable = new UserDefinition();
         }
 
-        if (empty($customTable)) {
-            $customTable = new CustomTable();
+        if (empty($propertiesTable)) {
+            $propertiesTable = new UserPropertiesDefinition();
         }
 
         $me = $this;
@@ -73,19 +73,19 @@ class UsersDBDataset extends UsersBase
         $userMapper->addFieldMap('admin', $userTable->getAdmin());
         $this->_userRepository = new Repository($provider, $userMapper);
 
-        $customMapper = new Mapper(
-            CustomModel::class,
-            $customTable->getTable(),
-            $customTable->getCustomid()
+        $propertiesMapper = new Mapper(
+            UserPropertiesModel::class,
+            $propertiesTable->getTable(),
+            $propertiesTable->getId()
         );
-        $customMapper->addFieldMap('customid', $customTable->getCustomid());
-        $customMapper->addFieldMap('name', $customTable->getName());
-        $customMapper->addFieldMap('value', $customTable->getValue());
-        $customMapper->addFieldMap('userid', $customTable->getUserid());
-        $this->_customRepository = new Repository($provider, $customMapper);
+        $propertiesMapper->addFieldMap('id', $propertiesTable->getId());
+        $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
+        $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
+        $propertiesMapper->addFieldMap('userid', $propertiesTable->getUserid());
+        $this->_propertiesRepository = new Repository($provider, $propertiesMapper);
 
         $this->_userTable = $userTable;
-        $this->_customTable = $customTable;
+        $this->_propertiesTable = $propertiesTable;
     }
 
     /**
@@ -97,9 +97,9 @@ class UsersDBDataset extends UsersBase
     {
         $this->_userRepository->save($user);
 
-        foreach ($user->getCustomProperties() as $custom) {
-            $custom->setUserid($user->getUserid());
-            $this->_customRepository->save($custom);
+        foreach ($user->getProperties() as $property) {
+            $property->setUserid($user->getUserid());
+            $this->_propertiesRepository->save($property);
         }
     }
 
@@ -145,7 +145,7 @@ class UsersDBDataset extends UsersBase
         $sql = $formatter->getFilter($filter->getRawFilters(), $param);
 
         $query = Query::getInstance()
-            ->table($this->getUserTable()->getTable())
+            ->table($this->getUserDefinition()->getTable())
             ->where($sql, $param);
 
         return $this->_userRepository->getByQuery($query);
@@ -167,7 +167,7 @@ class UsersDBDataset extends UsersBase
 
         $model = $result[0];
 
-        $this->setCustomFieldsInUser($model);
+        $this->setPropertiesInUser($model);
 
         return $model;
     }
@@ -197,10 +197,10 @@ class UsersDBDataset extends UsersBase
      * */
     public function removeUserById($userId)
     {
-        $updtableCustom = Updatable::getInstance()
-            ->table($this->getCustomTable()->getTable())
-            ->where("{$this->getCustomTable()->getUserid()} = :id", ["id" => $this->getUserTable()->getUserid()]);
-        $this->_customRepository->deleteByQuery($updtableCustom);
+        $updtableProperties = Updatable::getInstance()
+            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $this->getUserDefinition()->getUserid()]);
+        $this->_propertiesRepository->deleteByQuery($updtableProperties);
 
         $this->_userRepository->delete($userId);
 
@@ -223,9 +223,9 @@ class UsersDBDataset extends UsersBase
         }
 
         if (!$this->hasProperty($userId, $propertyName, $value)) {
-            $custom = new CustomModel($propertyName, $value);
-            $custom->setUserid($userId);
-            $this->_customRepository->save($custom);
+            $propertiesModel = new UserPropertiesModel($propertyName, $value);
+            $propertiesModel->setUserid($userId);
+            $this->_propertiesRepository->save($propertiesModel);
         }
 
         return true;
@@ -246,15 +246,15 @@ class UsersDBDataset extends UsersBase
         if ($user !== null) {
 
             $updateable = Updatable::getInstance()
-                ->table($this->getCustomTable()->getTable())
-                ->where("{$this->getCustomTable()->getUserid()} = :id", ["id" => $userId])
-                ->where("{$this->getCustomTable()->getName()} = :name", ["name" => $propertyName]);
+                ->table($this->getUserPropertiesDefinition()->getTable())
+                ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
+                ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
             if (!empty($value)) {
-                $updateable->where("{$this->getCustomTable()->getValue()} = :value", ["value" => $value]);
+                $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
             }
 
-            $this->_customRepository->deleteByQuery($updateable);
+            $this->_propertiesRepository->deleteByQuery($updateable);
 
             return true;
         }
@@ -273,28 +273,28 @@ class UsersDBDataset extends UsersBase
     public function removeAllProperties($propertyName, $value = null)
     {
         $updateable = Updatable::getInstance()
-            ->table($this->getCustomTable()->getTable())
-            ->where("{$this->getCustomTable()->getName()} = :name}", ["name" => $propertyName]);
+            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name}", ["name" => $propertyName]);
 
         if (!empty($value)) {
-            $updateable->where("{$this->getCustomTable()->getValue()} = :value}", ["value" => $value]);
+            $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value}", ["value" => $value]);
         }
 
-        $this->_customRepository->deleteByQuery($updateable);
+        $this->_propertiesRepository->deleteByQuery($updateable);
 
         return true;
     }
 
     /**
-     * Return all custom's fields from this user
+     * Return all property's fields from this user
      *
      * @param UserModel $userRow
      */
-    protected function setCustomFieldsInUser(UserModel $userRow)
+    protected function setPropertiesInUser(UserModel $userRow)
     {
         $query = Query::getInstance()
-            ->table($this->getCustomTable()->getTable())
-            ->where("{$this->getCustomTable()->getUserid()} = :id", ['id'=>$userRow->getUserid()]);
-        $userRow->setCustomProperties($this->_customRepository->getByQuery($query));
+            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userRow->getUserid()]);
+        $userRow->setProperties($this->_propertiesRepository->getByQuery($query));
     }
 }

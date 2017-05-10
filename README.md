@@ -28,8 +28,8 @@ $users = new UsersAnyDataset('/tmp/pass.anydata.xml');
 <?php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',   // The connection string. Please refer to the project byjg/anydataset
-    new UserTable(),  // The field metadata for store the users
-    new CustomTable()  // The field metadata for store the extra properties
+    new UserDefinition(),  // The field metadata for store the users
+    new UserPropertiesDefinition()  // The field metadata for store the extra properties
 );
 ```
 
@@ -190,18 +190,18 @@ Using the database structure above you can create the UsersDBDatase as follow:
 ```php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',
-    new \ByJG\Authenticate\Defintion\UserTable(),
-    new \ByJG\Authenticate\Definition\CustomTable()
+    new \ByJG\Authenticate\Defintion\UserDefinition(),
+    new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
 );
 ```
 
 ### Custom Database
 
 If you have an existing database with different names but containing all fields above
-you can use the UserTable and CustomTable classes for customize this info.
+you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
 
 ```php
-$userTable = new UserTable(
+$userTable = new UserDefinition(
     'users',    // $table
     'userid',   // $id
     'name',     // $name

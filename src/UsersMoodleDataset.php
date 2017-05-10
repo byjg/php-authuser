@@ -7,10 +7,10 @@ namespace ByJG\Authenticate;
  */
 define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password field when password is not stored.
 
-use ByJG\Authenticate\Definition\CustomTable;
-use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotImplementedException;
-use ByJG\Authenticate\Model\CustomModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
 use ErrorException;
 
@@ -73,7 +73,7 @@ class UsersMoodleDataset extends UsersDBDataset
             return null;
         }
 
-        $savedPassword = $user->get($this->getUserTable()->getPassword());
+        $savedPassword = $user->get($this->getUserDefinition()->getPassword());
         $validatedUser = null;
 
         if ($savedPassword === AUTH_PASSWORD_NOT_CACHED) {
@@ -126,20 +126,20 @@ class UsersMoodleDataset extends UsersDBDataset
                                 ON u.id = ra.userid
                         WHERE userid = [[id]]
                         group by shortname';
-            $param = array("id" => $user->get($this->getUserTable()->getUserid()));
+            $param = array("id" => $user->get($this->getUserDefinition()->getUserid()));
             $it = $this->_provider->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
-                $user->addCustomProperty(new CustomModel("roles", $sr->get('shortname')));
+                $user->addProperty(new UserPropertiesModel("roles", $sr->get('shortname')));
             }
 
             // Find the moodle site admin (super user)
-            $user->set($this->getUserTable()->getAdmin(), 'no');
+            $user->set($this->getUserDefinition()->getAdmin(), 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
             $it = $this->_provider->getIterator($sqlAdmin);
             if ($it->hasNext()) {
                 $sr = $it->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
-                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->getUserid())},") !== false);
+                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserDefinition()->getUserid())},") !== false);
                 $user->setAdmin($isAdmin ? 'yes' : 'no');
             }
         }
@@ -185,10 +185,10 @@ class UsersMoodleDataset extends UsersDBDataset
         throw new NotImplementedException('Remove property value from all users is not implemented');
     }
 
-    public function getUserTable()
+    public function getUserDefinition()
     {
         if (is_null($this->_userTable)) {
-            $this->_userTable = new UserTable(
+            $this->_userTable = new UserDefinition(
                 "mdl_user",
                 "id",
                 "concat(firstname, ' ', lastname)",  // This disable update data
@@ -202,11 +202,11 @@ class UsersMoodleDataset extends UsersDBDataset
         return $this->_userTable;
     }
 
-    public function getCustomTable()
+    public function getUserPropertiesDefinition()
     {
-        if (is_null($this->_customTable)) {
-            $this->_customTable = new CustomTable("mdl_user_info_data", "id", "fieldid", "data");
+        if (is_null($this->_propertiesTable)) {
+            $this->_propertiesTable = new UserPropertiesDefinition("mdl_user_info_data", "id", "fieldid", "data");
         }
-        return $this->_customTable;
+        return $this->_propertiesTable;
     }
 }

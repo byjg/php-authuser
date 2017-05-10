@@ -35,7 +35,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         );
 
         $db->execute('create table users_property (
-            customid integer primary key  autoincrement, 
+            id integer primary key  autoincrement, 
             userid integer, 
             name varchar(45), 
             value varchar(45));'

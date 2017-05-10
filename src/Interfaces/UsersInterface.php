@@ -4,8 +4,8 @@ namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\Row;
-use ByJG\Authenticate\Definition\CustomTable;
-use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Model\UserModel;
 
 /**
@@ -157,14 +157,14 @@ interface UsersInterface
     public function isValidToken($username, $uri, $secret, $token);
 
     /**
-     * @return UserTable Description
+     * @return UserDefinition Description
      */
-    public function getUserTable();
+    public function getUserDefinition();
 
     /**
-     * @return CustomTable Description
+     * @return UserPropertiesDefinition Description
      */
-    public function getCustomTable();
+    public function getUserPropertiesDefinition();
 
     /**
      * Return the ID for the user id (if it is not autoincrement)

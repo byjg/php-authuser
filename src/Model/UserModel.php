@@ -17,7 +17,7 @@ class UserModel
     protected $created;
     protected $admin;
 
-    protected $custom = [];
+    protected $propertyList = [];
 
     /**
      * UserModel constructor.
@@ -150,31 +150,31 @@ class UserModel
         $this->admin = $admin;
     }
 
-    public function set($property, $value)
+    public function set($name, $value)
     {
-        $custom = $this->get($property, true);
-        if (empty($custom)) {
-            $custom = new CustomModel($property, $value);
-            $this->addCustomProperty($custom);
+        $property = $this->get($name, true);
+        if (empty($property)) {
+            $property = new UserPropertiesModel($name, $value);
+            $this->addProperty($property);
         } else {
-            $custom->setValue($value);
+            $property->setValue($value);
         }
     }
 
     /**
      * @param $property
      * @param bool $instance
-     * @return \ByJG\Authenticate\Model\CustomModel|array|string
+     * @return \ByJG\Authenticate\Model\UserPropertiesModel|array|string
      */
     public function get($property, $instance = false)
     {
         $result = [];
-        foreach ($this->getCustomProperties() as $custom) {
-            if ($custom->getName() == $property) {
+        foreach ($this->getProperties() as $propertiesModel) {
+            if ($propertiesModel->getName() == $property) {
                 if ($instance) {
-                    return $custom;
+                    return $propertiesModel;
                 }
-                $result[] = $custom->getValue();
+                $result[] = $propertiesModel->getValue();
             }
         }
 
@@ -190,23 +190,23 @@ class UserModel
     }
 
     /**
-     * @return \ByJG\Authenticate\Model\CustomModel[]
+     * @return \ByJG\Authenticate\Model\UserPropertiesModel[]
      */
-    public function getCustomProperties()
+    public function getProperties()
     {
-        return $this->custom;
+        return $this->propertyList;
     }
 
     /**
-     * @param \ByJG\Authenticate\Model\CustomModel[] $custom
+     * @param \ByJG\Authenticate\Model\UserPropertiesModel[] $properties
      */
-    public function setCustomProperties(array $custom)
+    public function setProperties(array $properties)
     {
-        $this->custom = $custom;
+        $this->propertyList = $properties;
     }
 
-    public function addCustomProperty(CustomModel $custom)
+    public function addProperty(UserPropertiesModel $property)
     {
-        $this->custom[] = $custom;
+        $this->propertyList[] = $property;
     }
 }

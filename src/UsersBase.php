@@ -4,8 +4,8 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\Authenticate\Definition\CustomTable;
-use ByJG\Authenticate\Definition\UserTable;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Interfaces\UsersInterface;
@@ -20,37 +20,35 @@ abstract class UsersBase implements UsersInterface
 {
 
     /**
-     * @var UserTable
+     * @var UserDefinition
      */
     protected $_userTable;
 
     /**
-     * @var CustomTable
+     * @var UserPropertiesDefinition
      */
-    protected $_customTable;
+    protected $_propertiesTable;
 
     /**
-     *
-     * @return UserTable
+     * @return UserDefinition
      */
-    public function getUserTable()
+    public function getUserDefinition()
     {
         if ($this->_userTable === null) {
-            $this->_userTable = new UserTable();
+            $this->_userTable = new UserDefinition();
         }
         return $this->_userTable;
     }
 
     /**
-     *
-     * @return CustomTable
+     * @return UserPropertiesDefinition
      */
-    public function getCustomTable()
+    public function getUserPropertiesDefinition()
     {
-        if ($this->_customTable === null) {
-            $this->_customTable = new CustomTable();
+        if ($this->_propertiesTable === null) {
+            $this->_propertiesTable = new UserPropertiesDefinition();
         }
-        return $this->_customTable;
+        return $this->_propertiesTable;
     }
 
     /**
@@ -93,7 +91,7 @@ abstract class UsersBase implements UsersInterface
     public function getByEmail($email)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->getEmail(), Relation::EQUAL, strtolower($email));
+        $filter->addRelation($this->getUserDefinition()->getEmail(), Relation::EQUAL, strtolower($email));
         return $this->getUser($filter);
     }
 
@@ -107,7 +105,7 @@ abstract class UsersBase implements UsersInterface
     public function getByUsername($username)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->getUsername(), Relation::EQUAL, strtolower($username));
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, strtolower($username));
 
         return $this->getUser($filter);
     }
@@ -122,7 +120,7 @@ abstract class UsersBase implements UsersInterface
     public function getById($id)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->getUserid(), Relation::EQUAL, $id);
+        $filter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $id);
         return $this->getUser($filter);
     }
 
@@ -156,8 +154,8 @@ abstract class UsersBase implements UsersInterface
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->getUsername(), Relation::EQUAL, strtolower($userName));
-        $filter->addRelation($this->getUserTable()->getPassword(), Relation::EQUAL, $this->getPasswordHash($password));
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, strtolower($userName));
+        $filter->addRelation($this->getUserDefinition()->getPassword(), Relation::EQUAL, $this->getPasswordHash($password));
         return $this->getUser($filter);
     }
 
