@@ -56,9 +56,9 @@ class UsersDBDataset extends UsersBase
         $userMapper = new Mapper(
             UserModel::class,
             $userTable->getTable(),
-            $userTable->getId()
+            $userTable->getUserid()
         );
-        $userMapper->addFieldMap('userid', $userTable->getId());
+        $userMapper->addFieldMap('userid', $userTable->getUserid());
         $userMapper->addFieldMap('name', $userTable->getName());
         $userMapper->addFieldMap('email', $userTable->getEmail());
         $userMapper->addFieldMap('username', $userTable->getUsername());
@@ -76,9 +76,9 @@ class UsersDBDataset extends UsersBase
         $customMapper = new Mapper(
             CustomModel::class,
             $customTable->getTable(),
-            $customTable->getId()
+            $customTable->getCustomid()
         );
-        $customMapper->addFieldMap('customid', $customTable->getId());
+        $customMapper->addFieldMap('customid', $customTable->getCustomid());
         $customMapper->addFieldMap('name', $customTable->getName());
         $customMapper->addFieldMap('value', $customTable->getValue());
         $customMapper->addFieldMap('userid', $customTable->getUserid());
@@ -199,7 +199,7 @@ class UsersDBDataset extends UsersBase
     {
         $updtableCustom = Updatable::getInstance()
             ->table($this->getCustomTable()->getTable())
-            ->where("{$this->getCustomTable()->getUserid()} = :id", ["id" => $this->getUserTable()->getId()]);
+            ->where("{$this->getCustomTable()->getUserid()} = :id", ["id" => $this->getUserTable()->getUserid()]);
         $this->_customRepository->deleteByQuery($updtableCustom);
 
         $this->_userRepository->delete($userId);

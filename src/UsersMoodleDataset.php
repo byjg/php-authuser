@@ -126,7 +126,7 @@ class UsersMoodleDataset extends UsersDBDataset
                                 ON u.id = ra.userid
                         WHERE userid = [[id]]
                         group by shortname';
-            $param = array("id" => $user->get($this->getUserTable()->getId()));
+            $param = array("id" => $user->get($this->getUserTable()->getUserid()));
             $it = $this->_provider->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
                 $user->addCustomProperty(new CustomModel("roles", $sr->get('shortname')));
@@ -139,7 +139,7 @@ class UsersMoodleDataset extends UsersDBDataset
             if ($it->hasNext()) {
                 $sr = $it->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
-                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->getId())},") !== false);
+                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->getUserid())},") !== false);
                 $user->setAdmin($isAdmin ? 'yes' : 'no');
             }
         }

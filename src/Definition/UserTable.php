@@ -9,7 +9,7 @@ class UserTable
 {
 
     protected $table;
-    protected $id;
+    protected $userid;
     protected $name;
     protected $email;
     protected $username;
@@ -21,7 +21,7 @@ class UserTable
      * Define the name of fields and table to store and retrieve info from database
      *
      * @param string $table
-     * @param string $id
+     * @param string $userid
      * @param string $name
      * @param string $email
      * @param string $username
@@ -30,12 +30,12 @@ class UserTable
      * @param string $admin
      */
     public function __construct(
-    $table = 'users', $id = 'userid', $name = 'name', $email = 'email', $username = 'username', $password = 'password',
+    $table = 'users', $userid = 'userid', $name = 'name', $email = 'email', $username = 'username', $password = 'password',
         $created = 'created', $admin = 'admin'
     )
     {
         $this->table = $table;
-        $this->id = $id;
+        $this->userid = $userid;
         $this->name = $name;
         $this->email = $email;
         $this->username = $username;
@@ -55,9 +55,9 @@ class UserTable
     /**
      * @return string
      */
-    public function getId()
+    public function getUserid()
     {
-        return $this->id;
+        return $this->userid;
     }
 
     /**

@@ -6,7 +6,7 @@ class CustomTable
 {
 
     protected $table;
-    protected $id;
+    protected $customid;
     protected $name;
     protected $value;
     protected $userid;
@@ -25,7 +25,7 @@ class CustomTable
         $userid = 'userid')
     {
         $this->table = $table;
-        $this->id = $id;
+        $this->customid = $id;
         $this->name = $name;
         $this->value = $value;
         $this->userid = $userid;
@@ -42,9 +42,9 @@ class CustomTable
     /**
      * @return string
      */
-    public function getId()
+    public function getCustomid()
     {
-        return $this->id;
+        return $this->customid;
     }
 
     /**

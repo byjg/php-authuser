@@ -55,7 +55,7 @@ class UsersAnyDataset extends UsersBase
         $customProperties = $model->getCustomProperties();
 
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserTable()->getId(), Relation::EQUAL, $model->getUserid());
+        $iteratorFilter->addRelation($this->getUserTable()->getUserid(), Relation::EQUAL, $model->getUserid());
         $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {
@@ -63,9 +63,10 @@ class UsersAnyDataset extends UsersBase
             $this->_anyDataSet->removeRow($oldRow);
         }
 
+        $userTableProp = BinderObject::toArrayFrom($this->getUserTable());
         $row = new Row();
         foreach ($values as $key => $value) {
-            $row->set($key, $value);
+            $row->set($userTableProp[$key], $value);
         }
         foreach ($customProperties as $value) {
             $row->addField($value->getName(), $value->getValue());
@@ -103,7 +104,7 @@ class UsersAnyDataset extends UsersBase
         
         $this->_anyDataSet->appendRow();
 
-        $this->_anyDataSet->addField($this->getUserTable()->getId(), $userId);
+        $this->_anyDataSet->addField($this->getUserTable()->getUserid(), $userId);
         $this->_anyDataSet->addField($this->getUserTable()->getUsername(), $fixedUsername);
         $this->_anyDataSet->addField($this->getUserTable()->getName(), $name);
         $this->_anyDataSet->addField($this->getUserTable()->getEmail(), strtolower($email));
@@ -237,14 +238,18 @@ class UsersAnyDataset extends UsersBase
     {
         $allProp = $row->toArray();
         $userModel = new UserModel();
-        BinderObject::bindObject($allProp, $userModel);
 
-        $modelProperties = BinderObject::toArrayFrom($userModel);
-        foreach ($row->getFieldNames() as $property) {
-            if (!isset($modelProperties[$property])) {
-                foreach ($row->getAsArray($property) as $value) {
-                    $userModel->addCustomProperty(new CustomModel($property, $value));
-                }
+        $userTableProp = BinderObject::toArrayFrom($this->getUserTable());
+        foreach ($userTableProp as $prop => $mapped) {
+            if (isset($allProp[$mapped])) {
+                $userModel->{"set" . ucfirst($prop)}($allProp[$mapped]);
+                unset($allProp[$mapped]);
+            }
+        }
+
+        foreach ($allProp as $property => $value) {
+            foreach ($row->getAsArray($property) as $value) {
+                $userModel->addCustomProperty(new CustomModel($property, $value));
             }
         }
 

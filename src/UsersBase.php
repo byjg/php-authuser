@@ -122,7 +122,7 @@ abstract class UsersBase implements UsersInterface
     public function getById($id)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->getId(), Relation::EQUAL, $id);
+        $filter->addRelation($this->getUserTable()->getUserid(), Relation::EQUAL, $id);
         return $this->getUser($filter);
     }
 
