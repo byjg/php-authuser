@@ -4,7 +4,6 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
@@ -89,7 +88,7 @@ abstract class UsersBase implements UsersInterface
      * Return Row if user was found; null, otherwise
      *
      * @param string $email
-     * @return Row
+     * @return UserModel
      * */
     public function getByEmail($email)
     {
@@ -234,7 +233,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    abstract public function removeProperty($userId, $propertyName, $value);
+    abstract public function removeProperty($userId, $propertyName, $value = null);
 
     /**
      * Remove a specific site from all users
@@ -244,7 +243,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    abstract public function removeAllProperties($propertyName, $value);
+    abstract public function removeAllProperties($propertyName, $value = null);
 
     /**
      * @param int|string $userId

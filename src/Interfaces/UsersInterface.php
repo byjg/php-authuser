@@ -121,7 +121,7 @@ interface UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-    public function removeProperty($userId, $propertyName, $value);
+    public function removeProperty($userId, $propertyName, $value = null);
 
     /**
      * @desc Remove a specific site from all users
@@ -129,7 +129,7 @@ interface UsersInterface
      * @param string $value
      * @return bool
      */
-    public function removeAllProperties($propertyName, $value);
+    public function removeAllProperties($propertyName, $value = null);
 
     /**
      * Authenticate a user and create a token if it is valid

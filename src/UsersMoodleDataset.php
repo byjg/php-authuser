@@ -10,6 +10,7 @@ define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password fie
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\NotImplementedException;
+use ByJG\Authenticate\Model\UserModel;
 use ErrorException;
 
 class UsersMoodleDataset extends UsersDBDataset
@@ -23,7 +24,7 @@ class UsersMoodleDataset extends UsersDBDataset
     /**
      * DBDataset constructor
      *
-*@param string $connectionString
+     * @param string $connectionString
      * @param string $siteSalt
      */
     public function __construct($connectionString, $siteSalt = "")
@@ -34,10 +35,12 @@ class UsersMoodleDataset extends UsersDBDataset
     }
 
     /**
-     *
      * Save the current UsersAnyDataset
+     *
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
-    public function save()
+    public function save(UserModel $model)
     {
         throw new NotImplementedException('Save user is not implemented');
     }
@@ -176,7 +179,7 @@ class UsersMoodleDataset extends UsersDBDataset
      * @return bool
      * @throws NotImplementedException
      */
-    public function removeAllProperties($propertyName, $value)
+    public function removeAllProperties($propertyName, $value = null)
     {
         throw new NotImplementedException('Remove property value from all users is not implemented');
     }

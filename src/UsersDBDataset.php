@@ -4,7 +4,6 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
 use ByJG\AnyDataset\Factory;
-use ByJG\AnyDataset\Store\Helpers\SqlHelper;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
@@ -187,7 +186,7 @@ class UsersDBDataset extends UsersBase
     /**
      * Remove the user based on his user id.
      *
-     * @param int $userId
+     * @param mixed $userId
      * @return bool
      * */
     public function removeUserById($userId)

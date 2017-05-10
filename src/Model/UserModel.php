@@ -190,7 +190,7 @@ class UserModel
     }
 
     /**
-     * @return mixed
+     * @return \ByJG\Authenticate\Model\CustomModel[]
      */
     public function getCustomProperties()
     {
@@ -198,9 +198,9 @@ class UserModel
     }
 
     /**
-     * @param mixed $custom
+     * @param \ByJG\Authenticate\Model\CustomModel[] $custom
      */
-    public function setCustomProperties($custom)
+    public function setCustomProperties(array $custom)
     {
         $this->custom = $custom;
     }

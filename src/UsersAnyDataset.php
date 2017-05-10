@@ -223,7 +223,7 @@ class UsersAnyDataset extends UsersBase
      * @param string $value Property value with a site
      * @return bool|void
      */
-    public function removeAllProperties($propertyName, $value)
+    public function removeAllProperties($propertyName, $value = null)
     {
         $it = $this->getIterator(null);
         while ($it->hasNext()) {
