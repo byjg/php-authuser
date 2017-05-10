@@ -4,12 +4,15 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\IteratorInterface;
 use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Model\CustomModel;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Serializer\BinderObject;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -48,6 +51,28 @@ class UsersAnyDataset extends UsersBase
      */
     public function save(UserModel $model)
     {
+        $values = BinderObject::toArrayFrom($model);
+        $customProperties = $model->getCustomProperties();
+
+        $iteratorFilter = new IteratorFilter();
+        $iteratorFilter->addRelation($this->getUserTable()->id, Relation::EQUAL, $model->getUserid());
+        $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
+
+        if ($iterator->hasNext()) {
+            $oldRow = $iterator->moveNext();
+            $this->_anyDataSet->removeRow($oldRow);
+        }
+
+        $row = new Row();
+        foreach ($values as $key => $value) {
+            $row->set($key, $value);
+        }
+        foreach ($customProperties as $value) {
+            $row->addField($value->getName(), $value->getValue());
+        }
+
+        $this->_anyDataSet->appendRow($row);
+
         $this->_anyDataSet->save($this->_usersFile);
     }
 
@@ -86,6 +111,8 @@ class UsersAnyDataset extends UsersBase
         $this->_anyDataSet->addField($this->getUserTable()->admin, "");
         $this->_anyDataSet->addField($this->getUserTable()->created, date("Y-m-d H:i:s"));
 
+        $this->_anyDataSet->save($this->_usersFile);
+
         return true;
     }
 
@@ -103,7 +130,7 @@ class UsersAnyDataset extends UsersBase
             return null;
         }
 
-        return $it->moveNext();
+        return $this->createUserModel($it->moveNext());
     }
 
     /**
@@ -116,9 +143,14 @@ class UsersAnyDataset extends UsersBase
     public function removeUserName($username)
     {
         //anydataset.Row
-        $user = $this->getByUsername($username);
-        if (!empty($user)) {
-            $this->_anyDataSet->removeRow($user);
+        $iteratorFilter = new IteratorFilter();
+        $iteratorFilter->addRelation($this->getUserTable()->username, Relation::EQUAL, $username);
+        $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
+
+        if ($iterator->hasNext()) {
+            $oldRow = $iterator->moveNext();
+            $this->_anyDataSet->removeRow($oldRow);
+            $this->_anyDataSet->save($this->_usersFile);
             return true;
         }
 
@@ -148,9 +180,9 @@ class UsersAnyDataset extends UsersBase
         //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            if (!$this->hasProperty($user->get($this->getUserTable()->id), $propertyName, $value)) {
-                $user->addField($propertyName, $value);
-                $this->save();
+            if (!$this->hasProperty($user->getUserid(), $propertyName, $value)) {
+                $user->addCustomProperty(new CustomModel($propertyName, $value));
+                $this->save($user);
             }
             return true;
         }
@@ -165,11 +197,17 @@ class UsersAnyDataset extends UsersBase
      * @param string $value
      * @return boolean
      */
-    public function removeProperty($userId, $propertyName, $value)
+    public function removeProperty($userId, $propertyName, $value = null)
     {
         $user = $this->getById($userId);
         if (!empty($user)) {
-            $user->removeValue($propertyName, $value);
+            $properties = $user->getCustomProperties();
+            foreach ($properties as $key => $custom) {
+                if ($custom->getName() == $propertyName && (empty($value) || $custom->getValue() == $value)) {
+                    unset($properties[$key]);
+                }
+            }
+            $user->setCustomProperties($properties);
             $this->save($user);
             return true;
         }
@@ -193,5 +231,23 @@ class UsersAnyDataset extends UsersBase
             $user = $it->moveNext();
             $this->removeProperty($user->get($this->getUserTable()->username), $propertyName, $value);
         }
+    }
+
+    private function createUserModel(Row $row)
+    {
+        $allProp = $row->toArray();
+        $userModel = new UserModel();
+        BinderObject::bindObject($allProp, $userModel);
+
+        $modelProperties = BinderObject::toArrayFrom($userModel);
+        foreach ($row->getFieldNames() as $property) {
+            if (!isset($modelProperties[$property])) {
+                foreach ($row->getAsArray($property) as $value) {
+                    $userModel->addCustomProperty(new CustomModel($property, $value));
+                }
+            }
+        }
+
+        return $userModel;
     }
 }

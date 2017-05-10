@@ -31,11 +31,11 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
         $user = $this->object->getByUsername('john');
-        $this->assertEquals('john', $user->get($this->object->getUserTable()->id));
-        $this->assertEquals('John Doe', $user->get($this->object->getUserTable()->name));
-        $this->assertEquals('john', $user->get($this->object->getUserTable()->username));
-        $this->assertEquals('johndoe@gmail.com', $user->get($this->object->getUserTable()->email));
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
+        $this->assertEquals('john', $user->getUserid());
+        $this->assertEquals('John Doe', $user->getName());
+        $this->assertEquals('john', $user->getUsername());
+        $this->assertEquals('johndoe@gmail.com', $user->getEmail());
+        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
     }
 
     /**
@@ -50,7 +50,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     {
         $mock = $this->getMockBuilder('\ByJG\Authenticate\UsersAnyDataset')
             ->setMethods( [ 'generateUserId' ] )
-            ->setConstructorArgs( [null] )
+            ->setConstructorArgs( ['php://memory'] )
             ->getMock();
 
         $mock->expects($this->once())
@@ -60,11 +60,11 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
         $mock->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
         $user = $mock->getByUsername('john');
-        $this->assertEquals('1234', $user->get($this->object->getUserTable()->id));
-        $this->assertEquals('John Doe', $user->get($this->object->getUserTable()->name));
-        $this->assertEquals('john', $user->get($this->object->getUserTable()->username));
-        $this->assertEquals('johndoe@gmail.com', $user->get($this->object->getUserTable()->email));
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->get($this->object->getUserTable()->password));
+        $this->assertEquals('1234', $user->getUserid());
+        $this->assertEquals('John Doe', $user->getName());
+        $this->assertEquals('john', $user->getUsername());
+        $this->assertEquals('johndoe@gmail.com', $user->getEmail());
+        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
     }
 
     public function testAddProperty()
