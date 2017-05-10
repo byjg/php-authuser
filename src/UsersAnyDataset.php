@@ -249,8 +249,8 @@ class UsersAnyDataset extends UsersBase
         }
 
         foreach ($allProp as $property => $value) {
-            foreach ($row->getAsArray($property) as $value) {
-                $userModel->addProperty(new UserPropertiesModel($property, $value));
+            foreach ($row->getAsArray($property) as $eachValue) {
+                $userModel->addProperty(new UserPropertiesModel($property, $eachValue));
             }
         }
 
