@@ -29,6 +29,11 @@ class UsersDBDataset extends UsersBase
     protected $_customRepository;
 
     /**
+     * @var \ByJG\AnyDataset\DbDriverInterface
+     */
+    protected $_provider;
+
+    /**
      * UsersDBDataset constructor
      *
      * @param string $connectionString
@@ -139,7 +144,7 @@ class UsersDBDataset extends UsersBase
         $sql = $formatter->getFilter($filter->getRawFilters(), $param);
 
         $query = Query::getInstance()
-            ->table($this->_userTable->table)
+            ->table($this->getUserTable()->table)
             ->where($sql, $param);
 
         return $this->_userRepository->getByQuery($query);

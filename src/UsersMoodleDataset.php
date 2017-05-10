@@ -10,6 +10,7 @@ define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password fie
 use ByJG\Authenticate\Definition\CustomTable;
 use ByJG\Authenticate\Definition\UserTable;
 use ByJG\Authenticate\Exception\NotImplementedException;
+use ByJG\Authenticate\Model\CustomModel;
 use ByJG\Authenticate\Model\UserModel;
 use ErrorException;
 
@@ -126,20 +127,20 @@ class UsersMoodleDataset extends UsersDBDataset
                         WHERE userid = [[id]]
                         group by shortname';
             $param = array("id" => $user->get($this->getUserTable()->id));
-            $it = $this->_db->getIterator($sqlRoles, $param);
+            $it = $this->_provider->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
-                $user->addField("roles", $sr->get('shortname'));
+                $user->addCustomProperty(new CustomModel("roles", $sr->get('shortname')));
             }
 
             // Find the moodle site admin (super user)
             $user->set($this->getUserTable()->admin, 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
-            $it = $this->_db->getIterator($sqlAdmin);
+            $it = $this->_provider->getIterator($sqlAdmin);
             if ($it->hasNext()) {
                 $sr = $it->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
                 $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->id)},") !== false);
-                $user->set($this->getUserTable()->admin, $isAdmin ? 'yes' : 'no');
+                $user->setAdmin($isAdmin ? 'yes' : 'no');
             }
         }
 
