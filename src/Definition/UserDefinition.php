@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use ByJG\MicroOrm\Mapper;
+
 /**
  * Structure to represent the users
  */
@@ -16,6 +18,8 @@ class UserDefinition
     protected $password;
     protected $created;
     protected $admin;
+
+    protected $closures = [ "select" => [], "update" => "" ];
 
     /**
      * Define the name of fields and table to store and retrieve info from database
@@ -42,6 +46,10 @@ class UserDefinition
         $this->password = $password;
         $this->created = $created;
         $this->admin = $admin;
+
+        $this->defineClosureForUpdate('password', function ($value, $instance) {
+            return strtoupper(sha1($value));
+        });
     }
 
     /**
@@ -107,4 +115,58 @@ class UserDefinition
     {
         return $this->admin;
     }
+
+    private function checkProperty($property)
+    {
+        if (!isset($this->{$property})) {
+            throw new \InvalidArgumentException('Invalid property');
+        }
+
+        return true;
+    }
+
+    public function defineClosureForUpdate($property, \Closure $closure)
+    {
+        if ($this->checkProperty($property)) {
+            $this->closures['update'][$property] = $closure;
+        }
+    }
+
+    public function defineClosureForSelect($property, \Closure $closure)
+    {
+        if ($this->checkProperty($property)) {
+            $this->closures['select'][$property] = $closure;
+        }
+    }
+
+    public function getClosureForUpdate($property)
+    {
+        if (!$this->checkProperty($property)) {
+            return;
+        }
+
+        if (!isset($this->closures['update'][$property])) {
+            return Mapper::defaultClosure();
+        }
+
+        return $this->closures['update'][$property];
+    }
+
+    /**
+     * @param $property
+     * @return \Closure
+     */
+    public function getClosureForSelect($property)
+    {
+        if (!$this->checkProperty($property)) {
+            return;
+        }
+
+        if (!isset($this->closures['select'][$property])) {
+            return Mapper::defaultClosure();
+        }
+
+        return $this->closures['select'][$property];
+    }
+
 }

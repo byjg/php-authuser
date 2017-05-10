@@ -58,19 +58,48 @@ class UsersDBDataset extends UsersBase
             $userTable->getTable(),
             $userTable->getUserid()
         );
-        $userMapper->addFieldMap('userid', $userTable->getUserid());
-        $userMapper->addFieldMap('name', $userTable->getName());
-        $userMapper->addFieldMap('email', $userTable->getEmail());
-        $userMapper->addFieldMap('username', $userTable->getUsername());
+        $userMapper->addFieldMap(
+            'userid',
+            $userTable->getUserid(),
+            $userTable->getClosureForUpdate('userid'),
+            $userTable->getClosureForSelect('userid')
+        );
+        $userMapper->addFieldMap(
+            'name',
+            $userTable->getName(),
+            $userTable->getClosureForUpdate('name'),
+            $userTable->getClosureForSelect('name')
+        );
+        $userMapper->addFieldMap(
+            'email',
+            $userTable->getEmail(),
+            $userTable->getClosureForUpdate('email'),
+            $userTable->getClosureForSelect('email')
+        );
+        $userMapper->addFieldMap(
+            'username',
+            $userTable->getUsername(),
+            $userTable->getClosureForUpdate('username'),
+            $userTable->getClosureForSelect('username')
+        );
         $userMapper->addFieldMap(
             'password',
             $userTable->getPassword(),
-            function ($value, $instance) use ($me) {
-                return $me->getPasswordHash($value);
-            }
+            $userTable->getClosureForUpdate('password'),
+            $userTable->getClosureForSelect('password')
         );
-        $userMapper->addFieldMap('created', $userTable->getCreated());
-        $userMapper->addFieldMap('admin', $userTable->getAdmin());
+        $userMapper->addFieldMap(
+            'created',
+            $userTable->getCreated(),
+            $userTable->getClosureForUpdate('created'),
+            $userTable->getClosureForSelect('created')
+        );
+        $userMapper->addFieldMap(
+            'admin',
+            $userTable->getAdmin(),
+            $userTable->getClosureForUpdate('admin'),
+            $userTable->getClosureForSelect('admin')
+        );
         $this->_userRepository = new Repository($provider, $userMapper);
 
         $propertiesMapper = new Mapper(

@@ -69,13 +69,6 @@ interface UsersInterface
     function removeUserName($username);
 
     /**
-     * @desc Get the SHA1 string from user password
-     * @param string $password
-     * @return string SHA1 encripted passwordstring
-     */
-    function getPasswordHash($password);
-
-    /**
      * @desc Validate if the user and password exists in the file
      * @param string $userName
      * @param string $password

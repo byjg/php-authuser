@@ -43,10 +43,13 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
             theirvalue varchar(45));'
         );
 
+        $this->userDefinition = new UserDefinition('mytable', 'myuserid', 'myname', 'myemail', 'myusername', 'mypassword', 'mycreated', 'myadmin');
+        $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
+
         $this->object = new UsersDBDataset(
             'sqlite:///tmp/teste.db',
-            new UserDefinition('mytable', 'myuserid', 'myname', 'myemail', 'myusername', 'mypassword', 'mycreated', 'myadmin'),
-            new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid')
+            $this->userDefinition,
+            $this->propertyDefinition
         );
 
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');

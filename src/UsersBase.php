@@ -133,17 +133,6 @@ abstract class UsersBase implements UsersInterface
     abstract public function removeUserName($username);
 
     /**
-     * Get the SHA1 string from user password
-     *
-     * @param string $password Plain password
-     * @return string
-     * */
-    public function getPasswordHash($password)
-    {
-        return strtoupper(sha1($password));
-    }
-
-    /**
      * Validate if the user and password exists in the file
      * Return Row if user exists; null, otherwise
      *
@@ -154,8 +143,9 @@ abstract class UsersBase implements UsersInterface
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
+        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
         $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, strtolower($userName));
-        $filter->addRelation($this->getUserDefinition()->getPassword(), Relation::EQUAL, $this->getPasswordHash($password));
+        $filter->addRelation($this->getUserDefinition()->getPassword(), Relation::EQUAL, $passwordGenerator($password, null));
         return $this->getUser($filter);
     }
 

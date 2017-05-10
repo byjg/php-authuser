@@ -105,11 +105,12 @@ class UsersAnyDataset extends UsersBase
         
         $this->_anyDataSet->appendRow();
 
+        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
         $this->_anyDataSet->addField($this->getUserDefinition()->getUserid(), $userId);
         $this->_anyDataSet->addField($this->getUserDefinition()->getUsername(), $fixedUsername);
         $this->_anyDataSet->addField($this->getUserDefinition()->getName(), $name);
         $this->_anyDataSet->addField($this->getUserDefinition()->getEmail(), strtolower($email));
-        $this->_anyDataSet->addField($this->getUserDefinition()->getPassword(), $this->getPasswordHash($password));
+        $this->_anyDataSet->addField($this->getUserDefinition()->getPassword(), $passwordGenerator($password, null));
         $this->_anyDataSet->addField($this->getUserDefinition()->getAdmin(), "");
         $this->_anyDataSet->addField($this->getUserDefinition()->getCreated(), date("Y-m-d H:i:s"));
 

@@ -5,6 +5,8 @@ namespace ByJG\Authenticate;
 require_once 'UsersAnyDatasetTest.php';
 
 use ByJG\AnyDataset\Factory;
+use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 
 /**
  * Created by PhpStorm.
@@ -18,6 +20,16 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
      * @var UsersDBDataset
      */
     protected $object;
+
+    /**
+     * @var UserDefinition
+     */
+    protected $userDefinition;
+
+    /**
+     * @var \ByJG\Authenticate\Definition\UserPropertiesDefinition
+     */
+    protected $propertyDefinition;
 
     public function setUp()
     {
@@ -41,7 +53,13 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
             value varchar(45));'
         );
 
-        $this->object = new UsersDBDataset('sqlite:///tmp/teste.db');
+        $this->userDefinition = new UserDefinition();
+        $this->propertyDefinition = new UserPropertiesDefinition();
+        $this->object = new UsersDBDataset(
+            'sqlite:///tmp/teste.db',
+            $this->userDefinition,
+            $this->propertyDefinition
+        );
 
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
@@ -51,6 +69,9 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
     public function tearDown()
     {
         unlink('/tmp/teste.db');
+        $this->object = null;
+        $this->userDefinition = null;
+        $this->propertyDefinition = null;
     }
 
     public function testAddUser()
@@ -70,4 +91,44 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         $this->expectedToken('tokenValue', 'user2', 2);
     }
 
+    public function testWithUpdateValue()
+    {
+        // For Update Definitions
+        $this->userDefinition->defineClosureForUpdate('name', function ($value, $instance) {
+            return '[' . $value . ']';
+        });
+        $this->userDefinition->defineClosureForUpdate('email', function ($value, $instance) {
+            return '-' . $value . '-';
+        });
+        $this->userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+            return $value;
+        });
+
+        // For Select Definitions
+        $this->userDefinition->defineClosureForSelect('name', function ($value, $instance) {
+            return '(' . $value . ')';
+        });
+        $this->userDefinition->defineClosureForSelect('email', function ($value, $instance) {
+            return '#' . $value . '#';
+        });
+        $this->userDefinition->defineClosureForSelect('password', function ($value, $instance) {
+            return '%'. $value . '%';
+        });
+
+        // Test it!
+        $newObject = new UsersDBDataset(
+            'sqlite:///tmp/teste.db',
+            $this->userDefinition,
+            $this->propertyDefinition
+        );
+
+        $newObject->addUser('User 4', 'user4', 'user4@gmail.com', 'pwd4');
+
+        $user = $newObject->getByUsername('user4');
+        $this->assertEquals('4', $user->getUserid());
+        $this->assertEquals('([User 4])', $user->getName());
+        $this->assertEquals('user4', $user->getUsername());
+        $this->assertEquals('#-user4@gmail.com-#', $user->getEmail());
+        $this->assertEquals('%pwd4%', $user->getPassword());
+    }
 }
