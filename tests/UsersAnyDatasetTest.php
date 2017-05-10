@@ -98,6 +98,43 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
     }
 
+    public function testRemoveAllProperties()
+    {
+        // Add the properties
+        $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
+        $this->object->addProperty($this->prefix . '2', 'city', 'Niteroi');
+        $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
+        $user = $this->object->getByUsername('user2');
+        $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
+        $this->assertEquals('RJ', $user->get('state'));
+
+        // Add another properties
+        $this->object->addProperty($this->prefix . '1', 'city', 'Niteroi');
+        $this->object->addProperty($this->prefix . '1', 'state', 'BA');
+        $user = $this->object->getByUsername('user1');
+        $this->assertEquals('Niteroi', $user->get('city'));
+        $this->assertEquals('BA', $user->get('state'));
+
+        // Remove Properties
+        $this->object->removeAllProperties('state');
+        $user = $this->object->getByUsername('user2');
+        $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
+        $this->assertEmpty($user->get('state'));
+        $user = $this->object->getByUsername('user1');
+        $this->assertEquals('Niteroi', $user->get('city'));
+        $this->assertEmpty($user->get('state'));
+
+        // Remove Properties Again
+        $this->object->removeAllProperties('city', 'Niteroi');
+        $user = $this->object->getByUsername('user2');
+        $this->assertEquals('Rio de Janeiro', $user->get('city'));
+        $this->assertEmpty($user->get('state'));
+        $user = $this->object->getByUsername('user1');
+        $this->assertEmpty($user->get('city'));
+        $this->assertEmpty($user->get('state'));
+
+    }
+
     public function testRemoveUserName()
     {
         $user = $this->object->getByUsername('user1');

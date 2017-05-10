@@ -55,5 +55,11 @@ class SessionContextTest extends \PHPUnit\Framework\TestCase
         $this->assertEmpty($this->object->getSessionData('property1'));
     }
 
-
+    /**
+     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
+     */
+    public function testUserContextNotActive2Session()
+    {
+        $this->object->setSessionData('property1', 'value');
+    }
 }

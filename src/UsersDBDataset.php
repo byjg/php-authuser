@@ -274,10 +274,10 @@ class UsersDBDataset extends UsersBase
     {
         $updateable = Updatable::getInstance()
             ->table($this->getUserPropertiesDefinition()->getTable())
-            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name}", ["name" => $propertyName]);
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
         if (!empty($value)) {
-            $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value}", ["value" => $value]);
+            $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
         }
 
         $this->_propertiesRepository->deleteByQuery($updateable);
