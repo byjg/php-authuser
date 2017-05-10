@@ -7,6 +7,7 @@ require_once 'UsersAnyDatasetTest.php';
 use ByJG\AnyDataset\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Util\Uri;
 
 /**
  * Created by PhpStorm.
@@ -31,11 +32,13 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
      */
     protected $propertyDefinition;
 
+    const CONNECTION_STRING='sqlite:///tmp/teste.db';
+
     public function setUp()
     {
         $this->prefix = "";
 
-        $db = Factory::getDbRelationalInstance('sqlite:///tmp/teste.db');
+        $db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
         $db->execute('create table users (
             userid integer primary key  autoincrement, 
             name varchar(45), 
@@ -56,7 +59,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         $this->userDefinition = new UserDefinition();
         $this->propertyDefinition = new UserPropertiesDefinition();
         $this->object = new UsersDBDataset(
-            'sqlite:///tmp/teste.db',
+            self::CONNECTION_STRING,
             $this->userDefinition,
             $this->propertyDefinition
         );
@@ -68,7 +71,8 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
 
     public function tearDown()
     {
-        unlink('/tmp/teste.db');
+        $uri = new Uri(self::CONNECTION_STRING);
+        unlink($uri->getPath());
         $this->object = null;
         $this->userDefinition = null;
         $this->propertyDefinition = null;
@@ -117,7 +121,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
 
         // Test it!
         $newObject = new UsersDBDataset(
-            'sqlite:///tmp/teste.db',
+            self::CONNECTION_STRING,
             $this->userDefinition,
             $this->propertyDefinition
         );

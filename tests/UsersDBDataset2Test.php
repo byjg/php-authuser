@@ -25,7 +25,7 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
     {
         $this->prefix = "";
 
-        $db = Factory::getDbRelationalInstance('sqlite:///tmp/teste.db');
+        $db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
         $db->execute('create table mytable (
             myuserid integer primary key  autoincrement, 
             myname varchar(45), 
@@ -47,7 +47,7 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
         $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
 
         $this->object = new UsersDBDataset(
-            'sqlite:///tmp/teste.db',
+            self::CONNECTION_STRING,
             $this->userDefinition,
             $this->propertyDefinition
         );
