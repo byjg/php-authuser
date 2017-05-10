@@ -73,7 +73,7 @@ class UsersMoodleDataset extends UsersDBDataset
             return null;
         }
 
-        $savedPassword = $user->get($this->getUserTable()->password);
+        $savedPassword = $user->get($this->getUserTable()->getPassword());
         $validatedUser = null;
 
         if ($savedPassword === AUTH_PASSWORD_NOT_CACHED) {
@@ -126,20 +126,20 @@ class UsersMoodleDataset extends UsersDBDataset
                                 ON u.id = ra.userid
                         WHERE userid = [[id]]
                         group by shortname';
-            $param = array("id" => $user->get($this->getUserTable()->id));
+            $param = array("id" => $user->get($this->getUserTable()->getId()));
             $it = $this->_provider->getIterator($sqlRoles, $param);
             foreach ($it as $sr) {
                 $user->addCustomProperty(new CustomModel("roles", $sr->get('shortname')));
             }
 
             // Find the moodle site admin (super user)
-            $user->set($this->getUserTable()->admin, 'no');
+            $user->set($this->getUserTable()->getAdmin(), 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
             $it = $this->_provider->getIterator($sqlAdmin);
             if ($it->hasNext()) {
                 $sr = $it->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
-                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->id)},") !== false);
+                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->getId())},") !== false);
                 $user->setAdmin($isAdmin ? 'yes' : 'no');
             }
         }

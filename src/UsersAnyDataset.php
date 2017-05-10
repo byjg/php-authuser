@@ -55,7 +55,7 @@ class UsersAnyDataset extends UsersBase
         $customProperties = $model->getCustomProperties();
 
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserTable()->id, Relation::EQUAL, $model->getUserid());
+        $iteratorFilter->addRelation($this->getUserTable()->getId(), Relation::EQUAL, $model->getUserid());
         $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {
@@ -103,13 +103,13 @@ class UsersAnyDataset extends UsersBase
         
         $this->_anyDataSet->appendRow();
 
-        $this->_anyDataSet->addField($this->getUserTable()->id, $userId);
-        $this->_anyDataSet->addField($this->getUserTable()->username, $fixedUsername);
-        $this->_anyDataSet->addField($this->getUserTable()->name, $name);
-        $this->_anyDataSet->addField($this->getUserTable()->email, strtolower($email));
-        $this->_anyDataSet->addField($this->getUserTable()->password, $this->getPasswordHash($password));
-        $this->_anyDataSet->addField($this->getUserTable()->admin, "");
-        $this->_anyDataSet->addField($this->getUserTable()->created, date("Y-m-d H:i:s"));
+        $this->_anyDataSet->addField($this->getUserTable()->getId(), $userId);
+        $this->_anyDataSet->addField($this->getUserTable()->getUsername(), $fixedUsername);
+        $this->_anyDataSet->addField($this->getUserTable()->getName(), $name);
+        $this->_anyDataSet->addField($this->getUserTable()->getEmail(), strtolower($email));
+        $this->_anyDataSet->addField($this->getUserTable()->getPassword(), $this->getPasswordHash($password));
+        $this->_anyDataSet->addField($this->getUserTable()->getAdmin(), "");
+        $this->_anyDataSet->addField($this->getUserTable()->getCreated(), date("Y-m-d H:i:s"));
 
         $this->_anyDataSet->save($this->_usersFile);
 
@@ -144,7 +144,7 @@ class UsersAnyDataset extends UsersBase
     {
         //anydataset.Row
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserTable()->username, Relation::EQUAL, $username);
+        $iteratorFilter->addRelation($this->getUserTable()->getUsername(), Relation::EQUAL, $username);
         $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {
@@ -229,7 +229,7 @@ class UsersAnyDataset extends UsersBase
         while ($it->hasNext()) {
             //anydataset.Row
             $user = $it->moveNext();
-            $this->removeProperty($user->get($this->getUserTable()->username), $propertyName, $value);
+            $this->removeProperty($user->get($this->getUserTable()->getUsername()), $propertyName, $value);
         }
     }
 

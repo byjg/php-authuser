@@ -93,7 +93,7 @@ abstract class UsersBase implements UsersInterface
     public function getByEmail($email)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->email, Relation::EQUAL, strtolower($email));
+        $filter->addRelation($this->getUserTable()->getEmail(), Relation::EQUAL, strtolower($email));
         return $this->getUser($filter);
     }
 
@@ -107,7 +107,7 @@ abstract class UsersBase implements UsersInterface
     public function getByUsername($username)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->username, Relation::EQUAL, strtolower($username));
+        $filter->addRelation($this->getUserTable()->getUsername(), Relation::EQUAL, strtolower($username));
 
         return $this->getUser($filter);
     }
@@ -122,7 +122,7 @@ abstract class UsersBase implements UsersInterface
     public function getById($id)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->id, Relation::EQUAL, $id);
+        $filter->addRelation($this->getUserTable()->getId(), Relation::EQUAL, $id);
         return $this->getUser($filter);
     }
 
@@ -156,8 +156,8 @@ abstract class UsersBase implements UsersInterface
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->username, Relation::EQUAL, strtolower($userName));
-        $filter->addRelation($this->getUserTable()->password, Relation::EQUAL, $this->getPasswordHash($password));
+        $filter->addRelation($this->getUserTable()->getUsername(), Relation::EQUAL, strtolower($userName));
+        $filter->addRelation($this->getUserTable()->getPassword(), Relation::EQUAL, $this->getPasswordHash($password));
         return $this->getUser($filter);
     }
 
