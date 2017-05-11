@@ -19,7 +19,7 @@ class UserDefinition
     protected $created;
     protected $admin;
 
-    protected $closures = [ "select" => [], "update" => "" ];
+    protected $closures = [ "select" => [], "update" => [] ];
 
     /**
      * Define the name of fields and table to store and retrieve info from database
@@ -121,35 +121,38 @@ class UserDefinition
         if (!isset($this->{$property})) {
             throw new \InvalidArgumentException('Invalid property');
         }
+    }
 
-        return true;
+    private function updateClosureDef($event, $property, \Closure $closure)
+    {
+        $this->checkProperty($property);
+        $this->closures[$event][$property] = $closure;
+    }
+
+    private function getClosureDef($event, $property)
+    {
+        $this->checkProperty($property);
+
+        if (!isset($this->closures[$event][$property])) {
+            return Mapper::defaultClosure();
+        }
+
+        return $this->closures[$event][$property];
     }
 
     public function defineClosureForUpdate($property, \Closure $closure)
     {
-        if ($this->checkProperty($property)) {
-            $this->closures['update'][$property] = $closure;
-        }
+        $this->updateClosureDef('update', $property, $closure);
     }
 
     public function defineClosureForSelect($property, \Closure $closure)
     {
-        if ($this->checkProperty($property)) {
-            $this->closures['select'][$property] = $closure;
-        }
+        $this->updateClosureDef('select', $property, $closure);
     }
 
     public function getClosureForUpdate($property)
     {
-        if (!$this->checkProperty($property)) {
-            return;
-        }
-
-        if (!isset($this->closures['update'][$property])) {
-            return Mapper::defaultClosure();
-        }
-
-        return $this->closures['update'][$property];
+        return $this->getClosureDef('update', $property);
     }
 
     /**
@@ -158,15 +161,7 @@ class UserDefinition
      */
     public function getClosureForSelect($property)
     {
-        if (!$this->checkProperty($property)) {
-            return;
-        }
-
-        if (!isset($this->closures['select'][$property])) {
-            return Mapper::defaultClosure();
-        }
-
-        return $this->closures['select'][$property];
+        return $this->getClosureDef('select', $property);
     }
 
 }
