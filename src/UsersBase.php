@@ -278,9 +278,6 @@ abstract class UsersBase implements UsersInterface
         foreach ($updateUserInfo as $key => $value) {
             $user->set($key, $value);
         }
-        $user->set('LAST_LOGIN', date('Y-m-d H:i:s'));
-        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
-        $user->set('LOGIN_TIMES', intval($user->get('LOGIN_TIMES')) + 1);
 
         $jwt = new JwtWrapper($serverUri, $secret);
         $updateTokenInfo['login'] = $login;
@@ -324,7 +321,6 @@ abstract class UsersBase implements UsersInterface
         $jwt = new JwtWrapper($uri, $secret);
         $data = $jwt->extractData($token);
 
-        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
         $this->save($user);
 
         return [

@@ -242,7 +242,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
             '1234567',
             1200,
             ['userData'=>'userValue'],
-            ['tokenData'=>'tokenValue']
+            ['tokenData'=>$tokenData]
         );
 
         $user = $this->object->getByLoginField($login);
