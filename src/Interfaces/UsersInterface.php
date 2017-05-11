@@ -56,17 +56,17 @@ interface UsersInterface
 
     /**
      * @desc Get the user based on his login
-     * @param string $username
+     * @param string $login
      * @return Row if user was found; null, otherwise
      */
-    function getByLoginField($username);
+    function getByLoginField($login);
 
     /**
      * @desc Remove the user based on his login.
-     * @param string $username
+     * @param string $login
      * @return bool
      */
-    function removeByLoginField($username);
+    function removeByLoginField($login);
 
     /**
      * @desc Validate if the user and password exists in the file
@@ -127,7 +127,7 @@ interface UsersInterface
     /**
      * Authenticate a user and create a token if it is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $password
      * @param string $serverUri
      * @param string $secret
@@ -136,18 +136,18 @@ interface UsersInterface
      * @param array $updateTokenInfo
      * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
      */
-    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
+    public function createAuthToken($login, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
 
     /**
      * Check if the Auth Token is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $uri
      * @param string $secret
      * @param string $token
      * @return bool
      */
-    public function isValidToken($username, $uri, $secret, $token);
+    public function isValidToken($login, $uri, $secret, $token);
 
     /**
      * @return UserDefinition Description

@@ -2,39 +2,19 @@
 
 namespace ByJG\Authenticate;
 
-require_once 'UsersAnyDatasetTest.php';
+require_once 'UsersAnyDatasetByUsernameTest.php';
 
 use ByJG\AnyDataset\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Util\Uri;
 
-/**
- * Created by PhpStorm.
- * User: jg
- * Date: 24/04/16
- * Time: 20:21
- */
-class UsersDBDatasetTest extends UsersAnyDatasetTest
+class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 {
-    /**
-     * @var UsersDBDataset
-     */
-    protected $object;
-
-    /**
-     * @var UserDefinition
-     */
-    protected $userDefinition;
-
-    /**
-     * @var \ByJG\Authenticate\Definition\UserPropertiesDefinition
-     */
-    protected $propertyDefinition;
 
     const CONNECTION_STRING='sqlite:///tmp/teste.db';
 
-    public function setUp()
+    public function __setUp($loginField)
     {
         $this->prefix = "";
 
@@ -56,7 +36,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
             value varchar(45));'
         );
 
-        $this->userDefinition = new UserDefinition();
+        $this->userDefinition = new UserDefinition('users', $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
         $this->object = new UsersDBDataset(
             self::CONNECTION_STRING,
@@ -67,6 +47,11 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
+    }
+
+    public function setUp()
+    {
+        $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 
     public function tearDown()
@@ -82,7 +67,9 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
-        $user = $this->object->getByLoginField('john');
+        $login = $this->__chooseValue('john', 'johndoe@gmail.com');
+
+        $user = $this->object->getByLoginField($login);
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -92,7 +79,8 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
 
     public function testCreateAuthToken()
     {
-        $this->expectedToken('tokenValue', 'user2', 2);
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $this->expectedToken('tokenValue', $login, 2);
     }
 
     public function testWithUpdateValue()
@@ -128,7 +116,9 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
 
         $newObject->addUser('User 4', 'user4', 'user4@gmail.com', 'pwd4');
 
-        $user = $newObject->getByLoginField('user4');
+        $login = $this->__chooseValue('user4', '-user4@gmail.com-');
+
+        $user = $newObject->getByLoginField($login);
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('([User 4])', $user->getName());
         $this->assertEquals('user4', $user->getUsername());

@@ -2,26 +2,15 @@
 
 namespace ByJG\Authenticate;
 
-require_once 'UsersDBDatasetTest.php';
+require_once 'UsersDBDatasetByUsernameTest.php';
 
 use ByJG\AnyDataset\Factory;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 
-/**
- * Created by PhpStorm.
- * User: jg
- * Date: 24/04/16
- * Time: 20:21
- */
-class UsersDBDataset2Test extends UsersDBDatasetTest
+class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
 {
-    /**
-     * @var UsersDBDataset
-     */
-    protected $object;
-
-    public function setUp()
+    public function __setUp($loginField)
     {
         $this->prefix = "";
 
@@ -45,7 +34,7 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
 
         $this->userDefinition = new UserDefinition(
             'mytable',
-            UserDefinition::LOGIN_IS_USERNAME,
+            $loginField,
             [
                 'userid' => 'myuserid',
                 'name' => 'myname',
@@ -68,5 +57,10 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
+    }
+
+    public function setUp()
+    {
+        $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 }

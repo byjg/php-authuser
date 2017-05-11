@@ -3,6 +3,7 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
+use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Factory;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
@@ -147,7 +148,9 @@ class UsersDBDataset extends UsersBase
         if ($this->getByEmail($email) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByLoginField($userName) !== null) {
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $userName);
+        if ($this->getUser($filter) !== null) {
             throw new UserExistsException('Username already exists');
         }
 

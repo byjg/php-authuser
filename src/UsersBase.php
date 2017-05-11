@@ -99,13 +99,13 @@ abstract class UsersBase implements UsersInterface
      * Get the user based on his login.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $username
+     * @param string $login
      * @return UserModel
      * */
-    public function getByLoginField($username)
+    public function getByLoginField($login)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($username));
+        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($login));
 
         return $this->getUser($filter);
     }
@@ -127,10 +127,10 @@ abstract class UsersBase implements UsersInterface
     /**
      * Remove the user based on his login.
      *
-     * @param string $username
+     * @param string $login
      * @return bool
      * */
-    abstract public function removeByLoginField($username);
+    abstract public function removeByLoginField($login);
 
     /**
      * Validate if the user and password exists in the file
@@ -254,7 +254,7 @@ abstract class UsersBase implements UsersInterface
     /**
      * Authenticate a user and create a token if it is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $password
      * @param string $serverUri
      * @param string $secret
@@ -264,13 +264,13 @@ abstract class UsersBase implements UsersInterface
      * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
+    public function createAuthToken($login, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
     {
-        if (!isset($username) || !isset($password)) {
+        if (!isset($login) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
         }
 
-        $user = $this->isValidUser($username, $password);
+        $user = $this->isValidUser($login, $password);
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
         }
@@ -283,7 +283,7 @@ abstract class UsersBase implements UsersInterface
         $user->set('LOGIN_TIMES', intval($user->get('LOGIN_TIMES')) + 1);
 
         $jwt = new JwtWrapper($serverUri, $secret);
-        $updateTokenInfo['username'] = $username;
+        $updateTokenInfo['login'] = $login;
         $updateTokenInfo['userid'] = $user->getUserid();
         $jwtData = $jwt->createJwtData(
             $updateTokenInfo,
@@ -301,7 +301,7 @@ abstract class UsersBase implements UsersInterface
     /**
      * Check if the Auth Token is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $uri
      * @param string $secret
      * @param string $token
@@ -309,9 +309,9 @@ abstract class UsersBase implements UsersInterface
      * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function isValidToken($username, $uri, $secret, $token)
+    public function isValidToken($login, $uri, $secret, $token)
     {
-        $user = $this->getByLoginField($username);
+        $user = $this->getByLoginField($login);
 
         if (is_null($user)) {
             throw new UserNotFoundException('User not found!');

@@ -93,8 +93,10 @@ class UsersAnyDataset extends UsersBase
         if ($this->getByEmail($email) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByLoginField($userName) !== null) {
-            throw new UserExistsException('Login already exists');
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $userName);
+        if ($this->getUser($filter) !== null) {
+            throw new UserExistsException('Username already exists');
         }
         
         $userId = $this->generateUserId();
@@ -140,14 +142,14 @@ class UsersAnyDataset extends UsersBase
      * Get the user based on his login.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $username
+     * @param string $login
      * @return boolean
      * */
-    public function removeByLoginField($username)
+    public function removeByLoginField($login)
     {
         //anydataset.Row
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, $username);
+        $iteratorFilter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, $login);
         $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {
@@ -232,7 +234,7 @@ class UsersAnyDataset extends UsersBase
         while ($it->hasNext()) {
             //anydataset.Row
             $user = $it->moveNext();
-            $this->removeProperty($user->get($this->getUserDefinition()->getLoginField()), $propertyName, $value);
+            $this->removeProperty($user->get($this->getUserDefinition()->getUserid()), $propertyName, $value);
         }
     }
 
