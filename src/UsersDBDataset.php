@@ -147,7 +147,7 @@ class UsersDBDataset extends UsersBase
         if ($this->getByEmail($email) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByUsername($userName) !== null) {
+        if ($this->getByLoginField($userName) !== null) {
             throw new UserExistsException('Username already exists');
         }
 
@@ -207,9 +207,9 @@ class UsersDBDataset extends UsersBase
      * @param string $login
      * @return bool
      * */
-    public function removeUserName($login)
+    public function removeByLoginField($login)
     {
-        $user = $this->getByUsername($login);
+        $user = $this->getByLoginField($login);
 
         if ($user !== null) {
             return $this->removeUserById($user->getUserid());

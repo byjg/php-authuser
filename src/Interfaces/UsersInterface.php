@@ -59,14 +59,14 @@ interface UsersInterface
      * @param string $username
      * @return Row if user was found; null, otherwise
      */
-    function getByUsername($username);
+    function getByLoginField($username);
 
     /**
      * @desc Remove the user based on his login.
      * @param string $username
      * @return bool
      */
-    function removeUserName($username);
+    function removeByLoginField($username);
 
     /**
      * @desc Validate if the user and password exists in the file

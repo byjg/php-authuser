@@ -10,46 +10,48 @@ use ByJG\MicroOrm\Mapper;
 class UserDefinition
 {
 
-    protected $table;
-    protected $userid;
-    protected $name;
-    protected $email;
-    protected $username;
-    protected $password;
-    protected $created;
-    protected $admin;
+    protected $table = 'users';
+    protected $userid = 'userid';
+    protected $name = 'name';
+    protected $email = 'email';
+    protected $username = 'username';
+    protected $password = 'password';
+    protected $created = 'created';
+    protected $admin = 'admin';
 
     protected $closures = [ "select" => [], "update" => [] ];
+
+    protected $loginField;
+
+    const LOGIN_IS_EMAIL="email";
+    const LOGIN_IS_USERNAME="username";
 
     /**
      * Define the name of fields and table to store and retrieve info from database
      *
      * @param string $table
-     * @param string $userid
-     * @param string $name
-     * @param string $email
-     * @param string $username
-     * @param string $password
-     * @param string $created
-     * @param string $admin
+     * @param string $loginField
+     * @param array $fieldDef
      */
-    public function __construct(
-    $table = 'users', $userid = 'userid', $name = 'name', $email = 'email', $username = 'username', $password = 'password',
-        $created = 'created', $admin = 'admin'
-    )
+    public function __construct($table = 'users', $loginField = self::LOGIN_IS_USERNAME, $fieldDef = [])
     {
         $this->table = $table;
-        $this->userid = $userid;
-        $this->name = $name;
-        $this->email = $email;
-        $this->username = $username;
-        $this->password = $password;
-        $this->created = $created;
-        $this->admin = $admin;
+
+        foreach ($fieldDef as $property => $value) {
+            if (!isset($this->{$property})) {
+                throw new \InvalidArgumentException("The property '$property' does not exists in the field definition");
+            }
+            $this->{$property} = $value;
+        }
 
         $this->defineClosureForUpdate('password', function ($value, $instance) {
             return strtoupper(sha1($value));
         });
+
+        if ($loginField !== self::LOGIN_IS_USERNAME && $loginField !== self::LOGIN_IS_EMAIL) {
+            throw new \InvalidArgumentException('Login field is invalid. ');
+        }
+        $this->loginField = $loginField;
     }
 
     /**
@@ -116,6 +118,14 @@ class UserDefinition
         return $this->admin;
     }
 
+    /**
+     * @return string
+     */
+    public function getLoginField()
+    {
+        return $this->{"get" . $this->loginField}();
+    }
+
     private function checkProperty($property)
     {
         if (!isset($this->{$property})) {
@@ -163,5 +173,4 @@ class UserDefinition
     {
         return $this->getClosureDef('select', $property);
     }
-
 }

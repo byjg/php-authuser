@@ -82,7 +82,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
-        $user = $this->object->getByUsername('john');
+        $user = $this->object->getByLoginField('john');
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -128,7 +128,7 @@ class UsersDBDatasetTest extends UsersAnyDatasetTest
 
         $newObject->addUser('User 4', 'user4', 'user4@gmail.com', 'pwd4');
 
-        $user = $newObject->getByUsername('user4');
+        $user = $newObject->getByLoginField('user4');
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('([User 4])', $user->getName());
         $this->assertEquals('user4', $user->getUsername());

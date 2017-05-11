@@ -68,7 +68,7 @@ class UsersMoodleDataset extends UsersDBDataset
 
     public function isValidUser($userName, $password)
     {
-        $user = $this->getByUsername($userName);
+        $user = $this->getByLoginField($userName);
         if (is_null($user)) {
             return null;
         }
@@ -154,7 +154,7 @@ class UsersMoodleDataset extends UsersDBDataset
      * @return bool
      * @throws NotImplementedException
      */
-    public function removeUserName($login)
+    public function removeByLoginField($login)
     {
         throw new NotImplementedException('Remove user is not implemented');
     }

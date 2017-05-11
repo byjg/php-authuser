@@ -102,10 +102,10 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @return UserModel
      * */
-    public function getByUsername($username)
+    public function getByLoginField($username)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, strtolower($username));
+        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($username));
 
         return $this->getUser($filter);
     }
@@ -130,7 +130,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $username
      * @return bool
      * */
-    abstract public function removeUserName($username);
+    abstract public function removeByLoginField($username);
 
     /**
      * Validate if the user and password exists in the file
@@ -144,7 +144,7 @@ abstract class UsersBase implements UsersInterface
     {
         $filter = new IteratorFilter();
         $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, strtolower($userName));
+        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($userName));
         $filter->addRelation($this->getUserDefinition()->getPassword(), Relation::EQUAL, $passwordGenerator($password, null));
         return $this->getUser($filter);
     }
@@ -311,7 +311,7 @@ abstract class UsersBase implements UsersInterface
      */
     public function isValidToken($username, $uri, $secret, $token)
     {
-        $user = $this->getByUsername($username);
+        $user = $this->getByLoginField($username);
 
         if (is_null($user)) {
             throw new UserNotFoundException('User not found!');

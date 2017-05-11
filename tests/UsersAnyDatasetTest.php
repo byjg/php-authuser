@@ -30,7 +30,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
-        $user = $this->object->getByUsername('john');
+        $user = $this->object->getByLoginField('john');
         $this->assertEquals('john', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -59,7 +59,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
         $mock->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
-        $user = $mock->getByUsername('john');
+        $user = $mock->getByLoginField('john');
         $this->assertEquals('1234', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -71,12 +71,12 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     {
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
 
         // Add another property (cannot change)
         $this->object->addProperty($this->prefix . '2', 'city', 'Belo Horizonte');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $user->get('city'));
 
         // Get Property
@@ -84,12 +84,12 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
         // Add another property
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals('RJ', $user->get('state'));
 
         // Remove Property
         $this->object->removeProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEmpty($user->get('state'));
 
         // Remove Property Again
@@ -104,32 +104,32 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $this->object->addProperty($this->prefix . '2', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEquals('RJ', $user->get('state'));
 
         // Add another properties
         $this->object->addProperty($this->prefix . '1', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '1', 'state', 'BA');
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEquals('BA', $user->get('state'));
 
         // Remove Properties
         $this->object->removeAllProperties('state');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEmpty($user->get('state'));
 
         // Remove Properties Again
         $this->object->removeAllProperties('city', 'Niteroi');
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->getByLoginField('user2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertEmpty($user->get('city'));
         $this->assertEmpty($user->get('state'));
 
@@ -137,13 +137,13 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
 
     public function testRemoveUserName()
     {
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertNotNull($user);
 
-        $result = $this->object->removeUserName('user1');
+        $result = $this->object->removeByLoginField('user1');
         $this->assertTrue($result);
 
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertNull($user);
 
     }
@@ -151,7 +151,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
     public function testEditUser()
     {
         // Getting data
-        $user = $this->object->getByUsername('user1');
+        $user = $this->object->getByLoginField('user1');
         $this->assertEquals('User 1', $user->getName());
 
         // Change and Persist data
@@ -180,7 +180,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($this->object->isAdmin($this->prefix . '3'));
 
         // Set the Admin Flag
-        $user = $this->object->getByUsername('user3');
+        $user = $this->object->getByLoginField('user3');
         $user->setAdmin('Y');
         $this->object->save($user);
 
@@ -200,7 +200,7 @@ class UsersAnyDatasetTest extends \PHPUnit\Framework\TestCase
             ['tokenData'=>'tokenValue']
         );
 
-        $user = $this->object->getByUsername($username);
+        $user = $this->object->getByLoginField($username);
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = $tokenData;

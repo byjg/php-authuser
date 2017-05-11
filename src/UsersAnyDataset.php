@@ -93,8 +93,8 @@ class UsersAnyDataset extends UsersBase
         if ($this->getByEmail($email) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByUsername($userName) !== null) {
-            throw new UserExistsException('Username already exists');
+        if ($this->getByLoginField($userName) !== null) {
+            throw new UserExistsException('Login already exists');
         }
         
         $userId = $this->generateUserId();
@@ -143,11 +143,11 @@ class UsersAnyDataset extends UsersBase
      * @param string $username
      * @return boolean
      * */
-    public function removeUserName($username)
+    public function removeByLoginField($username)
     {
         //anydataset.Row
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $username);
+        $iteratorFilter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, $username);
         $iterator = $this->_anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {
@@ -232,7 +232,7 @@ class UsersAnyDataset extends UsersBase
         while ($it->hasNext()) {
             //anydataset.Row
             $user = $it->moveNext();
-            $this->removeProperty($user->get($this->getUserDefinition()->getUsername()), $propertyName, $value);
+            $this->removeProperty($user->get($this->getUserDefinition()->getLoginField()), $propertyName, $value);
         }
     }
 

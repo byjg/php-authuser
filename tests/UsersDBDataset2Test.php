@@ -43,7 +43,20 @@ class UsersDBDataset2Test extends UsersDBDatasetTest
             theirvalue varchar(45));'
         );
 
-        $this->userDefinition = new UserDefinition('mytable', 'myuserid', 'myname', 'myemail', 'myusername', 'mypassword', 'mycreated', 'myadmin');
+        $this->userDefinition = new UserDefinition(
+            'mytable',
+            UserDefinition::LOGIN_IS_USERNAME,
+            [
+                'userid' => 'myuserid',
+                'name' => 'myname',
+                'email' => 'myemail',
+                'username' => 'myusername',
+                'password' => 'mypassword',
+                'created' => 'mycreated',
+                'admin' => 'myadmin'
+            ]
+        );
+
         $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
 
         $this->object = new UsersDBDataset(
