@@ -2,7 +2,6 @@
 
 namespace ByJG\Authenticate\Interfaces;
 
-
 interface UserContextInterface
 {
     /**
@@ -22,7 +21,7 @@ interface UserContextInterface
     /**
      * @param $userId
      * @param array $data
-     * @return
+     * @return void
      */
     public function registerLogin($userId, $data = []);
 

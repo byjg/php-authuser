@@ -20,19 +20,21 @@ class UsersMoodleDataset extends UsersDBDataset
     /**
      * @var string
      */
-    protected $_siteSalt = "";
+    protected $siteSalt = "";
 
     /**
      * DBDataset constructor
      *
      * @param string $connectionString
      * @param string $siteSalt
+     * @throws \ByJG\AnyDataset\Exception\NotFoundException
+     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
      */
     public function __construct($connectionString, $siteSalt = "")
     {
         parent::__construct($connectionString);
 
-        $this->_siteSalt = $siteSalt;
+        $this->siteSalt = $siteSalt;
     }
 
     /**
@@ -66,6 +68,12 @@ class UsersMoodleDataset extends UsersDBDataset
         return (bool) preg_match('/^[0-9a-f]{32}$/', $password);
     }
 
+    /**
+     * @param string $userName
+     * @param string $password
+     * @return \ByJG\Authenticate\Model\UserModel|null
+     * @throws \ErrorException
+     */
     public function isValidUser($userName, $password)
     {
         $user = $this->getByLoginField($userName);
@@ -81,8 +89,10 @@ class UsersMoodleDataset extends UsersDBDataset
         }
 
         if ($this->passwordIsLegacyHash($savedPassword)) {
-            if ($savedPassword === md5($password . $this->_siteSalt) || $savedPassword === md5($password) || $savedPassword
-                === md5(addslashes($password) . $this->_siteSalt) || $savedPassword === md5(addslashes($password))
+            if ($savedPassword === md5($password . $this->siteSalt)
+                || $savedPassword === md5($password)
+                || $savedPassword === md5(addslashes($password) . $this->siteSalt)
+                || $savedPassword === md5(addslashes($password))
             ) {
                 $validatedUser = $user;
             }
@@ -127,17 +137,17 @@ class UsersMoodleDataset extends UsersDBDataset
                         WHERE userid = [[id]]
                         group by shortname';
             $param = array("id" => $user->get($this->getUserDefinition()->getUserid()));
-            $it = $this->_provider->getIterator($sqlRoles, $param);
-            foreach ($it as $sr) {
+            $iterator = $this->provider->getIterator($sqlRoles, $param);
+            foreach ($iterator as $sr) {
                 $user->addProperty(new UserPropertiesModel("roles", $sr->get('shortname')));
             }
 
             // Find the moodle site admin (super user)
             $user->set($this->getUserDefinition()->getAdmin(), 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
-            $it = $this->_provider->getIterator($sqlAdmin);
-            if ($it->hasNext()) {
-                $sr = $it->moveNext();
+            $iterator = $this->provider->getIterator($sqlAdmin);
+            if ($iterator->hasNext()) {
+                $sr = $iterator->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
                 $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserDefinition()->getUserid())},") !== false);
                 $user->setAdmin($isAdmin ? 'yes' : 'no');
@@ -187,26 +197,29 @@ class UsersMoodleDataset extends UsersDBDataset
 
     public function getUserDefinition()
     {
-        if (is_null($this->_userTable)) {
-            $this->_userTable = new UserDefinition(
+        if (is_null($this->userTable)) {
+            $this->userTable = new UserDefinition(
                 "mdl_user",
-                "id",
-                "concat(firstname, ' ', lastname)",  // This disable update data
-                "email",
-                "username",
-                "password",
-                "created",
-                "auth"                            // This disable update data
+                UserDefinition::LOGIN_IS_EMAIL,
+                [
+                    "userid" => "id",
+                    "name" => "concat(firstname, ' ', lastname)",  // This disable update data
+                    "email" => "email",
+                    "username" => "username",
+                    "password" => "password",
+                    "created" => 'created',
+                    "admin" => "auth"                            // This disable update data
+                ]
             );
         }
-        return $this->_userTable;
+        return $this->userTable;
     }
 
     public function getUserPropertiesDefinition()
     {
-        if (is_null($this->_propertiesTable)) {
-            $this->_propertiesTable = new UserPropertiesDefinition("mdl_user_info_data", "id", "fieldid", "data");
+        if (is_null($this->propertiesTable)) {
+            $this->propertiesTable = new UserPropertiesDefinition("mdl_user_info_data", "id", "fieldid", "data");
         }
-        return $this->_propertiesTable;
+        return $this->propertiesTable;
     }
 }

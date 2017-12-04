@@ -22,17 +22,17 @@ class UsersDBDataset extends UsersBase
     /**
      * @var \ByJG\MicroOrm\Repository
      */
-    protected $_userRepository;
+    protected $userRepository;
 
     /**
      * @var \ByJG\MicroOrm\Repository
      */
-    protected $_propertiesRepository;
+    protected $propertiesRepository;
 
     /**
      * @var \ByJG\AnyDataset\DbDriverInterface
      */
-    protected $_provider;
+    protected $provider;
 
     /**
      * UsersDBDataset constructor
@@ -40,9 +40,14 @@ class UsersDBDataset extends UsersBase
      * @param string $connectionString
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\AnyDataset\Exception\NotFoundException
+     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
      */
-    public function __construct($connectionString, UserDefinition $userTable = null, UserPropertiesDefinition $propertiesTable = null)
-    {
+    public function __construct(
+        $connectionString,
+        UserDefinition $userTable = null,
+        UserPropertiesDefinition $propertiesTable = null
+    ) {
         if (empty($userTable)) {
             $userTable = new UserDefinition();
         }
@@ -50,8 +55,6 @@ class UsersDBDataset extends UsersBase
         if (empty($propertiesTable)) {
             $propertiesTable = new UserPropertiesDefinition();
         }
-
-        $me = $this;
 
         $provider = Factory::getDbRelationalInstance($connectionString);
         $userMapper = new Mapper(
@@ -101,7 +104,7 @@ class UsersDBDataset extends UsersBase
             $userTable->getClosureForUpdate('admin'),
             $userTable->getClosureForSelect('admin')
         );
-        $this->_userRepository = new Repository($provider, $userMapper);
+        $this->userRepository = new Repository($provider, $userMapper);
 
         $propertiesMapper = new Mapper(
             UserPropertiesModel::class,
@@ -112,10 +115,10 @@ class UsersDBDataset extends UsersBase
         $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
         $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
         $propertiesMapper->addFieldMap('userid', $propertiesTable->getUserid());
-        $this->_propertiesRepository = new Repository($provider, $propertiesMapper);
+        $this->propertiesRepository = new Repository($provider, $propertiesMapper);
 
-        $this->_userTable = $userTable;
-        $this->_propertiesTable = $propertiesTable;
+        $this->userTable = $userTable;
+        $this->propertiesTable = $propertiesTable;
     }
 
     /**
@@ -125,11 +128,11 @@ class UsersDBDataset extends UsersBase
      */
     public function save(UserModel $user)
     {
-        $this->_userRepository->save($user);
+        $this->userRepository->save($user);
 
         foreach ($user->getProperties() as $property) {
             $property->setUserid($user->getUserid());
-            $this->_propertiesRepository->save($property);
+            $this->propertiesRepository->save($property);
         }
     }
 
@@ -155,7 +158,7 @@ class UsersDBDataset extends UsersBase
         }
 
         $model = new UserModel($name, $email, $userName, $password);
-        $this->_userRepository->save($model);
+        $this->userRepository->save($model);
 
         return true;
     }
@@ -180,7 +183,7 @@ class UsersDBDataset extends UsersBase
             ->table($this->getUserDefinition()->getTable())
             ->where($sql, $param);
 
-        return $this->_userRepository->getByQuery($query);
+        return $this->userRepository->getByQuery($query);
     }
 
     /**
@@ -231,20 +234,25 @@ class UsersDBDataset extends UsersBase
     {
         $updtableProperties = Updatable::getInstance()
             ->table($this->getUserPropertiesDefinition()->getTable())
-            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $this->getUserDefinition()->getUserid()]);
-        $this->_propertiesRepository->deleteByQuery($updtableProperties);
+            ->where(
+                "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
+                [
+                    "id" => $this->getUserDefinition()->getUserid()
+                ]
+            );
+        $this->propertiesRepository->deleteByQuery($updtableProperties);
 
-        $this->_userRepository->delete($userId);
+        $this->userRepository->delete($userId);
 
         return true;
     }
 
     /**
-     *
      * @param int $userId
      * @param string $propertyName
      * @param string $value
      * @return bool
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -257,7 +265,7 @@ class UsersDBDataset extends UsersBase
         if (!$this->hasProperty($userId, $propertyName, $value)) {
             $propertiesModel = new UserPropertiesModel($propertyName, $value);
             $propertiesModel->setUserid($userId);
-            $this->_propertiesRepository->save($propertiesModel);
+            $this->propertiesRepository->save($propertiesModel);
         }
 
         return true;
@@ -286,7 +294,7 @@ class UsersDBDataset extends UsersBase
                 $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
             }
 
-            $this->_propertiesRepository->deleteByQuery($updateable);
+            $this->propertiesRepository->deleteByQuery($updateable);
 
             return true;
         }
@@ -312,7 +320,7 @@ class UsersDBDataset extends UsersBase
             $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
         }
 
-        $this->_propertiesRepository->deleteByQuery($updateable);
+        $this->propertiesRepository->deleteByQuery($updateable);
 
         return true;
     }
@@ -327,6 +335,6 @@ class UsersDBDataset extends UsersBase
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->getTable())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userRow->getUserid()]);
-        $userRow->setProperties($this->_propertiesRepository->getByQuery($query));
+        $userRow->setProperties($this->propertiesRepository->getByQuery($query));
     }
 }

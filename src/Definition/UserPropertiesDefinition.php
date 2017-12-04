@@ -21,9 +21,13 @@ class UserPropertiesDefinition
      * @param string $value
      * @param string $userid
      */
-    public function __construct($table = 'users_property', $id = 'id', $name = 'name', $value = 'value',
-        $userid = 'userid')
-    {
+    public function __construct(
+        $table = 'users_property',
+        $id = 'id',
+        $name = 'name',
+        $value = 'value',
+        $userid = 'userid'
+    ) {
         $this->table = $table;
         $this->id = $id;
         $this->name = $name;

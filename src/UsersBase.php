@@ -22,22 +22,22 @@ abstract class UsersBase implements UsersInterface
     /**
      * @var UserDefinition
      */
-    protected $_userTable;
+    protected $userTable;
 
     /**
      * @var UserPropertiesDefinition
      */
-    protected $_propertiesTable;
+    protected $propertiesTable;
 
     /**
      * @return UserDefinition
      */
     public function getUserDefinition()
     {
-        if ($this->_userTable === null) {
-            $this->_userTable = new UserDefinition();
+        if ($this->userTable === null) {
+            $this->userTable = new UserDefinition();
         }
-        return $this->_userTable;
+        return $this->userTable;
     }
 
     /**
@@ -45,10 +45,10 @@ abstract class UsersBase implements UsersInterface
      */
     public function getUserPropertiesDefinition()
     {
-        if ($this->_propertiesTable === null) {
-            $this->_propertiesTable = new UserPropertiesDefinition();
+        if ($this->propertiesTable === null) {
+            $this->propertiesTable = new UserPropertiesDefinition();
         }
-        return $this->_propertiesTable;
+        return $this->propertiesTable;
     }
 
     /**
@@ -56,10 +56,7 @@ abstract class UsersBase implements UsersInterface
      *
      * @param \ByJG\Authenticate\Model\UserModel $model
      */
-    public function save(UserModel $model)
-    {
-        
-    }
+    abstract public function save(UserModel $model);
 
     /**
      * Add new user in database
@@ -114,13 +111,13 @@ abstract class UsersBase implements UsersInterface
      * Get the user based on his id.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $id
+     * @param string $userid
      * @return UserModel
      * */
-    public function getById($id)
+    public function getById($userid)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $id);
+        $filter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
         return $this->getUser($filter);
     }
 
@@ -145,7 +142,11 @@ abstract class UsersBase implements UsersInterface
         $filter = new IteratorFilter();
         $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
         $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($userName));
-        $filter->addRelation($this->getUserDefinition()->getPassword(), Relation::EQUAL, $passwordGenerator($password, null));
+        $filter->addRelation(
+            $this->getUserDefinition()->getPassword(),
+            Relation::EQUAL,
+            $passwordGenerator($password, null)
+        );
         return $this->getUser($filter);
     }
 
@@ -157,7 +158,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName
      * @param string $value Property value
      * @return bool
-     *
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function hasProperty($userId, $propertyName, $value = null)
     {
@@ -183,7 +184,8 @@ abstract class UsersBase implements UsersInterface
      * @param string $userId User ID
      * @param string $propertyName Property name
      * @return array
-     * */
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     */
     public function getProperty($userId, $propertyName)
     {
         //anydataset.Row
@@ -207,10 +209,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-    public function addProperty($userId, $propertyName, $value)
-    {
-
-    }
+    abstract public function addProperty($userId, $propertyName, $value);
 
     /**
      * Remove a specific site from user
@@ -264,8 +263,15 @@ abstract class UsersBase implements UsersInterface
      * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($login, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
-    {
+    public function createAuthToken(
+        $login,
+        $password,
+        $serverUri,
+        $secret,
+        $expires = 1200,
+        $updateUserInfo = [],
+        $updateTokenInfo = []
+    ) {
         if (!isset($login) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
         }

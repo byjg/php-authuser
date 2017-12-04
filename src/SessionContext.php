@@ -118,10 +118,10 @@ class SessionContext implements UserContextInterface
 
     /**
      * Make logout from XMLNuke Engine
+     *
      * @access public
-     * @param string $key
      */
-    public function registerLogout($key = 'default')
+    public function registerLogout()
     {
         $this->session->deleteItem("user.{$this->key}");
         $this->session->deleteItem("user.{$this->key}.data");

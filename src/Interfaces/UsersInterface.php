@@ -18,9 +18,9 @@ interface UsersInterface
     /**
      * @desc Save the current DataSet
      * @param \ByJG\Authenticate\Model\UserModel $model
-     * @return
+     * @return void
      */
-    function save(UserModel $model);
+    public function save(UserModel $model);
 
     /**
      * @desc Add a new user
@@ -30,43 +30,43 @@ interface UsersInterface
      * @param string $password
      * @return bool
      */
-    function addUser($name, $userName, $email, $password);
+    public function addUser($name, $userName, $email, $password);
 
     /**
      * @desc Get the user based on a filter
      * @param IteratorFilter $filter
      * @return UserModel if user was found; null, otherwise
      */
-    function getUser($filter);
+    public function getUser($filter);
 
     /**
      * Enter description here...
      *
-     * @param int $id
+     * @param int $userid
      * @return Row
      */
-    function getById($id);
+    public function getById($userid);
 
     /**
      * @desc Get the user based on his email.
      * @param string $email Email to find
      * @return Row if user was found; null, otherwise
      */
-    function getByEmail($email);
+    public function getByEmail($email);
 
     /**
      * @desc Get the user based on his login
      * @param string $login
      * @return Row if user was found; null, otherwise
      */
-    function getByLoginField($login);
+    public function getByLoginField($login);
 
     /**
      * @desc Remove the user based on his login.
      * @param string $login
      * @return bool
      */
-    function removeByLoginField($login);
+    public function removeByLoginField($login);
 
     /**
      * @desc Validate if the user and password exists in the file
@@ -74,7 +74,7 @@ interface UsersInterface
      * @param string $password
      * @return Row if user was found; null, otherwise
      */
-    function isValidUser($userName, $password);
+    public function isValidUser($userName, $password);
 
     /**
      *
@@ -98,7 +98,7 @@ interface UsersInterface
      * @param string $propertyName
      * @return string[] String vector with all sites
      */
-    function getProperty($userId, $propertyName);
+    public function getProperty($userId, $propertyName);
 
     /**
      *
@@ -136,7 +136,15 @@ interface UsersInterface
      * @param array $updateTokenInfo
      * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
      */
-    public function createAuthToken($login, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
+    public function createAuthToken(
+        $login,
+        $password,
+        $serverUri,
+        $secret,
+        $expires = 1200,
+        $updateUserInfo = [],
+        $updateTokenInfo = []
+    );
 
     /**
      * Check if the Auth Token is valid

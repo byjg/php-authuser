@@ -201,15 +201,19 @@ If you have an existing database with different names but containing all fields 
 you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
 
 ```php
-$userTable = new UserDefinition(
+<?php
+$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     'users',    // $table
-    'userid',   // $id
-    'name',     // $name
-    'email',    // $email
-    'username', // $username
-    'password', // $password
-    'created',  // $created
-    'admin'     // $admin
+    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
+    [
+        'userid'   => 'fieldname of userid',
+        'name'     => 'fieldname of name',
+        'email'    => 'fieldname of email',
+        'username' => 'fieldname of username',
+        'password' => 'fieldname of password',
+        'created'  => 'fieldname of created',
+        'admin'    => 'fieldname of admin'
+    ]
 );
 ```
 
