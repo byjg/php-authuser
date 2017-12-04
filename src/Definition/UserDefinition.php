@@ -166,7 +166,7 @@ class UserDefinition
 
     public function markPropertyAsReadOnly($property)
     {
-        $this->updateClosureDef(self::UPDATE, $property, null);
+        $this->updateClosureDef(self::UPDATE, $property, Mapper::doNotUpdateClosure());
     }
 
     public function defineClosureForUpdate($property, \Closure $closure)
