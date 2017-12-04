@@ -217,6 +217,34 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
 );
 ```
 
+#### Adding custom modifiers for read and update
+
+```php
+<?php
+$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
+    'users',    // $table
+    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
+);
+
+// Defines a custom function to be applied BEFORE update/insert the field 'password'
+// $value --> the current value to be updated
+// $instance -> The array with all other fields;
+$userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+    return strtoupper(sha1($value));
+});
+
+// Defines a custom function to be applied After the field 'created' is read but before
+// the user get the result
+// $value --> the current value retrieved from database
+// $instance -> The array with all other fields;
+$userDefinition->defineClosureForSelect('created', function ($value, $instance) {
+    return date('Y', $value);
+});
+
+// If you want make the field READONLY just do it:
+$userDefinition->markPropertyAsReadOnly('created');
+```
+
 
 ## Install
 

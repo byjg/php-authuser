@@ -19,6 +19,9 @@ class UserDefinition
     protected $created = 'created';
     protected $admin = 'admin';
 
+    const UPDATE="update";
+    const SELECT="select";
+
     protected $closures = [ "select" => [], "update" => [] ];
 
     protected $loginField;
@@ -133,7 +136,12 @@ class UserDefinition
         }
     }
 
-    private function updateClosureDef($event, $property, \Closure $closure)
+    /**
+     * @param $event
+     * @param $property
+     * @param \Closure $closure
+     */
+    private function updateClosureDef($event, $property, $closure)
     {
         $this->checkProperty($property);
         $this->closures[$event][$property] = $closure;
@@ -143,26 +151,37 @@ class UserDefinition
     {
         $this->checkProperty($property);
 
-        if (!isset($this->closures[$event][$property])) {
+        // If does no exists event returns the default closure
+        if (!isset($this->closures[$event])) {
+            return Mapper::defaultClosure();
+        }
+
+        // If event exists but does no exists the property returns the default closure
+        if (!array_key_exists($property, $this->closures[$event])) {
             return Mapper::defaultClosure();
         }
 
         return $this->closures[$event][$property];
     }
 
+    public function markPropertyAsReadOnly($property)
+    {
+        $this->updateClosureDef(self::UPDATE, $property, null);
+    }
+
     public function defineClosureForUpdate($property, \Closure $closure)
     {
-        $this->updateClosureDef('update', $property, $closure);
+        $this->updateClosureDef(self::UPDATE, $property, $closure);
     }
 
     public function defineClosureForSelect($property, \Closure $closure)
     {
-        $this->updateClosureDef('select', $property, $closure);
+        $this->updateClosureDef(self::SELECT, $property, $closure);
     }
 
     public function getClosureForUpdate($property)
     {
-        return $this->getClosureDef('update', $property);
+        return $this->getClosureDef(self::UPDATE, $property);
     }
 
     /**
@@ -171,6 +190,6 @@ class UserDefinition
      */
     public function getClosureForSelect($property)
     {
-        return $this->getClosureDef('select', $property);
+        return $this->getClosureDef(self::SELECT, $property);
     }
 }

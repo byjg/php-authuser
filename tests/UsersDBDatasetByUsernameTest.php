@@ -25,7 +25,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
             email varchar(200), 
             username varchar(20), 
             password varchar(40), 
-            created datetime, 
+            created datetime default (datetime(\'2017-12-04\')), 
             admin char(1));'
         );
 
@@ -75,6 +75,15 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
+        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('', $user->getCreated()); // There is no default action for it
+
+        // Setting as Admin
+        $user->setAdmin('y');
+        $this->object->save($user);
+
+        $user2 = $this->object->getByLoginField($login);
+        $this->assertEquals('y', $user2->getAdmin());
     }
 
     public function testCreateAuthToken()
@@ -89,16 +98,23 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->userDefinition->defineClosureForUpdate('name', function ($value, $instance) {
             return '[' . $value . ']';
         });
+        $this->userDefinition->defineClosureForUpdate('username', function ($value, $instance) {
+            return ']' . $value . '[';
+        });
         $this->userDefinition->defineClosureForUpdate('email', function ($value, $instance) {
             return '-' . $value . '-';
         });
         $this->userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
-            return $value;
+            return "@" . $value . "@";
         });
+        $this->userDefinition->markPropertyAsReadOnly('created');
 
         // For Select Definitions
         $this->userDefinition->defineClosureForSelect('name', function ($value, $instance) {
             return '(' . $value . ')';
+        });
+        $this->userDefinition->defineClosureForSelect('username', function ($value, $instance) {
+            return ')' . $value . '(';
         });
         $this->userDefinition->defineClosureForSelect('email', function ($value, $instance) {
             return '#' . $value . '#';
@@ -116,13 +132,14 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
         $newObject->addUser('User 4', 'user4', 'user4@gmail.com', 'pwd4');
 
-        $login = $this->__chooseValue('user4', '-user4@gmail.com-');
+        $login = $this->__chooseValue(']user4[', '-user4@gmail.com-');
 
         $user = $newObject->getByLoginField($login);
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('([User 4])', $user->getName());
-        $this->assertEquals('user4', $user->getUsername());
+        $this->assertEquals(')]user4[(', $user->getUsername());
         $this->assertEquals('#-user4@gmail.com-#', $user->getEmail());
-        $this->assertEquals('%pwd4%', $user->getPassword());
+        $this->assertEquals('%@pwd4@%', $user->getPassword());
+        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
     }
 }

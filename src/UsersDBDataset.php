@@ -125,6 +125,7 @@ class UsersDBDataset extends UsersBase
      * Save the current UsersAnyDataset
      *
      * @param \ByJG\Authenticate\Model\UserModel $user
+     * @throws \Exception
      */
     public function save(UserModel $user)
     {
@@ -145,6 +146,7 @@ class UsersDBDataset extends UsersBase
      * @param string $password
      * @return bool
      * @throws UserExistsException
+     * @throws \Exception
      */
     public function addUser($name, $userName, $email, $password)
     {

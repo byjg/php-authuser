@@ -21,7 +21,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
             myemail varchar(200), 
             myusername varchar(20), 
             mypassword varchar(40), 
-            mycreated datetime, 
+            mycreated datetime default (datetime(\'2017-12-04\')),
             myadmin char(1));'
         );
 
