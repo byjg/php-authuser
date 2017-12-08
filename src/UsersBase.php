@@ -66,8 +66,24 @@ abstract class UsersBase implements UsersInterface
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws \Exception
      */
-    abstract public function addUser($name, $userName, $email, $password);
+    public function addUser($name, $userName, $email, $password)
+    {
+        $model = $this->getUserDefinition()->modelInstance();
+        $model->setName($name);
+        $model->setEmail($email);
+        $model->setUsername($userName);
+        $model->setPassword($password);
+
+        return $this->add($model);
+    }
+
+    /**
+     * @param $model
+     * @return bool
+     */
+    abstract public function add($model);
 
     /**
      * Get the user based on a filter.
@@ -102,7 +118,7 @@ abstract class UsersBase implements UsersInterface
     public function getByLoginField($login)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($login));
+        $filter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($login));
 
         return $this->getUser($filter);
     }
@@ -141,7 +157,7 @@ abstract class UsersBase implements UsersInterface
     {
         $filter = new IteratorFilter();
         $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
-        $filter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, strtolower($userName));
+        $filter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($userName));
         $filter->addRelation(
             $this->getUserDefinition()->getPassword(),
             Relation::EQUAL,

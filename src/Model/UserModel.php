@@ -1,9 +1,4 @@
 <?php
-/**
- * User: jg
- * Date: 09/05/17
- * Time: 16:24
- */
 
 namespace ByJG\Authenticate\Model;
 

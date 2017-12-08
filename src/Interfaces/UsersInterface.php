@@ -33,6 +33,12 @@ interface UsersInterface
     public function addUser($name, $userName, $email, $password);
 
     /**
+     * @param $model
+     * @return bool
+     */
+    public function add($model);
+
+    /**
      * @desc Get the user based on a filter
      * @param IteratorFilter $filter
      * @return UserModel if user was found; null, otherwise

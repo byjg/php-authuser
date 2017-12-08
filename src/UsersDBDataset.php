@@ -15,6 +15,7 @@ use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\MicroOrm\Updatable;
+use ByJG\Serializer\BinderObject;
 
 class UsersDBDataset extends UsersBase
 {
@@ -42,6 +43,7 @@ class UsersDBDataset extends UsersBase
      * @param UserPropertiesDefinition $propertiesTable
      * @throws \ByJG\AnyDataset\Exception\NotFoundException
      * @throws \ByJG\AnyDataset\Exception\NotImplementedException
+     * @throws \Exception
      */
     public function __construct(
         $connectionString,
@@ -58,57 +60,26 @@ class UsersDBDataset extends UsersBase
 
         $provider = Factory::getDbRelationalInstance($connectionString);
         $userMapper = new Mapper(
-            UserModel::class,
-            $userTable->getTable(),
+            $userTable->model(),
+            $userTable->table(),
             $userTable->getUserid()
         );
-        $userMapper->addFieldMap(
-            'userid',
-            $userTable->getUserid(),
-            $userTable->getClosureForUpdate('userid'),
-            $userTable->getClosureForSelect('userid')
-        );
-        $userMapper->addFieldMap(
-            'name',
-            $userTable->getName(),
-            $userTable->getClosureForUpdate('name'),
-            $userTable->getClosureForSelect('name')
-        );
-        $userMapper->addFieldMap(
-            'email',
-            $userTable->getEmail(),
-            $userTable->getClosureForUpdate('email'),
-            $userTable->getClosureForSelect('email')
-        );
-        $userMapper->addFieldMap(
-            'username',
-            $userTable->getUsername(),
-            $userTable->getClosureForUpdate('username'),
-            $userTable->getClosureForSelect('username')
-        );
-        $userMapper->addFieldMap(
-            'password',
-            $userTable->getPassword(),
-            $userTable->getClosureForUpdate('password'),
-            $userTable->getClosureForSelect('password')
-        );
-        $userMapper->addFieldMap(
-            'created',
-            $userTable->getCreated(),
-            $userTable->getClosureForUpdate('created'),
-            $userTable->getClosureForSelect('created')
-        );
-        $userMapper->addFieldMap(
-            'admin',
-            $userTable->getAdmin(),
-            $userTable->getClosureForUpdate('admin'),
-            $userTable->getClosureForSelect('admin')
-        );
+
+        $propertyDefinition = BinderObject::toArrayFrom($userTable);
+
+        foreach ($propertyDefinition as $property => $map) {
+            $userMapper->addFieldMap(
+                $property,
+                $map,
+                $userTable->getClosureForUpdate($property),
+                $userTable->getClosureForSelect($property)
+            );
+        }
         $this->userRepository = new Repository($provider, $userMapper);
 
         $propertiesMapper = new Mapper(
             UserPropertiesModel::class,
-            $propertiesTable->getTable(),
+            $propertiesTable->table(),
             $propertiesTable->getId()
         );
         $propertiesMapper->addFieldMap('id', $propertiesTable->getId());
@@ -138,28 +109,22 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * Add new user in database
-     *
-     * @param string $name
-     * @param string $userName
-     * @param string $email
-     * @param string $password
+     * @param UserModel $model
      * @return bool
-     * @throws UserExistsException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
      * @throws \Exception
      */
-    public function addUser($name, $userName, $email, $password)
+    public function add($model)
     {
-        if ($this->getByEmail($email) !== null) {
+        if ($this->getByEmail($model->getEmail()) !== null) {
             throw new UserExistsException('Email already exists');
         }
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $userName);
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
         if ($this->getUser($filter) !== null) {
             throw new UserExistsException('Username already exists');
         }
 
-        $model = new UserModel($name, $email, $userName, $password);
         $this->userRepository->save($model);
 
         return true;
@@ -182,7 +147,7 @@ class UsersDBDataset extends UsersBase
         $sql = $formatter->getFilter($filter->getRawFilters(), $param);
 
         $query = Query::getInstance()
-            ->table($this->getUserDefinition()->getTable())
+            ->table($this->getUserDefinition()->table())
             ->where($sql, $param);
 
         return $this->userRepository->getByQuery($query);
@@ -214,7 +179,8 @@ class UsersDBDataset extends UsersBase
      *
      * @param string $login
      * @return bool
-     * */
+     * @throws \Exception
+     */
     public function removeByLoginField($login)
     {
         $user = $this->getByLoginField($login);
@@ -231,11 +197,12 @@ class UsersDBDataset extends UsersBase
      *
      * @param mixed $userId
      * @return bool
-     * */
+     * @throws \Exception
+     */
     public function removeUserById($userId)
     {
         $updtableProperties = Updatable::getInstance()
-            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->table($this->getUserPropertiesDefinition()->table())
             ->where(
                 "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
                 [
@@ -255,6 +222,7 @@ class UsersDBDataset extends UsersBase
      * @param string $value
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \Exception
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -281,14 +249,15 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * */
+     * @throws \Exception
+     */
     public function removeProperty($userId, $propertyName, $value = null)
     {
         $user = $this->getById($userId);
         if ($user !== null) {
 
             $updateable = Updatable::getInstance()
-                ->table($this->getUserPropertiesDefinition()->getTable())
+                ->table($this->getUserPropertiesDefinition()->table())
                 ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
                 ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
@@ -311,11 +280,12 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * */
+     * @throws \Exception
+     */
     public function removeAllProperties($propertyName, $value = null)
     {
         $updateable = Updatable::getInstance()
-            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
         if (!empty($value)) {
@@ -335,7 +305,7 @@ class UsersDBDataset extends UsersBase
     protected function setPropertiesInUser(UserModel $userRow)
     {
         $query = Query::getInstance()
-            ->table($this->getUserPropertiesDefinition()->getTable())
+            ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userRow->getUserid()]);
         $userRow->setProperties($this->propertiesRepository->getByQuery($query));
     }

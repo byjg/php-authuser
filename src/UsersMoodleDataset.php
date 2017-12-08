@@ -29,6 +29,7 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $siteSalt
      * @throws \ByJG\AnyDataset\Exception\NotFoundException
      * @throws \ByJG\AnyDataset\Exception\NotImplementedException
+     * @throws \Exception
      */
     public function __construct($connectionString, $siteSalt = "")
     {
@@ -55,8 +56,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $userName
      * @param string $email
      * @param string $password
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function addUser($name, $userName, $email, $password)
     {
@@ -161,8 +162,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * Remove the user based on his user login.
      *
      * @param string $login
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function removeByLoginField($login)
     {
@@ -173,8 +174,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * Remove the user based on his user id.
      *
      * @param int $userId
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function removeUserById($userId)
     {
@@ -187,8 +188,8 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $propertyName Property name
      * @param string $value Property value with a site
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function removeAllProperties($propertyName, $value = null)
     {

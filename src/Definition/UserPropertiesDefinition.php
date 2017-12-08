@@ -38,7 +38,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function getTable()
+    public function table()
     {
         return $this->table;
     }

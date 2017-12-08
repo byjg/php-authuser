@@ -84,44 +84,42 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * Add new user in database
-     *
-     * @param string $name
-     * @param string $userName
-     * @param string $email
-     * @param string $password
+     * @param UserModel $model
      * @return bool
-     * @throws UserExistsException
      * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      * @throws \Exception
      */
-    public function addUser($name, $userName, $email, $password)
+    public function add($model)
     {
-        if ($this->getByEmail($email) !== null) {
+        if ($this->getByEmail($model->getEmail()) !== null) {
             throw new UserExistsException('Email already exists');
         }
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $userName);
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
         if ($this->getUser($filter) !== null) {
             throw new UserExistsException('Username already exists');
         }
-        
+
         $userId = $this->generateUserId();
-        $fixedUsername = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName));
+        $fixedUsername = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($model->getUsername()));
         if (is_null($userId)) {
             $userId = $fixedUsername;
         }
-        
+
         $this->anyDataSet->appendRow();
 
-        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
         $this->anyDataSet->addField($this->getUserDefinition()->getUserid(), $userId);
-        $this->anyDataSet->addField($this->getUserDefinition()->getUsername(), $fixedUsername);
-        $this->anyDataSet->addField($this->getUserDefinition()->getName(), $name);
-        $this->anyDataSet->addField($this->getUserDefinition()->getEmail(), strtolower($email));
-        $this->anyDataSet->addField($this->getUserDefinition()->getPassword(), $passwordGenerator($password, null));
-        $this->anyDataSet->addField($this->getUserDefinition()->getAdmin(), "");
-        $this->anyDataSet->addField($this->getUserDefinition()->getCreated(), date("Y-m-d H:i:s"));
+        $propertyDefinition = BinderObject::toArrayFrom($this->getUserDefinition());
+        unset($propertyDefinition['userid']);
+        foreach ($propertyDefinition as $property => $map) {
+            $closure = $this->getUserDefinition()->getClosureForUpdate($property);
+            $value = $closure($model->{"get$property"}(), $model);
+            if ($value !== false) {
+                $this->anyDataSet->addField($map, $value);
+            }
+        }
 
         $this->anyDataSet->save($this->usersFile);
 
@@ -153,12 +151,13 @@ class UsersAnyDataset extends UsersBase
      * @param string $login
      * @return boolean
      * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function removeByLoginField($login)
     {
         //anydataset.Row
         $iteratorFilter = new IteratorFilter();
-        $iteratorFilter->addRelation($this->getUserDefinition()->getLoginField(), Relation::EQUAL, $login);
+        $iteratorFilter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, $login);
         $iterator = $this->anyDataSet->getIterator($iteratorFilter);
 
         if ($iterator->hasNext()) {

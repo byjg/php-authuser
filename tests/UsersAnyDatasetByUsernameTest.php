@@ -53,7 +53,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
             $this->userDefinition->getUsername() => $forUsername,
             $this->userDefinition->getEmail() => $forEmail,
         ];
-        return $searchForList[$this->userDefinition->getLoginField()];
+        return $searchForList[$this->userDefinition->loginField()];
     }
 
     public function setUp()

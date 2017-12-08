@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
 
 /**
@@ -26,6 +27,8 @@ class UserDefinition
 
     protected $loginField;
 
+    protected $model;
+
     const LOGIN_IS_EMAIL="email";
     const LOGIN_IS_USERNAME="username";
 
@@ -36,18 +39,21 @@ class UserDefinition
      * @param string $loginField
      * @param array $fieldDef
      */
-    public function __construct($table = 'users', $loginField = self::LOGIN_IS_USERNAME, $fieldDef = [])
-    {
+    public function __construct(
+        $table = 'users',
+        $loginField = self::LOGIN_IS_USERNAME,
+        $fieldDef = []
+    ) {
         $this->table = $table;
 
         foreach ($fieldDef as $property => $value) {
-            if (!isset($this->{$property})) {
-                throw new \InvalidArgumentException("The property '$property' does not exists in the field definition");
-            }
+            $this->checkProperty($property);
             $this->{$property} = $value;
         }
 
-        $this->defineClosureForUpdate('password', function ($value, $instance) {
+        $this->model = UserModel::class;
+
+        $this->defineClosureForUpdate('password', function ($value) {
             return strtoupper(sha1($value));
         });
 
@@ -60,7 +66,7 @@ class UserDefinition
     /**
      * @return string
      */
-    public function getTable()
+    public function table()
     {
         return $this->table;
     }
@@ -124,7 +130,7 @@ class UserDefinition
     /**
      * @return string
      */
-    public function getLoginField()
+    public function loginField()
     {
         return $this->{"get" . $this->loginField}();
     }
@@ -191,5 +197,16 @@ class UserDefinition
     public function getClosureForSelect($property)
     {
         return $this->getClosureDef(self::SELECT, $property);
+    }
+
+    public function model()
+    {
+        return $this->model;
+    }
+
+    public function modelInstance()
+    {
+        $model = $this->model;
+        return new $model();
     }
 }
