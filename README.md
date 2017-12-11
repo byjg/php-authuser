@@ -15,52 +15,64 @@ This class can persist into session (or file, memcache, etc) the user data betwe
 ### Creating a Users handling class
 
 
-**Using the FileSystem as the user storage**
+**Using the FileSystem (XML) as the user storage**
 
 ```php
-$users = new ByJG\Authenticate\UsersAnyDataset('/tmp/pass.anydata.xml');
+<?php
+$users = new UsersAnyDataset('/tmp/pass.anydata.xml');
 ```
 
 **Using the Database as the user storage**
 
 ```php
+<?php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',   // The connection string. Please refer to the project byjg/anydataset
-    new \ByJG\Authenticate\UserTable(),  // The field metadata for store the users
-    new \ByJG\Authenticate\CustomTable()  // The field metadata for store the extra properties
+    new UserDefinition(),  // The field metadata for store the users
+    new UserPropertiesDefinition()  // The field metadata for store the extra properties
 );
 ```
+
+*Note*: See the [Anydataset project](https://github.com/byjg/anydataset#connection-based-on-uri) to see the
+database available and the connection strings as well.
 
 **Using the Moodle as the user storage**
 
 ```php
-$users = new \ByJG\Authenticate\UsersMoodleDataset('connection');
+<?php
+$users = new UsersMoodleDataset('connection');
 ```
 
 
 ### Authenticate a user with your username and password and persist into the session
 
 ```php
+<?php
 $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
-    $userId = $user->getField($users->getUserTable()->id;
-    (new \ByJG\Authenticate\SessionContext())->registerLogin($userId);
+    $userId = $user->getUserid();
+    
+    $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
+    $sessionContext->registerLogin($userId);
 }
 ```
 
 ### Check if user was previously authenticated
 
-```php 
+```php
+<?php
+$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
+
 // Check if the user is authenticated
-if ((new \ByJG\Authenticate\SessionContext())->isAuthenticated())
+if ($sessionContext->isAuthenticated()) {
     
     // Get the userId of the authenticated users
-    $userId = (new \ByJG\Authenticate\SessionContext())->userInfo();
+    $userId = $sessionContext->userInfo();
 
     // Get the user and your name
     $user = $users->getById($userId);
-    echo "Hello: " . $user->getField($users->getUserTable()->name);
+    echo "Hello: " . $user->getName();
 }
 ```
 
@@ -72,13 +84,17 @@ data stored with the user session will be released.
 **Store the data for the current user session**
 
 ```php
-(new \ByJG\Authenticate\SessionContext())->setSessionData('key', 'value');
+<?php
+$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
+$sessionContext->setSessionData('key', 'value');
 ```
 
 **Getting the data from the current user session**
 
 ```php
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
+<?php
+$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
+$value = $sessionContext->getSessionData('key');
 ```
 
 Note: If the user is not logged an error will be throw
@@ -86,6 +102,7 @@ Note: If the user is not logged an error will be throw
 ### Adding a custom property to the users;
 
 ```php
+<?php
 $user = $users->getById($userId);
 $user->setField('somefield', 'somevalue');
 $users->save();
@@ -94,38 +111,36 @@ $users->save();
 ### Logout from a session
 
 ```php
-(new \ByJG\Authenticate\SessionContext())->registerLogout();
+<?php
+$sessionContext->registerLogout();
 ```
+### Important note about SessionContext
 
-### Multiple authenticate contexts
+`SessionContext` object will store the info about the current context. 
+As SessionContext uses CachePool interface defined in PSR-6 you can set any storage
+to save your session context. 
 
-You can create and handle more than on context for users. 
-All methods of the SessionContext object can
-receive an extra parameter with the name of the current context.
-If you do not pass anything, the 'default' context will be assigned.
-
-See the example:
+In our examples we are using a regular PHP Session for store the user context
+(`Factory::createSessionPool()`). But if you are using another store like MemCached
+you have to define a UNIQUE prefix for that session. Note if TWO users have the same
+prefix you probably have an unexpected result for the SessionContext.
+ 
+Example for memcached:
 
 ```php
-// 'default' context
-(new \ByJG\Authenticate\SessionContext())->isAuthenticated();
-(new \ByJG\Authenticate\SessionContext())->registerLogin('userId');
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key');
-(new \ByJG\Authenticate\SessionContext())->registerLogout();
-
-// 'my' context
-(new \ByJG\Authenticate\SessionContext())->isAuthenticated('my');
-(new \ByJG\Authenticate\SessionContext())->registerLogin('userId', 'my');
-$value = (new \ByJG\Authenticate\SessionContext())->getSessionData('key', 'my');
-(new \ByJG\Authenticate\SessionContext())->registerLogout('my');
+<?php
+$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createMemcachedPool(), 'UNIQUEPREFIX');
 ```
+
+If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
+
 
 ## Architecture
 
 ```
                             +----------------+            +----------------+
                             |                |            |                |
-                            | UsersInterface |------------|  SessionContext   |
+                            | UsersInterface |------------| SessionContext |
                             |                |            |                |
                             +----------------+            +----------------+
                                     ^
@@ -148,7 +163,7 @@ UsersDBDataset class is the follow:
 ```sql
 create table users
 (
-    userid integer identity not null,
+    userid integer AUTO_INCREMENT not null,
     name varchar(50),
     email varchar(120),
     username varchar(15) not null,
@@ -158,53 +173,173 @@ create table users
 
    	constraint pk_users primary key (userid)
 )
-TYPE = InnoDB;
+ENGINE=InnoDB;
 
 create table users_property
 (
-   customid integer identity not null,
+   customid integer AUTO_INCREMENT not null,
    name varchar(20),
    value varchar(100),
    userid integer not null,
 
    constraint pk_custom primary key (customid),
-   constraint fk_custom_user foreign key (userid) references users (userid),
+   constraint fk_custom_user foreign key (userid) references users (userid)
 )
-TYPE = InnoDB;
+ENGINE=InnoDB;
 ```
 
 Using the database structure above you can create the UsersDBDatase as follow:
 
 ```php
+<?php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',
-    new \ByJG\Authenticate\UserTable(),
-    new \ByJG\Authenticate\CustomTable()
+    new \ByJG\Authenticate\Definition\UserDefinition(),
+    new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
 );
 ```
 
 ### Custom Database
 
 If you have an existing database with different names but containing all fields above
-you can use the UserTable and CustomTable classes for customize this info.
+you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
 
 ```php
-$userTable = new UserTable(
+<?php
+$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     'users',    // $table
-    'userid',   // $id
-    'name',     // $name
-    'email',    // $email
-    'username', // $username
-    'password', // $password
-    'created',  // $created
-    'admin'     // $admin
+    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
+    [
+        'userid'   => 'fieldname of userid',
+        'name'     => 'fieldname of name',
+        'email'    => 'fieldname of email',
+        'username' => 'fieldname of username',
+        'password' => 'fieldname of password',
+        'created'  => 'fieldname of created',
+        'admin'    => 'fieldname of admin'
+    ]
+);
+```
+
+#### Adding custom modifiers for read and update
+
+```php
+<?php
+$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
+    'users',    // $table
+    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
+);
+
+// Defines a custom function to be applied BEFORE update/insert the field 'password'
+// $value --> the current value to be updated
+// $instance -> The array with all other fields;
+$userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+    return strtoupper(sha1($value));
+});
+
+// Defines a custom function to be applied After the field 'created' is read but before
+// the user get the result
+// $value --> the current value retrieved from database
+// $instance -> The array with all other fields;
+$userDefinition->defineClosureForSelect('created', function ($value, $instance) {
+    return date('Y', $value);
+});
+
+// If you want make the field READONLY just do it:
+$userDefinition->markPropertyAsReadOnly('created');
+```
+
+
+#### Extending UserModel
+
+It is possible extending the UserModel table, since you are adding new Fields. 
+
+For example, imagine your table has one field called "otherfield". 
+You'll have to extend like this:
+
+```php
+<?php
+/**
+ * Create a class that inherit the UserDefinition and add
+ * the new fields
+ */
+class MyUserDefinition extends \ByJG\Authenticate\Definition\UserDefinition
+{
+    /**
+     * This is the property that maps the field.
+     * The property name have the name of property in the class
+     * And your value have the the mapping for the field in the database 
+     * @var string
+     */
+    protected $otherfield = 'otherfield';
+
+    /**
+     * Class Constructor
+     */
+    public function __construct(
+        $table = 'users',
+        $loginField = self::LOGIN_IS_USERNAME,
+        array $fieldDef = []
+    ) {
+        // Remember to call the parent
+        parent::__construct($table, $loginField, $fieldDef);
+        
+        // Set the Model class
+        $this->model = MyUserModel::class;
+    }
+
+    /**
+     * This will be set the mapping; 
+     */
+    public function getOtherfield()
+    {
+        return $this->otherfield;
+    }
+}
+
+/**
+ * This class is your model
+ * This need to support the basic field plus your new fields
+ * already set in your definition class 
+ */
+class MyUserModel extends UserModel
+{
+    protected $otherfield;
+
+    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no", $field = "")
+    {
+        parent::__construct($name, $email, $username, $password, $admin);
+        $this->setOtherfield($field);
+    }
+
+    public function getOtherfield()
+    {
+        return $this->otherfield;
+    }
+
+    public function setOtherfield($otherfield)
+    {
+        $this->otherfield = $otherfield;
+    }
+}
+```
+
+After that you can use your new definition:
+
+```php
+<?php
+$users = new ByJG\Authenticate\UsersDBDataset(
+    'connection',
+    new MyUserDefinition(),
+    new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
 );
 ```
 
 
+
 ## Install
 
-Just type: `composer require "byjg/authuser=1.1.*"`
+Just type: `composer require "byjg/authuser=2.0.*"`
 
 ## Running Tests
 

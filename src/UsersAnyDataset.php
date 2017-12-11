@@ -4,9 +4,15 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\IteratorInterface;
 use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Serializer\BinderObject;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -15,71 +21,107 @@ class UsersAnyDataset extends UsersBase
      * Internal AnyDataset structure to store the Users
      * @var AnyDataset
      */
-    protected $_anyDataSet;
+    protected $anyDataSet;
 
     /**
      * Internal Users file name
      *
      * @var string
      */
-    protected $_usersFile;
+    protected $usersFile;
 
     /**
      * AnyDataset constructor
+     *
      * @param string $file
-     * @param UserTable $userTable
-     * @param CustomTable $customTable
+     * @param UserDefinition $userTable
+     * @param UserPropertiesDefinition $propertiesTable
      */
-    public function __construct($file, UserTable $userTable = null, CustomTable $customTable = null)
-    {
-        $this->_usersFile = $file;
-        $this->_anyDataSet = new AnyDataset($this->_usersFile);
-        $this->_userTable = $userTable;
-        $this->_customTable = $customTable;
+    public function __construct(
+        $file,
+        UserDefinition $userTable = null,
+        UserPropertiesDefinition $propertiesTable = null
+    ) {
+        $this->usersFile = $file;
+        $this->anyDataSet = new AnyDataset($this->usersFile);
+        $this->userTable = $userTable;
+        $this->propertiesTable = $propertiesTable;
     }
 
     /**
      * Save the current UsersAnyDataset
+     *
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \Exception
      */
-    public function save()
+    public function save(UserModel $model)
     {
-        $this->_anyDataSet->save($this->_usersFile);
+        $values = BinderObject::toArrayFrom($model);
+        $properties = $model->getProperties();
+
+        $iteratorFilter = new IteratorFilter();
+        $iteratorFilter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $model->getUserid());
+        $iterator = $this->anyDataSet->getIterator($iteratorFilter);
+
+        if ($iterator->hasNext()) {
+            $oldRow = $iterator->moveNext();
+            $this->anyDataSet->removeRow($oldRow);
+        }
+
+        $userTableProp = BinderObject::toArrayFrom($this->getUserDefinition());
+        $row = new Row();
+        foreach ($values as $key => $value) {
+            $row->set($userTableProp[$key], $value);
+        }
+        foreach ($properties as $value) {
+            $row->addField($value->getName(), $value->getValue());
+        }
+
+        $this->anyDataSet->appendRow($row);
+
+        $this->anyDataSet->save($this->usersFile);
     }
 
     /**
-     * Add new user in database
-     *
-     * @param string $name
-     * @param string $userName
-     * @param string $email
-     * @param string $password
+     * @param UserModel $model
      * @return bool
-     * @throws UserExistsException
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Util\Exception\XmlUtilException
+     * @throws \Exception
      */
-    public function addUser($name, $userName, $email, $password)
+    public function add($model)
     {
-        if ($this->getByEmail($email) !== null) {
+        if ($this->getByEmail($model->getEmail()) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByUsername($userName) !== null) {
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
+        if ($this->getUser($filter) !== null) {
             throw new UserExistsException('Username already exists');
         }
-        
+
         $userId = $this->generateUserId();
-        $fixedUsername = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName)); 
+        $fixedUsername = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($model->getUsername()));
         if (is_null($userId)) {
             $userId = $fixedUsername;
         }
-        
-        $this->_anyDataSet->appendRow();
 
-        $this->_anyDataSet->addField($this->getUserTable()->id, $userId);
-        $this->_anyDataSet->addField($this->getUserTable()->username, $fixedUsername);
-        $this->_anyDataSet->addField($this->getUserTable()->name, $name);
-        $this->_anyDataSet->addField($this->getUserTable()->email, strtolower($email));
-        $this->_anyDataSet->addField($this->getUserTable()->password, $this->getPasswordHash($password));
-        $this->_anyDataSet->addField($this->getUserTable()->admin, "");
-        $this->_anyDataSet->addField($this->getUserTable()->created, date("Y-m-d H:i:s"));
+        $this->anyDataSet->appendRow();
+
+        $this->anyDataSet->addField($this->getUserDefinition()->getUserid(), $userId);
+        $propertyDefinition = BinderObject::toArrayFrom($this->getUserDefinition());
+        unset($propertyDefinition['userid']);
+        foreach ($propertyDefinition as $property => $map) {
+            $closure = $this->getUserDefinition()->getClosureForUpdate($property);
+            $value = $closure($model->{"get$property"}(), $model);
+            if ($value !== false) {
+                $this->anyDataSet->addField($map, $value);
+            }
+        }
+
+        $this->anyDataSet->save($this->usersFile);
 
         return true;
     }
@@ -89,31 +131,39 @@ class UsersAnyDataset extends UsersBase
      * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return Row
-     * */
+     * @return UserModel
+     * @throws \Exception
+     */
     public function getUser($filter)
     {
-        $it = $this->_anyDataSet->getIterator($filter);
-        if (!$it->hasNext()) {
+        $iterator = $this->anyDataSet->getIterator($filter);
+        if (!$iterator->hasNext()) {
             return null;
         }
 
-        return $it->moveNext();
+        return $this->createUserModel($iterator->moveNext());
     }
 
     /**
      * Get the user based on his login.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $username
+     * @param string $login
      * @return boolean
-     * */
-    public function removeUserName($username)
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\Util\Exception\XmlUtilException
+     */
+    public function removeByLoginField($login)
     {
         //anydataset.Row
-        $user = $this->getByUsername($username);
-        if (!empty($user)) {
-            $this->_anyDataSet->removeRow($user);
+        $iteratorFilter = new IteratorFilter();
+        $iteratorFilter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, $login);
+        $iterator = $this->anyDataSet->getIterator($iteratorFilter);
+
+        if ($iterator->hasNext()) {
+            $oldRow = $iterator->moveNext();
+            $this->anyDataSet->removeRow($oldRow);
+            $this->anyDataSet->save($this->usersFile);
             return true;
         }
 
@@ -128,24 +178,26 @@ class UsersAnyDataset extends UsersBase
      */
     public function getIterator($filter = null)
     {
-        return $this->_anyDataSet->getIterator($filter);
+        return $this->anyDataSet->getIterator($filter);
     }
 
     /**
-     *
      * @param int $userId
      * @param string $propertyName
      * @param string $value
      * @return boolean
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \Exception
      */
     public function addProperty($userId, $propertyName, $value)
     {
         //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            if (!$this->hasProperty($user->get($this->getUserTable()->id), $propertyName, $value)) {
-                $user->addField($propertyName, $value);
-                $this->save();
+            if (!$this->hasProperty($user->getUserid(), $propertyName, $value)) {
+                $user->addProperty(new UserPropertiesModel($propertyName, $value));
+                $this->save($user);
             }
             return true;
         }
@@ -154,18 +206,25 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     *
      * @param int $userId
      * @param string $propertyName
      * @param string $value
      * @return boolean
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \Exception
      */
-    public function removeProperty($userId, $propertyName, $value)
+    public function removeProperty($userId, $propertyName, $value = null)
     {
         $user = $this->getById($userId);
         if (!empty($user)) {
-            $user->removeValue($propertyName, $value);
-            $this->save();
+            $properties = $user->getProperties();
+            foreach ($properties as $key => $property) {
+                if ($property->getName() == $propertyName && (empty($value) || $property->getValue() == $value)) {
+                    unset($properties[$key]);
+                }
+            }
+            $user->setProperties($properties);
+            $this->save($user);
             return true;
         }
 
@@ -179,14 +238,43 @@ class UsersAnyDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool|void
+     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \Exception
      */
-    public function removeAllProperties($propertyName, $value)
+    public function removeAllProperties($propertyName, $value = null)
     {
-        $it = $this->getIterator(null);
-        while ($it->hasNext()) {
+        $iterator = $this->getIterator(null);
+        while ($iterator->hasNext()) {
             //anydataset.Row
-            $user = $it->moveNext();
-            $this->removeProperty($user->get($this->getUserTable()->username), $propertyName, $value);
+            $user = $iterator->moveNext();
+            $this->removeProperty($user->get($this->getUserDefinition()->getUserid()), $propertyName, $value);
         }
+    }
+
+    /**
+     * @param \ByJG\AnyDataset\Dataset\Row $row
+     * @return \ByJG\Authenticate\Model\UserModel
+     * @throws \Exception
+     */
+    private function createUserModel(Row $row)
+    {
+        $allProp = $row->toArray();
+        $userModel = new UserModel();
+
+        $userTableProp = BinderObject::toArrayFrom($this->getUserDefinition());
+        foreach ($userTableProp as $prop => $mapped) {
+            if (isset($allProp[$mapped])) {
+                $userModel->{"set" . ucfirst($prop)}($allProp[$mapped]);
+                unset($allProp[$mapped]);
+            }
+        }
+
+        foreach (array_keys($allProp) as $property) {
+            foreach ($row->getAsArray($property) as $eachValue) {
+                $userModel->addProperty(new UserPropertiesModel($property, $eachValue));
+            }
+        }
+
+        return $userModel;
     }
 }

@@ -3,219 +3,154 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
-use ByJG\AnyDataset\DbDriverInterface;
+use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Factory;
-use ByJG\AnyDataset\Store\Helpers\SqlHelper;
-use ByJG\AnyDataset\Dataset\AnyDataset;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\IteratorInterface;
-use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\MicroOrm\Mapper;
+use ByJG\MicroOrm\Query;
+use ByJG\MicroOrm\Repository;
+use ByJG\MicroOrm\Updatable;
+use ByJG\Serializer\BinderObject;
 
 class UsersDBDataset extends UsersBase
 {
 
     /**
-     * @var DbDriverInterface
+     * @var \ByJG\MicroOrm\Repository
      */
-    protected $_db;
-    protected $_sqlHelper;
-    protected $_cacheUserWork = array();
-    protected $_cacheUserOriginal = array();
+    protected $userRepository;
+
+    /**
+     * @var \ByJG\MicroOrm\Repository
+     */
+    protected $propertiesRepository;
+
+    /**
+     * @var \ByJG\AnyDataset\DbDriverInterface
+     */
+    protected $provider;
 
     /**
      * UsersDBDataset constructor
      *
      * @param string $connectionString
-     * @param UserTable $userTable
-     * @param CustomTable $customTable
+     * @param UserDefinition $userTable
+     * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\AnyDataset\Exception\NotFoundException
+     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
+     * @throws \Exception
      */
-    public function __construct($connectionString, UserTable $userTable = null, CustomTable $customTable = null)
-    {
-        $this->_db = Factory::getDbRelationalInstance($connectionString);
-        $this->_sqlHelper = new SqlHelper($this->_db);
-        $this->_userTable = $userTable;
-        $this->_customTable = $customTable;
-    }
-
-    /**
-     *
-     * Save the current UsersAnyDataset
-     */
-    public function save()
-    {
-        foreach ($this->_cacheUserOriginal as $key => $value) {
-            $srOri = $this->_cacheUserOriginal[$key];
-            $srMod = $this->_cacheUserWork[$key];
-
-            // Look for changes
-            $changeUser = false;
-            foreach ($srMod->getFieldNames() as $keyfld => $fieldname) {
-                $userField = ($fieldname == $this->getUserTable()->name
-                    || $fieldname == $this->getUserTable()->email
-                    || $fieldname == $this->getUserTable()->username
-                    || $fieldname == $this->getUserTable()->password
-                    || $fieldname == $this->getUserTable()->created
-                    || $fieldname == $this->getUserTable()->admin
-                    || $fieldname == $this->getUserTable()->id
-                );
-                if ($srOri->get($fieldname) != $srMod->get($fieldname)) {
-                    // This change is in the Users table or is a Custom property?
-                    if ($userField) {
-                        $changeUser = true;
-                        continue;
-                    }
-
-                    // Erase Old Custom Properties
-                    $this->removeProperty($srMod->get($this->getUserTable()->id), $fieldname, $srOri->get($fieldname));
-
-                    // If new Value is_empty does not add
-                    if ($srMod->get($fieldname) == "") {
-                        continue;
-                    }
-
-                    // Insert new Value
-                    $this->addProperty($srMod->get($this->getUserTable()->id), $fieldname, $srMod->get($fieldname));
-                }
-            }
-
-            if ($changeUser) {
-
-                $this->updateUser(
-                    $srMod->get($this->getUserTable()->id),
-                    $srMod->get($this->getUserTable()->name),
-                    $srMod->get($this->getUserTable()->email),
-                    $srMod->get($this->getUserTable()->username),
-                    $srMod->get($this->getUserTable()->password),
-                    $srMod->get($this->getUserTable()->created),
-                    $srMod->get($this->getUserTable()->admin)
-                );
-            }
+    public function __construct(
+        $connectionString,
+        UserDefinition $userTable = null,
+        UserPropertiesDefinition $propertiesTable = null
+    ) {
+        if (empty($userTable)) {
+            $userTable = new UserDefinition();
         }
-        $this->_cacheUserOriginal = array();
-        $this->_cacheUserWork = array();
-    }
 
-    /**
-     * @param int $id
-     * @param string $name
-     * @param string $email
-     * @param string $username
-     * @param string $password
-     * @param string $created
-     * @param string $admin
-     */
-    protected function updateUser($id, $name, $email, $username, $password, $created, $admin)
-    {
-        $sql = $this->sqlUpdateUser();
+        if (empty($propertiesTable)) {
+            $propertiesTable = new UserPropertiesDefinition();
+        }
 
-        $sql = $this->_sqlHelper->createSafeSQL($sql,
-            array(
-                '@@Table' => $this->getUserTable()->table,
-                '@@Name' => $this->getUserTable()->name,
-                '@@Email' => $this->getUserTable()->email,
-                '@@Username' => $this->getUserTable()->username,
-                '@@Password' => $this->getUserTable()->password,
-                '@@Created' => $this->getUserTable()->created,
-                '@@Admin' => $this->getUserTable()->admin,
-                '@@Id' => $this->getUserTable()->id
-            )
+        $provider = Factory::getDbRelationalInstance($connectionString);
+        $userMapper = new Mapper(
+            $userTable->model(),
+            $userTable->table(),
+            $userTable->getUserid()
         );
 
-        $param = array();
-        $param['name'] = $name;
-        $param['email'] = $email;
-        $param['username'] = $username;
-        $param['password'] = $password;
-        $param['created'] = $created;
-        $param['admin'] = $admin;
-        $param['id'] = $id;
+        $propertyDefinition = BinderObject::toArrayFrom($userTable);
 
-        $this->_db->execute($sql, $param);
-    }
+        foreach ($propertyDefinition as $property => $map) {
+            $userMapper->addFieldMap(
+                $property,
+                $map,
+                $userTable->getClosureForUpdate($property),
+                $userTable->getClosureForSelect($property)
+            );
+        }
+        $this->userRepository = new Repository($provider, $userMapper);
 
-    protected function sqlUpdateUser()
-    {
-        return
-            "UPDATE @@Table " .
-            " SET @@Name  = [[name]] " .
-            ", @@Email = [[email]] " .
-            ", @@Username = [[username]] " .
-            ", @@Password = [[password]] " .
-            ", @@Created = [[created]] " .
-            ", @@Admin = [[admin]] " .
-            " WHERE @@Id = [[id]]";
+        $propertiesMapper = new Mapper(
+            UserPropertiesModel::class,
+            $propertiesTable->table(),
+            $propertiesTable->getId()
+        );
+        $propertiesMapper->addFieldMap('id', $propertiesTable->getId());
+        $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
+        $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
+        $propertiesMapper->addFieldMap('userid', $propertiesTable->getUserid());
+        $this->propertiesRepository = new Repository($provider, $propertiesMapper);
+
+        $this->userTable = $userTable;
+        $this->propertiesTable = $propertiesTable;
     }
 
     /**
-     * Add new user in database
+     * Save the current UsersAnyDataset
      *
-     * @param string $name
-     * @param string $userName
-     * @param string $email
-     * @param string $password
-     * @return bool
-     * @throws UserExistsException
+     * @param \ByJG\Authenticate\Model\UserModel $user
+     * @throws \Exception
      */
-    public function addUser($name, $userName, $email, $password)
+    public function save(UserModel $user)
     {
-        if ($this->getByEmail($email) !== null) {
+        $this->userRepository->save($user);
+
+        foreach ($user->getProperties() as $property) {
+            $property->setUserid($user->getUserid());
+            $this->propertiesRepository->save($property);
+        }
+    }
+
+    /**
+     * @param UserModel $model
+     * @return bool
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \Exception
+     */
+    public function add($model)
+    {
+        if ($this->getByEmail($model->getEmail()) !== null) {
             throw new UserExistsException('Email already exists');
         }
-        if ($this->getByUsername($userName) !== null) {
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
+        if ($this->getUser($filter) !== null) {
             throw new UserExistsException('Username already exists');
         }
 
-        $sql = $this->_sqlHelper->createSafeSQL($this->sqlAdUser(),
-            array(
-                '@@Table' => $this->getUserTable()->table,
-                '@@Name' => $this->getUserTable()->name,
-                '@@Email' => $this->getUserTable()->email,
-                '@@Username' => $this->getUserTable()->username,
-                '@@Password' => $this->getUserTable()->password,
-                '@@Created' => $this->getUserTable()->created,
-                '@@UserId' => $this->getUserTable()->id
-            )
-        );
-
-        $param = array();
-        $param['name'] = $name;
-        $param['email'] = strtolower($email);
-        $param['username'] = preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($userName));
-        $param['password'] = $this->getPasswordHash($password);
-        $param['created'] = date("Y-m-d H:i:s");
-        $param['userid'] = $this->generateUserId();
-
-        $this->_db->execute($sql, $param);
+        $this->userRepository->save($model);
 
         return true;
-    }
-
-    protected function sqlAdUser()
-    {
-        return
-            " INSERT INTO @@Table ( @@UserId, @@Name, @@Email, @@Username, @@Password, @@Created ) "
-            . " VALUES ( [[userid]], [[name]], [[email]], [[username]], [[password]], [[created]] ) ";
     }
 
     /**
      * Get the users database information based on a filter.
      *
      * @param IteratorFilter $filter Filter to find user
-     * @param array $param
-     * @return IteratorInterface
+     * @return UserModel[]
      */
-    public function getIterator(IteratorFilter $filter = null, $param = array())
+    public function getIterator(IteratorFilter $filter = null)
     {
         if (is_null($filter)) {
             $filter = new IteratorFilter();
         }
-        $sql = $filter->format(
-            new IteratorFilterSqlFormatter(),
-            $this->getUserTable()->table,
-            $param
-        );
-        return $this->_db->getIterator($sql, $param);
+
+        $param = [];
+        $formatter = new IteratorFilterSqlFormatter();
+        $sql = $formatter->getFilter($filter->getRawFilters(), $param);
+
+        $query = Query::getInstance()
+            ->table($this->getUserDefinition()->table())
+            ->where($sql, $param);
+
+        return $this->userRepository->getByQuery($query);
     }
 
     /**
@@ -223,33 +158,20 @@ class UsersDBDataset extends UsersBase
      * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return Row
+     * @return UserModel
      * */
     public function getUser($filter)
     {
-        $it = $this->getIterator($filter);
-        if (!$it->hasNext()) {
+        $result = $this->getIterator($filter);
+        if (count($result) === 0) {
             return null;
         }
 
-        // Get the Requested User
-        $sr = $it->moveNext();
-        $this->setCustomFieldsInUser($sr);
+        $model = $result[0];
 
-        // Clone the User Properties
-        $anyOri = new AnyDataset();
-        $anyOri->appendRow();
-        foreach ($sr->getFieldNames() as $key => $fieldName) {
-            $anyOri->addField($fieldName, $sr->get($fieldName));
-        }
-        $itOri = $anyOri->getIterator();
-        $srOri = $itOri->moveNext();
+        $this->setPropertiesInUser($model);
 
-        // Store and return to the user the proper single row.
-        $this->_cacheUserOriginal[$sr->get($this->getUserTable()->id)] = $srOri;
-        $this->_cacheUserWork[$sr->get($this->getUserTable()->id)] = $sr;
-
-        return $this->_cacheUserWork[$sr->get($this->getUserTable()->id)];
+        return $model;
     }
 
     /**
@@ -257,52 +179,50 @@ class UsersDBDataset extends UsersBase
      *
      * @param string $login
      * @return bool
-     * */
-    public function removeUserName($login)
+     * @throws \Exception
+     */
+    public function removeByLoginField($login)
     {
-        $user = $this->getByUsername($login);
+        $user = $this->getByLoginField($login);
 
-        return $this->removeUserById($user->get($this->getUserTable()->id));
+        if ($user !== null) {
+            return $this->removeUserById($user->getUserid());
+        }
+
+        return false;
     }
 
     /**
      * Remove the user based on his user id.
      *
-     * @param int $userId
+     * @param mixed $userId
      * @return bool
-     * */
+     * @throws \Exception
+     */
     public function removeUserById($userId)
     {
-        $baseSql = $this->sqlRemoveUserById();
-        $param = array("id" => $userId);
-        if ($this->getCustomTable()->table != "") {
-            $sql = $this->_sqlHelper->createSafeSQL($baseSql,
-                array(
-                '@@Table' => $this->getCustomTable()->table,
-                '@@Id' => $this->getUserTable()->id
-            ));
-            $this->_db->execute($sql, $param);
-        }
-        $sql = $this->_sqlHelper->createSafeSQL($baseSql,
-            array(
-            '@@Table' => $this->getUserTable()->table,
-            '@@Id' => $this->getUserTable()->id
-        ));
-        $this->_db->execute($sql, $param);
+        $updtableProperties = Updatable::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where(
+                "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
+                [
+                    "id" => $this->getUserDefinition()->getUserid()
+                ]
+            );
+        $this->propertiesRepository->deleteByQuery($updtableProperties);
+
+        $this->userRepository->delete($userId);
+
         return true;
     }
 
-    protected function sqlRemoveUserById()
-    {
-        return "DELETE FROM @@Table WHERE @@Id = [[id]]" ;
-    }
-
     /**
-     *
      * @param int $userId
      * @param string $propertyName
      * @param string $value
      * @return bool
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \Exception
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -313,32 +233,12 @@ class UsersDBDataset extends UsersBase
         }
 
         if (!$this->hasProperty($userId, $propertyName, $value)) {
-
-            $sql = $this->_sqlHelper->createSafeSQL(
-                $this->sqlAddProperty(),
-                [
-                    "@@Table" => $this->getCustomTable()->table,
-                    "@@Id" => $this->getUserTable()->id,
-                    "@@Name" => $this->getCustomTable()->name,
-                    "@@Value" => $this->getCustomTable()->value
-                ]
-            );
-
-            $param = array();
-            $param["id"] = $userId;
-            $param["name"] = $propertyName;
-            $param["value"] = $value;
-
-            $this->_db->execute($sql, $param);
+            $propertiesModel = new UserPropertiesModel($propertyName, $value);
+            $propertiesModel->setUserid($userId);
+            $this->propertiesRepository->save($propertiesModel);
         }
-        return true;
-    }
 
-    protected function sqlAddProperty()
-    {
-        return
-            " INSERT INTO @@Table ( @@Id, @@Name, @@Value ) "
-            . " VALUES ( [[id]], [[name]], [[value]] ) ";
+        return true;
     }
 
     /**
@@ -349,38 +249,28 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * */
-    public function removeProperty($userId, $propertyName, $value)
+     * @throws \Exception
+     */
+    public function removeProperty($userId, $propertyName, $value = null)
     {
         $user = $this->getById($userId);
         if ($user !== null) {
-            $param = array();
-            $param["id"] = $userId;
-            $param["name"] = $propertyName;
-            $param["value"] = $value;
 
-            $sql = $this->_sqlHelper->createSafeSQL($this->sqlRemoveProperty(!is_null($value)),
-                array(
-                    '@@Table' => $this->getCustomTable()->table,
-                    '@@Name' => $this->getCustomTable()->name,
-                    '@@Id' => $this->getUserTable()->id,
-                    '@@Value' => $this->getCustomTable()->value
-                )
-            );
+            $updateable = Updatable::getInstance()
+                ->table($this->getUserPropertiesDefinition()->table())
+                ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
+                ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
-            $this->_db->execute($sql, $param);
+            if (!empty($value)) {
+                $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
+            }
+
+            $this->propertiesRepository->deleteByQuery($updateable);
+
             return true;
         }
 
         return false;
-    }
-
-    protected function sqlRemoveProperty($withValue = false)
-    {
-        return
-            "DELETE FROM @@Table "
-            . " WHERE @@Id = [[id]] AND @@Name = [[name]] "
-            . ($withValue ? " AND @@Value = [[value]] " : '');
     }
 
     /**
@@ -390,60 +280,33 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * */
-    public function removeAllProperties($propertyName, $value)
+     * @throws \Exception
+     */
+    public function removeAllProperties($propertyName, $value = null)
     {
-        $param = array();
-        $param["name"] = $propertyName;
-        $param["value"] = $value;
+        $updateable = Updatable::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
-        $sql = $this->_sqlHelper->createSafeSQL($this->sqlRemoveAllProperties(),
-            array(
-            "@@Table" => $this->getCustomTable()->table,
-            "@@Name" => $this->getCustomTable()->name,
-            "@@Value" => $this->getCustomTable()->value
-        ));
+        if (!empty($value)) {
+            $updateable->where("{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
+        }
 
-        $this->_db->execute($sql, $param);
+        $this->propertiesRepository->deleteByQuery($updateable);
 
         return true;
     }
 
-    protected function sqlRemoveAllProperties()
-    {
-        return "DELETE FROM @@Table WHERE @@Name = [[name]] AND @@Value = [[value]] ";
-    }
-
     /**
-     * Return all custom's fields from this user
+     * Return all property's fields from this user
      *
-     * @param Row $userRow
+     * @param UserModel $userRow
      */
-    protected function setCustomFieldsInUser($userRow)
+    protected function setPropertiesInUser(UserModel $userRow)
     {
-        if ($this->getCustomTable()->table == "") {
-            return;
-        }
-
-        $userId = $userRow->get($this->getUserTable()->id);
-
-        $sql = $this->_sqlHelper->createSafeSQL($this->sqlSetCustomFieldsInUser(),
-            array(
-            "@@Table" => $this->getCustomTable()->table,
-            "@@Id" => $this->getUserTable()->id
-        ));
-
-        $param = array('id' => $userId);
-        $it = $this->_db->getIterator($sql, $param);
-        while ($it->hasNext()) {
-            $sr = $it->moveNext();
-            $userRow->addField($sr->get($this->getCustomTable()->name),
-                $sr->get($this->getCustomTable()->value));
-        }
-    }
-
-    protected function sqlSetCustomFieldsInUser()
-    {
-        return "select * from @@Table where @@Id = [[id]]";
+        $query = Query::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userRow->getUserid()]);
+        $userRow->setProperties($this->propertiesRepository->getByQuery($query));
     }
 }

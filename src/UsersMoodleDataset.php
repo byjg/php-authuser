@@ -7,7 +7,11 @@ namespace ByJG\Authenticate;
  */
 define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password field when password is not stored.
 
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotImplementedException;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Model\UserModel;
 use ErrorException;
 
 class UsersMoodleDataset extends UsersDBDataset
@@ -16,26 +20,31 @@ class UsersMoodleDataset extends UsersDBDataset
     /**
      * @var string
      */
-    protected $_siteSalt = "";
+    protected $siteSalt = "";
 
     /**
      * DBDataset constructor
      *
-*@param string $connectionString
+     * @param string $connectionString
      * @param string $siteSalt
+     * @throws \ByJG\AnyDataset\Exception\NotFoundException
+     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
+     * @throws \Exception
      */
     public function __construct($connectionString, $siteSalt = "")
     {
         parent::__construct($connectionString);
 
-        $this->_siteSalt = $siteSalt;
+        $this->siteSalt = $siteSalt;
     }
 
     /**
-     *
      * Save the current UsersAnyDataset
+     *
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
-    public function save()
+    public function save(UserModel $model)
     {
         throw new NotImplementedException('Save user is not implemented');
     }
@@ -47,8 +56,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $userName
      * @param string $email
      * @param string $password
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function addUser($name, $userName, $email, $password)
     {
@@ -60,14 +69,20 @@ class UsersMoodleDataset extends UsersDBDataset
         return (bool) preg_match('/^[0-9a-f]{32}$/', $password);
     }
 
+    /**
+     * @param string $userName
+     * @param string $password
+     * @return \ByJG\Authenticate\Model\UserModel|null
+     * @throws \ErrorException
+     */
     public function isValidUser($userName, $password)
     {
-        $user = $this->getByUsername($userName);
+        $user = $this->getByLoginField($userName);
         if (is_null($user)) {
             return null;
         }
 
-        $savedPassword = $user->get($this->getUserTable()->password);
+        $savedPassword = $user->get($this->getUserDefinition()->getPassword());
         $validatedUser = null;
 
         if ($savedPassword === AUTH_PASSWORD_NOT_CACHED) {
@@ -75,8 +90,10 @@ class UsersMoodleDataset extends UsersDBDataset
         }
 
         if ($this->passwordIsLegacyHash($savedPassword)) {
-            if ($savedPassword === md5($password . $this->_siteSalt) || $savedPassword === md5($password) || $savedPassword
-                === md5(addslashes($password) . $this->_siteSalt) || $savedPassword === md5(addslashes($password))
+            if ($savedPassword === md5($password . $this->siteSalt)
+                || $savedPassword === md5($password)
+                || $savedPassword === md5(addslashes($password) . $this->siteSalt)
+                || $savedPassword === md5(addslashes($password))
             ) {
                 $validatedUser = $user;
             }
@@ -120,21 +137,21 @@ class UsersMoodleDataset extends UsersDBDataset
                                 ON u.id = ra.userid
                         WHERE userid = [[id]]
                         group by shortname';
-            $param = array("id" => $user->get($this->getUserTable()->id));
-            $it = $this->_db->getIterator($sqlRoles, $param);
-            foreach ($it as $sr) {
-                $user->addField("roles", $sr->get('shortname'));
+            $param = array("id" => $user->get($this->getUserDefinition()->getUserid()));
+            $iterator = $this->provider->getIterator($sqlRoles, $param);
+            foreach ($iterator as $sr) {
+                $user->addProperty(new UserPropertiesModel("roles", $sr->get('shortname')));
             }
 
             // Find the moodle site admin (super user)
-            $user->set($this->getUserTable()->admin, 'no');
+            $user->set($this->getUserDefinition()->getAdmin(), 'no');
             $sqlAdmin = "select value from mdl_config where name = 'siteadmins'";
-            $it = $this->_db->getIterator($sqlAdmin);
-            if ($it->hasNext()) {
-                $sr = $it->moveNext();
+            $iterator = $this->provider->getIterator($sqlAdmin);
+            if ($iterator->hasNext()) {
+                $sr = $iterator->moveNext();
                 $siteAdmin = ',' . $sr->get('value') . ',';
-                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserTable()->id)},") !== false);
-                $user->set($this->getUserTable()->admin, $isAdmin ? 'yes' : 'no');
+                $isAdmin = (strpos($siteAdmin, ",{$user->get($this->getUserDefinition()->getUserid())},") !== false);
+                $user->setAdmin($isAdmin ? 'yes' : 'no');
             }
         }
 
@@ -145,10 +162,10 @@ class UsersMoodleDataset extends UsersDBDataset
      * Remove the user based on his user login.
      *
      * @param string $login
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
-    public function removeUserName($login)
+    public function removeByLoginField($login)
     {
         throw new NotImplementedException('Remove user is not implemented');
     }
@@ -157,8 +174,8 @@ class UsersMoodleDataset extends UsersDBDataset
      * Remove the user based on his user id.
      *
      * @param int $userId
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
     public function removeUserById($userId)
     {
@@ -171,36 +188,39 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $propertyName Property name
      * @param string $value Property value with a site
-     * @return bool
-     * @throws NotImplementedException
+     * @return void
+     * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */
-    public function removeAllProperties($propertyName, $value)
+    public function removeAllProperties($propertyName, $value = null)
     {
         throw new NotImplementedException('Remove property value from all users is not implemented');
     }
 
-    public function getUserTable()
+    public function getUserDefinition()
     {
-        if (is_null($this->_userTable)) {
-            $this->_userTable = new UserTable(
+        if (is_null($this->userTable)) {
+            $this->userTable = new UserDefinition(
                 "mdl_user",
-                "id",
-                "concat(firstname, ' ', lastname)",  // This disable update data
-                "email",
-                "username",
-                "password",
-                "created",
-                "auth"                            // This disable update data
+                UserDefinition::LOGIN_IS_EMAIL,
+                [
+                    "userid" => "id",
+                    "name" => "concat(firstname, ' ', lastname)",  // This disable update data
+                    "email" => "email",
+                    "username" => "username",
+                    "password" => "password",
+                    "created" => 'created',
+                    "admin" => "auth"                            // This disable update data
+                ]
             );
         }
-        return $this->_userTable;
+        return $this->userTable;
     }
 
-    public function getCustomTable()
+    public function getUserPropertiesDefinition()
     {
-        if (is_null($this->_customTable)) {
-            $this->_customTable = new CustomTable("mdl_user_info_data", "id", "fieldid", "data");
+        if (is_null($this->propertiesTable)) {
+            $this->propertiesTable = new UserPropertiesDefinition("mdl_user_info_data", "id", "fieldid", "data");
         }
-        return $this->_customTable;
+        return $this->propertiesTable;
     }
 }

@@ -1,9 +1,12 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Model\UserModel;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -14,8 +17,10 @@ interface UsersInterface
 
     /**
      * @desc Save the current DataSet
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     * @return void
      */
-    function save();
+    public function save(UserModel $model);
 
     /**
      * @desc Add a new user
@@ -25,50 +30,49 @@ interface UsersInterface
      * @param string $password
      * @return bool
      */
-    function addUser($name, $userName, $email, $password);
+    public function addUser($name, $userName, $email, $password);
+
+    /**
+     * @param $model
+     * @return bool
+     */
+    public function add($model);
 
     /**
      * @desc Get the user based on a filter
      * @param IteratorFilter $filter
-     * @return Row if user was found; null, otherwise
+     * @return UserModel if user was found; null, otherwise
      */
-    function getUser($filter);
+    public function getUser($filter);
 
     /**
      * Enter description here...
      *
-     * @param int $id
+     * @param int $userid
      * @return Row
      */
-    function getById($id);
+    public function getById($userid);
 
     /**
      * @desc Get the user based on his email.
      * @param string $email Email to find
      * @return Row if user was found; null, otherwise
      */
-    function getByEmail($email);
+    public function getByEmail($email);
 
     /**
      * @desc Get the user based on his login
-     * @param string $username
+     * @param string $login
      * @return Row if user was found; null, otherwise
      */
-    function getByUsername($username);
+    public function getByLoginField($login);
 
     /**
      * @desc Remove the user based on his login.
-     * @param string $username
+     * @param string $login
      * @return bool
      */
-    function removeUserName($username);
-
-    /**
-     * @desc Get the SHA1 string from user password
-     * @param string $password
-     * @return string SHA1 encripted passwordstring
-     */
-    function getPasswordHash($password);
+    public function removeByLoginField($login);
 
     /**
      * @desc Validate if the user and password exists in the file
@@ -76,14 +80,14 @@ interface UsersInterface
      * @param string $password
      * @return Row if user was found; null, otherwise
      */
-    function isValidUser($userName, $password);
+    public function isValidUser($userName, $password);
 
     /**
      *
      * @param int|string $userId
      * @return bool
      */
-    public function isAdmin($userId = "");
+    public function isAdmin($userId);
 
     /**
      * @desc Check if the user have rights to edit specific site.
@@ -100,7 +104,7 @@ interface UsersInterface
      * @param string $propertyName
      * @return string[] String vector with all sites
      */
-    function getProperty($userId, $propertyName);
+    public function getProperty($userId, $propertyName);
 
     /**
      *
@@ -116,7 +120,7 @@ interface UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-    public function removeProperty($userId, $propertyName, $value);
+    public function removeProperty($userId, $propertyName, $value = null);
 
     /**
      * @desc Remove a specific site from all users
@@ -124,12 +128,12 @@ interface UsersInterface
      * @param string $value
      * @return bool
      */
-    public function removeAllProperties($propertyName, $value);
+    public function removeAllProperties($propertyName, $value = null);
 
     /**
      * Authenticate a user and create a token if it is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $password
      * @param string $serverUri
      * @param string $secret
@@ -138,28 +142,36 @@ interface UsersInterface
      * @param array $updateTokenInfo
      * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
      */
-    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = []);
+    public function createAuthToken(
+        $login,
+        $password,
+        $serverUri,
+        $secret,
+        $expires = 1200,
+        $updateUserInfo = [],
+        $updateTokenInfo = []
+    );
 
     /**
      * Check if the Auth Token is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $uri
      * @param string $secret
      * @param string $token
      * @return bool
      */
-    public function isValidToken($username, $uri, $secret, $token);
+    public function isValidToken($login, $uri, $secret, $token);
 
     /**
-     * @return UserTable Description
+     * @return UserDefinition Description
      */
-    public function getUserTable();
+    public function getUserDefinition();
 
     /**
-     * @return CustomTable Description
+     * @return UserPropertiesDefinition Description
      */
-    public function getCustomTable();
+    public function getUserPropertiesDefinition();
 
     /**
      * Return the ID for the user id (if it is not autoincrement)

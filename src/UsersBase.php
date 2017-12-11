@@ -4,9 +4,12 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\Dataset\Row;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\Interfaces\UsersInterface;
+use ByJG\Authenticate\Model\UserModel;
 use ByJG\Util\JwtWrapper;
 use InvalidArgumentException;
 
@@ -17,46 +20,43 @@ abstract class UsersBase implements UsersInterface
 {
 
     /**
-     * @var UserTable
+     * @var UserDefinition
      */
-    protected $_userTable;
+    protected $userTable;
 
     /**
-     * @var CustomTable
+     * @var UserPropertiesDefinition
      */
-    protected $_customTable;
+    protected $propertiesTable;
 
     /**
-     *
-     * @return UserTable
+     * @return UserDefinition
      */
-    public function getUserTable()
+    public function getUserDefinition()
     {
-        if ($this->_userTable === null) {
-            $this->_userTable = new UserTable();
+        if ($this->userTable === null) {
+            $this->userTable = new UserDefinition();
         }
-        return $this->_userTable;
+        return $this->userTable;
     }
 
     /**
-     *
-     * @return CustomTable
+     * @return UserPropertiesDefinition
      */
-    public function getCustomTable()
+    public function getUserPropertiesDefinition()
     {
-        if ($this->_customTable === null) {
-            $this->_customTable = new CustomTable();
+        if ($this->propertiesTable === null) {
+            $this->propertiesTable = new UserPropertiesDefinition();
         }
-        return $this->_customTable;
+        return $this->propertiesTable;
     }
 
     /**
      * Save the current UsersAnyDataset
-     * */
-    public function save()
-    {
-        
-    }
+     *
+     * @param \ByJG\Authenticate\Model\UserModel $model
+     */
+    abstract public function save(UserModel $model);
 
     /**
      * Add new user in database
@@ -66,15 +66,31 @@ abstract class UsersBase implements UsersInterface
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws \Exception
      */
-    abstract public function addUser($name, $userName, $email, $password);
+    public function addUser($name, $userName, $email, $password)
+    {
+        $model = $this->getUserDefinition()->modelInstance();
+        $model->setName($name);
+        $model->setEmail($email);
+        $model->setUsername($userName);
+        $model->setPassword($password);
+
+        return $this->add($model);
+    }
+
+    /**
+     * @param $model
+     * @return bool
+     */
+    abstract public function add($model);
 
     /**
      * Get the user based on a filter.
      * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return Row
+     * @return UserModel
      * */
     abstract public function getUser($filter);
 
@@ -83,12 +99,12 @@ abstract class UsersBase implements UsersInterface
      * Return Row if user was found; null, otherwise
      *
      * @param string $email
-     * @return Row
+     * @return UserModel
      * */
     public function getByEmail($email)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->email, Relation::EQUAL, strtolower($email));
+        $filter->addRelation($this->getUserDefinition()->getEmail(), Relation::EQUAL, strtolower($email));
         return $this->getUser($filter);
     }
 
@@ -96,13 +112,14 @@ abstract class UsersBase implements UsersInterface
      * Get the user based on his login.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $username
-     * @return Row
+     * @param string $login
+     * @return UserModel
      * */
-    public function getByUsername($username)
+    public function getByLoginField($login)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->username, Relation::EQUAL, strtolower($username));
+        $filter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($login));
+
         return $this->getUser($filter);
     }
 
@@ -110,34 +127,23 @@ abstract class UsersBase implements UsersInterface
      * Get the user based on his id.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $id
-     * @return Row
+     * @param string $userid
+     * @return UserModel
      * */
-    public function getById($id)
+    public function getById($userid)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->id, Relation::EQUAL, $id);
+        $filter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
         return $this->getUser($filter);
     }
 
     /**
      * Remove the user based on his login.
      *
-     * @param string $username
+     * @param string $login
      * @return bool
      * */
-    abstract public function removeUserName($username);
-
-    /**
-     * Get the SHA1 string from user password
-     *
-     * @param string $password Plain password
-     * @return string
-     * */
-    public function getPasswordHash($password)
-    {
-        return strtoupper(sha1($password));
-    }
+    abstract public function removeByLoginField($login);
 
     /**
      * Validate if the user and password exists in the file
@@ -145,13 +151,18 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $userName User login
      * @param string $password Plain text password
-     * @return Row
+     * @return UserModel
      * */
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserTable()->username, Relation::EQUAL, strtolower($userName));
-        $filter->addRelation($this->getUserTable()->password, Relation::EQUAL, $this->getPasswordHash($password));
+        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
+        $filter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($userName));
+        $filter->addRelation(
+            $this->getUserDefinition()->getPassword(),
+            Relation::EQUAL,
+            $passwordGenerator($password, null)
+        );
         return $this->getUser($filter);
     }
 
@@ -163,7 +174,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName
      * @param string $value Property value
      * @return bool
-     *
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
     public function hasProperty($userId, $propertyName, $value = null)
     {
@@ -178,8 +189,8 @@ abstract class UsersBase implements UsersInterface
             return true;
         }
 
-        $values = $user->getAsArray($propertyName);
-        return ($values !== null ? in_array($value, $values) : false);
+        $values = $user->get($propertyName);
+        return ($values !== null ? in_array($value, (array)$values) : false);
     }
 
     /**
@@ -189,13 +200,14 @@ abstract class UsersBase implements UsersInterface
      * @param string $userId User ID
      * @param string $propertyName Property name
      * @return array
-     * */
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     */
     public function getProperty($userId, $propertyName)
     {
         //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
-            $values = $user->getAsArray($propertyName);
+            $values = $user->get($propertyName);
 
             if ($this->isAdmin($userId)) {
                 return array("admin" => "admin");
@@ -213,10 +225,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName
      * @param string $value
      */
-    public function addProperty($userId, $propertyName, $value)
-    {
-
-    }
+    abstract public function addProperty($userId, $propertyName, $value);
 
     /**
      * Remove a specific site from user
@@ -227,7 +236,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    abstract public function removeProperty($userId, $propertyName, $value);
+    abstract public function removeProperty($userId, $propertyName, $value = null);
 
     /**
      * Remove a specific site from all users
@@ -237,25 +246,15 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value with a site
      * @return bool
      * */
-    abstract public function removeAllProperties($propertyName, $value);
+    abstract public function removeAllProperties($propertyName, $value = null);
 
     /**
-     *
-     * @param int $userId
+     * @param int|string $userId
      * @return bool
-     * @throws NotAuthenticatedException
-     * @throws UserNotFoundException
+     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function isAdmin($userId = null)
+    public function isAdmin($userId)
     {
-        if (is_null($userId)) {
-            $currentUser = (new SessionContext())->userInfo();
-            if ($currentUser === false) {
-                throw new NotAuthenticatedException();
-            }
-            $userId = $currentUser[$this->getUserTable()->id];
-        }
-
         $user = $this->getById($userId);
 
         if (is_null($user)) {
@@ -263,14 +262,14 @@ abstract class UsersBase implements UsersInterface
         }
 
         return
-            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->get($this->getUserTable()->admin)) === 1
+            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getAdmin()) === 1
         ;
     }
 
     /**
      * Authenticate a user and create a token if it is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $password
      * @param string $serverUri
      * @param string $secret
@@ -280,13 +279,20 @@ abstract class UsersBase implements UsersInterface
      * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function createAuthToken($username, $password, $serverUri, $secret, $expires = 1200, $updateUserInfo = [], $updateTokenInfo = [])
-    {
-        if (!isset($username) || !isset($password)) {
+    public function createAuthToken(
+        $login,
+        $password,
+        $serverUri,
+        $secret,
+        $expires = 1200,
+        $updateUserInfo = [],
+        $updateTokenInfo = []
+    ) {
+        if (!isset($login) || !isset($password)) {
             throw new InvalidArgumentException('Neither username or password can be empty!');
         }
 
-        $user = $this->isValidUser($username, $password);
+        $user = $this->isValidUser($login, $password);
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
         }
@@ -294,13 +300,10 @@ abstract class UsersBase implements UsersInterface
         foreach ($updateUserInfo as $key => $value) {
             $user->set($key, $value);
         }
-        $user->set('LAST_LOGIN', date('Y-m-d H:i:s'));
-        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
-        $user->set('LOGIN_TIMES', intval($user->get('LOGIN_TIMES')) + 1);
 
         $jwt = new JwtWrapper($serverUri, $secret);
-        $updateTokenInfo['username'] = $username;
-        $updateTokenInfo['userid'] = $user->get(UsersBase::getUserTable()->id);
+        $updateTokenInfo['login'] = $login;
+        $updateTokenInfo['userid'] = $user->getUserid();
         $jwtData = $jwt->createJwtData(
             $updateTokenInfo,
             $expires
@@ -309,7 +312,7 @@ abstract class UsersBase implements UsersInterface
         $token = $jwt->generateToken($jwtData);
 
         $user->set('TOKEN_HASH', sha1($token));
-        $this->save();
+        $this->save($user);
 
         return $token;
     }
@@ -317,7 +320,7 @@ abstract class UsersBase implements UsersInterface
     /**
      * Check if the Auth Token is valid
      *
-     * @param string $username
+     * @param string $login
      * @param string $uri
      * @param string $secret
      * @param string $token
@@ -325,9 +328,9 @@ abstract class UsersBase implements UsersInterface
      * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
      */
-    public function isValidToken($username, $uri, $secret, $token)
+    public function isValidToken($login, $uri, $secret, $token)
     {
-        $user = $this->getByUsername($username);
+        $user = $this->getByLoginField($login);
 
         if (is_null($user)) {
             throw new UserNotFoundException('User not found!');
@@ -340,8 +343,7 @@ abstract class UsersBase implements UsersInterface
         $jwt = new JwtWrapper($uri, $secret);
         $data = $jwt->extractData($token);
 
-        $user->set('LAST_VISIT', date('Y-m-d H:i:s'));
-        $this->save();
+        $this->save($user);
 
         return [
             'user' => $user,
