@@ -54,6 +54,17 @@ class UserDefinition
         $this->model = UserModel::class;
 
         $this->defineClosureForUpdate('password', function ($value) {
+            // Already have a SHA1 password
+            if (strlen($value) === 40) {
+                return $value;
+            }
+
+            // Leave null
+            if (empty($value)) {
+                return null;
+            }
+
+            // Return the hash password
             return strtoupper(sha1($value));
         });
 

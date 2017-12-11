@@ -85,8 +85,8 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     public function testAddUser_generatedId()
     {
         $mock = $this->getMockBuilder('\ByJG\Authenticate\UsersAnyDataset')
-            ->setMethods( [ 'generateUserId' ] )
-            ->setConstructorArgs( ['php://memory'] )
+            ->setMethods(['generateUserId'])
+            ->setConstructorArgs(['php://memory'])
             ->getMock();
 
         $mock->expects($this->once())
@@ -296,5 +296,15 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     {
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
         $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', 'Invalid token');
+    }
+
+    public function testSaveAndSave()
+    {
+        $user = $this->object->getById('user1');
+        $this->object->save($user);
+
+        $user2 = $this->object->getById('user1');
+
+        $this->assertEquals($user, $user2);
     }
 }

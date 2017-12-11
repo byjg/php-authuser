@@ -142,4 +142,14 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('%@pwd4@%', $user->getPassword());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
     }
+
+    public function testSaveAndSave()
+    {
+        $user = $this->object->getById(1);
+        $this->object->save($user);
+
+        $user2 = $this->object->getById(1);
+
+        $this->assertEquals($user, $user2);
+    }
 }
