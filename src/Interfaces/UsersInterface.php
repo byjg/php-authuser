@@ -36,7 +36,7 @@ interface UsersInterface
      * @param $model
      * @return bool
      */
-    public function add($model);
+    public function canAddUser($model);
 
     /**
      * @desc Get the user based on a filter
@@ -172,10 +172,4 @@ interface UsersInterface
      * @return UserPropertiesDefinition Description
      */
     public function getUserPropertiesDefinition();
-
-    /**
-     * Return the ID for the user id (if it is not autoincrement)
-     * @return mixed
-     */
-    public function generateUserId();
 }

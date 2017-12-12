@@ -168,17 +168,26 @@ class UserDefinition
     {
         $this->checkProperty($property);
 
-        // If does no exists event returns the default closure
-        if (!isset($this->closures[$event])) {
-            return Mapper::defaultClosure();
-        }
-
-        // If event exists but does no exists the property returns the default closure
-        if (!array_key_exists($property, $this->closures[$event])) {
+        if (!$this->existsClosure($event, $property)) {
             return Mapper::defaultClosure();
         }
 
         return $this->closures[$event][$property];
+    }
+
+    public function existsClosure($event, $property)
+    {
+        // Event not set
+        if (!isset($this->closures[$event])) {
+            return false;
+        }
+
+        // Event is set but there is no property
+        if (!array_key_exists($property, $this->closures[$event])) {
+            return false;
+        }
+
+        return true;
     }
 
     public function markPropertyAsReadOnly($property)

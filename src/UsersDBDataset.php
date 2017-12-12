@@ -100,34 +100,16 @@ class UsersDBDataset extends UsersBase
      */
     public function save(UserModel $user)
     {
+        if (empty($user->getUserid())) {
+            $this->canAddUser($user);
+        }
+
         $this->userRepository->save($user);
 
         foreach ($user->getProperties() as $property) {
             $property->setUserid($user->getUserid());
             $this->propertiesRepository->save($property);
         }
-    }
-
-    /**
-     * @param UserModel $model
-     * @return bool
-     * @throws \ByJG\Authenticate\Exception\UserExistsException
-     * @throws \Exception
-     */
-    public function add($model)
-    {
-        if ($this->getByEmail($model->getEmail()) !== null) {
-            throw new UserExistsException('Email already exists');
-        }
-        $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
-        if ($this->getUser($filter) !== null) {
-            throw new UserExistsException('Username already exists');
-        }
-
-        $this->userRepository->save($model);
-
-        return true;
     }
 
     /**

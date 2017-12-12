@@ -104,13 +104,13 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             $this->propertyDefinition
         );
 
-        $this->object->add(
+        $this->object->save(
             new MyUserModel('User 1', 'user1@gmail.com', 'user1', 'pwd1', 'no', 'other 1')
         );
-        $this->object->add(
+        $this->object->save(
             new MyUserModel('User 2', 'user2@gmail.com', 'user2', 'pwd2', 'no', 'other 2')
         );
-        $this->object->add(
+        $this->object->save(
             new MyUserModel('User 3', 'user3@gmail.com', 'user3', 'pwd3', 'no', 'other 3')
         );
     }
@@ -134,7 +134,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      */
     public function testAddUser()
     {
-        $this->object->add(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', 'no', 'other john'));
+        $this->object->save(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', 'no', 'other john'));
 
         $login = $this->__chooseValue('john', 'johndoe@gmail.com');
 
@@ -157,7 +157,6 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     }
 
     /**
-     * @throws \ByJG\Authenticate\Exception\UserExistsException
      * @throws \Exception
      */
     public function testWithUpdateValue()
@@ -204,7 +203,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             $this->propertyDefinition
         );
 
-        $newObject->add(
+        $newObject->save(
             new MyUserModel('User 4', 'user4@gmail.com', 'user4', 'pwd4', 'no', 'other john')
         );
 
