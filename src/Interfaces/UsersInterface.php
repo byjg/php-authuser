@@ -172,4 +172,10 @@ interface UsersInterface
      * @return UserPropertiesDefinition Description
      */
     public function getUserPropertiesDefinition();
+
+    /**
+     * @param $userid
+     * @return void
+     */
+    public function removeUserById($userid);
 }

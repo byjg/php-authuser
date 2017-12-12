@@ -188,7 +188,7 @@ class UsersDBDataset extends UsersBase
             ->where(
                 "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
                 [
-                    "id" => $this->getUserDefinition()->getUserid()
+                    "id" => $userId
                 ]
             );
         $this->propertiesRepository->deleteByQuery($updtableProperties);

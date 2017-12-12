@@ -286,4 +286,15 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals($user, $user2);
     }
+
+    public function testRemoveUserById()
+    {
+        $user = $this->object->getById($this->prefix . '1');
+        $this->assertNotNull($user);
+
+        $this->object->removeUserById($this->prefix . '1');
+
+        $user2 = $this->object->getById($this->prefix . '1');
+        $this->assertNull($user2);
+    }
 }

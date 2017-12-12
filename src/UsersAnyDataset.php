@@ -67,15 +67,7 @@ class UsersAnyDataset extends UsersBase
     {
         $new = true;
         if (!empty($model->getUserid())) {
-            $iteratorFilter = new IteratorFilter();
-            $iteratorFilter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $model->getUserid());
-            $iterator = $this->anyDataSet->getIterator($iteratorFilter);
-
-            if ($iterator->hasNext()) {
-                $oldRow = $iterator->moveNext();
-                $this->anyDataSet->removeRow($oldRow);
-                $new = false;
-            }
+            $new = !$this->removeUserById($model->getUserid());
         }
 
         $new && $this->canAddUser($model);
@@ -249,5 +241,20 @@ class UsersAnyDataset extends UsersBase
         }
 
         return $userModel;
+    }
+
+    public function removeUserById($userid)
+    {
+        $iteratorFilter = new IteratorFilter();
+        $iteratorFilter->addRelation($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
+        $iterator = $this->anyDataSet->getIterator($iteratorFilter);
+
+        if ($iterator->hasNext()) {
+            $oldRow = $iterator->moveNext();
+            $this->anyDataSet->removeRow($oldRow);
+            return true;
+        }
+
+        return false;
     }
 }

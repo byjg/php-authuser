@@ -363,4 +363,9 @@ abstract class UsersBase implements UsersInterface
             'data' => $data->data
         ];
     }
+
+    /**
+     * @param $userid
+     */
+    abstract public function removeUserById($userid);
 }
