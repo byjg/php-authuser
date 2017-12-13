@@ -208,6 +208,7 @@ you can use the UserDefinition and UserPropertiesDefinition classes for customiz
 <?php
 $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     'users',    // $table
+    \ByJG\Authenticate\Model\UserModel::class, // Model class
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
     [
         'userid'   => 'fieldname of userid',

@@ -74,7 +74,7 @@ class UsersAnyDataset extends UsersBase
 
         $this->anyDataSet->appendRow();
 
-        $propertyDefinition = BinderObject::toArrayFrom($this->getUserDefinition());
+        $propertyDefinition = $this->getUserDefinition()->toArray();
         foreach ($propertyDefinition as $property => $map) {
             $closure = $this->getUserDefinition()->getClosureForUpdate($property);
             $value = $closure($model->{"get$property"}(), $model);
@@ -226,7 +226,7 @@ class UsersAnyDataset extends UsersBase
         $allProp = $row->toArray();
         $userModel = new UserModel();
 
-        $userTableProp = BinderObject::toArrayFrom($this->getUserDefinition());
+        $userTableProp = $this->getUserDefinition()->toArray();
         foreach ($userTableProp as $prop => $mapped) {
             if (isset($allProp[$mapped])) {
                 $userModel->{"set" . ucfirst($prop)}($allProp[$mapped]);

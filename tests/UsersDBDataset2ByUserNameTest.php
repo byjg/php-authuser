@@ -7,6 +7,7 @@ require_once 'UsersDBDatasetByUsernameTest.php';
 use ByJG\AnyDataset\Factory;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Model\UserModel;
 
 class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
 {
@@ -34,6 +35,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
 
         $this->userDefinition = new UserDefinition(
             'mytable',
+            UserModel::class,
             $loginField,
             [
                 'userid' => 'myuserid',

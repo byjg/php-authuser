@@ -4,30 +4,22 @@ namespace ByJG\Authenticate\Definition;
 
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
+use ByJG\Serializer\BinderObject;
 
 /**
  * Structure to represent the users
  */
 class UserDefinition
 {
-
-    protected $table = 'users';
-    protected $userid = 'userid';
-    protected $name = 'name';
-    protected $email = 'email';
-    protected $username = 'username';
-    protected $password = 'password';
-    protected $created = 'created';
-    protected $admin = 'admin';
+    protected $__table = 'users';
+    protected $__closures = ["select" => [], "update" => [] ];
+    protected $__loginField;
+    protected $__model;
+    protected $__properties = [];
 
     const UPDATE="update";
     const SELECT="select";
 
-    protected $closures = [ "select" => [], "update" => [] ];
-
-    protected $loginField;
-
-    protected $model;
 
     const LOGIN_IS_EMAIL="email";
     const LOGIN_IS_USERNAME="username";
@@ -36,22 +28,32 @@ class UserDefinition
      * Define the name of fields and table to store and retrieve info from database
      *
      * @param string $table
+     * @param string $model
      * @param string $loginField
      * @param array $fieldDef
+     * @throws \Exception
      */
     public function __construct(
         $table = 'users',
+        $model = UserModel::class,
         $loginField = self::LOGIN_IS_USERNAME,
         $fieldDef = []
     ) {
-        $this->table = $table;
+        $this->__table = $table;
+        $this->__model = $model;
 
-        foreach ($fieldDef as $property => $value) {
-            $this->checkProperty($property);
-            $this->{$property} = $value;
+        // Set Default User Definition
+        $modelInstance = $this->modelInstance();
+        $modelProperties = BinderObject::toArrayFrom($modelInstance);
+        foreach (array_keys($modelProperties) as $property) {
+            $this->__properties[$property] = $property;
         }
 
-        $this->model = UserModel::class;
+        // Set custom Properties
+        foreach ($fieldDef as $property => $value) {
+            $this->checkProperty($property);
+            $this->__properties[$property] = $value;
+        }
 
         $this->defineClosureForUpdate('password', function ($value) {
             // Already have a SHA1 password
@@ -65,13 +67,13 @@ class UserDefinition
             }
 
             // Return the hash password
-            return strtoupper(sha1($value));
+            return strtolower(sha1($value));
         });
 
         if ($loginField !== self::LOGIN_IS_USERNAME && $loginField !== self::LOGIN_IS_EMAIL) {
             throw new \InvalidArgumentException('Login field is invalid. ');
         }
-        $this->loginField = $loginField;
+        $this->__loginField = $loginField;
     }
 
     /**
@@ -79,63 +81,28 @@ class UserDefinition
      */
     public function table()
     {
-        return $this->table;
+        return $this->__table;
     }
 
-    /**
-     * @return string
-     */
-    public function getUserid()
+
+    public function __get($name)
     {
-        return $this->userid;
+        $this->checkProperty($name);
+        return $this->__properties[$name];
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function __call($name, $arguments)
     {
-        return $this->name;
+        if (strpos($name, 'get') === 0) {
+            $name = strtolower(substr($name, 3));
+            return $this->{$name};
+        }
+        throw new \InvalidArgumentException("Method '$name' does not exists'");
     }
 
-    /**
-     * @return string
-     */
-    public function getEmail()
+    public function toArray()
     {
-        return $this->email;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCreated()
-    {
-        return $this->created;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAdmin()
-    {
-        return $this->admin;
+        return $this->__properties;
     }
 
     /**
@@ -143,13 +110,13 @@ class UserDefinition
      */
     public function loginField()
     {
-        return $this->{"get" . $this->loginField}();
+        return $this->{$this->__loginField};
     }
 
     private function checkProperty($property)
     {
-        if (!isset($this->{$property})) {
-            throw new \InvalidArgumentException('Invalid property');
+        if (!isset($this->__properties[$property])) {
+            throw new \InvalidArgumentException("Property '$property' does not exists'");
         }
     }
 
@@ -161,7 +128,7 @@ class UserDefinition
     private function updateClosureDef($event, $property, $closure)
     {
         $this->checkProperty($property);
-        $this->closures[$event][$property] = $closure;
+        $this->__closures[$event][$property] = $closure;
     }
 
     private function getClosureDef($event, $property)
@@ -172,18 +139,18 @@ class UserDefinition
             return Mapper::defaultClosure();
         }
 
-        return $this->closures[$event][$property];
+        return $this->__closures[$event][$property];
     }
 
     public function existsClosure($event, $property)
     {
         // Event not set
-        if (!isset($this->closures[$event])) {
+        if (!isset($this->__closures[$event])) {
             return false;
         }
 
         // Event is set but there is no property
-        if (!array_key_exists($property, $this->closures[$event])) {
+        if (!array_key_exists($property, $this->__closures[$event])) {
             return false;
         }
 
@@ -221,12 +188,12 @@ class UserDefinition
 
     public function model()
     {
-        return $this->model;
+        return $this->__model;
     }
 
     public function modelInstance()
     {
-        $model = $this->model;
+        $model = $this->__model;
         return new $model();
     }
 }

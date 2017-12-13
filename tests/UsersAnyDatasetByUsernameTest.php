@@ -5,6 +5,7 @@ namespace ByJG\Authenticate;
 // backward compatibility
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Model\UserModel;
 
 if (!class_exists('\PHPUnit\Framework\TestCase')) {
     class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
@@ -34,7 +35,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     {
         $this->prefix = "user";
 
-        $this->userDefinition = new UserDefinition('users', $loginField);
+        $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
 
         $this->object = new UsersAnyDataset(
@@ -71,7 +72,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
+        $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
     }
 
     /**

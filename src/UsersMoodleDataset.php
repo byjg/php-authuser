@@ -201,6 +201,7 @@ class UsersMoodleDataset extends UsersDBDataset
         if (is_null($this->userTable)) {
             $this->userTable = new UserDefinition(
                 "mdl_user",
+                UserModel::class,
                 UserDefinition::LOGIN_IS_EMAIL,
                 [
                     "userid" => "id",

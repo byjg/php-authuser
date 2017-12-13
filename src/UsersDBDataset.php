@@ -65,7 +65,7 @@ class UsersDBDataset extends UsersBase
             $userTable->getUserid()
         );
 
-        $propertyDefinition = BinderObject::toArrayFrom($userTable);
+        $propertyDefinition = $userTable->toArray();
 
         foreach ($propertyDefinition as $property => $map) {
             $userMapper->addFieldMap(
