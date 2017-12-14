@@ -61,6 +61,13 @@ interface UsersInterface
     public function getByEmail($email);
 
     /**
+     * @desc Get the user based on his username.
+     * @param $username
+     * @return Row if user was found; null, otherwise
+     */
+    public function getByUsername($username);
+
+    /**
      * @desc Get the user based on his login
      * @param string $login
      * @return Row if user was found; null, otherwise

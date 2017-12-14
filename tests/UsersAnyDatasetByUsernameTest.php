@@ -298,4 +298,15 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
         $user2 = $this->object->getById($this->prefix . '1');
         $this->assertNull($user2);
     }
+
+    public function testGetByUsername()
+    {
+        $user = $this->object->getByUsername('user2');
+
+        $this->assertEquals($this->prefix . '2', $user->getUserid());
+        $this->assertEquals('User 2', $user->getName());
+        $this->assertEquals('user2', $user->getUsername());
+        $this->assertEquals('user2@gmail.com', $user->getEmail());
+        $this->assertEquals('c88b5c841897dafe75cdd9f8ba98b32f007d6bc3', $user->getPassword());
+    }
 }

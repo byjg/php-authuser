@@ -122,6 +122,20 @@ abstract class UsersBase implements UsersInterface
     }
 
     /**
+     * Get the user based on his username.
+     * Return Row if user was found; null, otherwise
+     *
+     * @param $username
+     * @return UserModel
+     */
+    public function getByUsername($username)
+    {
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $username);
+        return $this->getUser($filter);
+    }
+
+    /**
      * Get the user based on his login.
      * Return Row if user was found; null, otherwise
      *
