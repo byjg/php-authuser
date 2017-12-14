@@ -96,12 +96,15 @@ class UsersDBDataset extends UsersBase
      * Save the current UsersAnyDataset
      *
      * @param \ByJG\Authenticate\Model\UserModel $user
+     * @return \ByJG\Authenticate\Model\UserModel
      * @throws \Exception
      */
     public function save(UserModel $user)
     {
+        $newUser = false;
         if (empty($user->getUserid())) {
             $this->canAddUser($user);
+            $newUser = true;
         }
 
         $this->userRepository->save($user);
@@ -110,6 +113,12 @@ class UsersDBDataset extends UsersBase
             $property->setUserid($user->getUserid());
             $this->propertiesRepository->save($property);
         }
+
+        if ($newUser) {
+            $user = $this->getByEmail($user->getEmail());
+        }
+
+        return $user;
     }
 
     /**
