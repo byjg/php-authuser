@@ -41,9 +41,6 @@ class UsersDBDataset extends UsersBase
      * @param string $connectionString
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \Exception
      */
     public function __construct(
         $connectionString,
@@ -107,6 +104,8 @@ class UsersDBDataset extends UsersBase
             $newUser = true;
         }
 
+        $this->userRepository->setBeforeUpdate($this->userTable->getBeforeUpdate());
+        $this->userRepository->setBeforeInsert($this->userTable->getBeforeInsert());
         $this->userRepository->save($user);
 
         foreach ($user->getProperties() as $property) {

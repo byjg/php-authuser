@@ -74,6 +74,13 @@ class UserDefinition
             throw new \InvalidArgumentException('Login field is invalid. ');
         }
         $this->__loginField = $loginField;
+
+        $this->beforeInsert = function ($instance) {
+            return $instance;
+        };
+        $this->beforeUpdate = function ($instance) {
+            return $instance;
+        };
     }
 
     /**
@@ -195,5 +202,41 @@ class UserDefinition
     {
         $model = $this->__model;
         return new $model();
+    }
+
+    protected $beforeInsert;
+
+    /**
+     * @return mixed
+     */
+    public function getBeforeInsert()
+    {
+        return $this->beforeInsert;
+    }
+
+    /**
+     * @param mixed $beforeInsert
+     */
+    public function setBeforeInsert($beforeInsert)
+    {
+        $this->beforeInsert = $beforeInsert;
+    }
+
+    protected $beforeUpdate;
+
+    /**
+     * @return mixed
+     */
+    public function getBeforeUpdate()
+    {
+        return $this->beforeUpdate;
+    }
+
+    /**
+     * @param mixed $beforeUpdate
+     */
+    public function setBeforeUpdate($beforeUpdate)
+    {
+        $this->beforeUpdate = $beforeUpdate;
     }
 }
