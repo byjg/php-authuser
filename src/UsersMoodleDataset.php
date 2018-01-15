@@ -27,9 +27,6 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $connectionString
      * @param string $siteSalt
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \Exception
      */
     public function __construct($connectionString, $siteSalt = "")
     {

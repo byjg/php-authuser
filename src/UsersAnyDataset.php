@@ -9,10 +9,8 @@ use ByJG\AnyDataset\IteratorInterface;
 use ByJG\AnyDataset\Dataset\Row;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
-use ByJG\Serializer\BinderObject;
 
 class UsersAnyDataset extends UsersBase
 {

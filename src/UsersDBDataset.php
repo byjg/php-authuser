@@ -3,19 +3,16 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
-use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Factory;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\MicroOrm\Updatable;
-use ByJG\Serializer\BinderObject;
 
 class UsersDBDataset extends UsersBase
 {
