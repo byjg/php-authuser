@@ -4,13 +4,13 @@ namespace ByJG\Authenticate;
 
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Interfaces\UserContextInterface;
-use ByJG\Cache\Psr\CachePool;
+use ByJG\Cache\Psr6\CachePool;
 
 class SessionContext implements UserContextInterface
 {
     /**
      *
-     * @var \ByJG\Cache\Psr\CachePool
+     * @var \ByJG\Cache\Psr6\CachePool
      */
     protected $session;
 
@@ -19,6 +19,12 @@ class SessionContext implements UserContextInterface
      */
     protected $key;
 
+    /**
+     * SessionContext constructor.
+     *
+     * @param \ByJG\Cache\Psr6\CachePool $cachePool
+     * @param string $key
+     */
     public function __construct(CachePool $cachePool, $key = 'default')
     {
         $this->session = $cachePool;
@@ -27,8 +33,10 @@ class SessionContext implements UserContextInterface
 
     /**
      * Get information about current context is authenticated.
+     *
      * @access public
      * @return bool Return true if authenticated; false otherwise.
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function isAuthenticated()
     {
@@ -38,8 +46,10 @@ class SessionContext implements UserContextInterface
 
     /**
      * Get the authenticated user name
+     *
      * @access public
      * @return string The authenticated username if exists.
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function userInfo()
     {
@@ -48,9 +58,9 @@ class SessionContext implements UserContextInterface
     }
 
     /**
-     *
      * @param $userId
-     * @param $data
+     * @param array $data
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function registerLogin($userId, $data = [])
     {
@@ -66,10 +76,12 @@ class SessionContext implements UserContextInterface
     }
 
     /**
-     *
      * @param string $name
      * @param mixed $value
      * @throws NotAuthenticatedException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function setSessionData($name, $value)
     {
@@ -91,10 +103,11 @@ class SessionContext implements UserContextInterface
     }
 
     /**
-     *
      * @param string $name
      * @return mixed
      * @throws NotAuthenticatedException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getSessionData($name)
     {
@@ -120,6 +133,8 @@ class SessionContext implements UserContextInterface
      * Make logout from XMLNuke Engine
      *
      * @access public
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function registerLogout()
     {

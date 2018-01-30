@@ -27,9 +27,6 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $connectionString
      * @param string $siteSalt
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \Exception
      */
     public function __construct($connectionString, $siteSalt = "")
     {
@@ -201,6 +198,7 @@ class UsersMoodleDataset extends UsersDBDataset
         if (is_null($this->userTable)) {
             $this->userTable = new UserDefinition(
                 "mdl_user",
+                UserModel::class,
                 UserDefinition::LOGIN_IS_EMAIL,
                 [
                     "userid" => "id",

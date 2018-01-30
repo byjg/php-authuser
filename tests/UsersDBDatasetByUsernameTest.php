@@ -7,6 +7,7 @@ require_once 'UsersAnyDatasetByUsernameTest.php';
 use ByJG\AnyDataset\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Model\UserModel;
 use ByJG\Util\Uri;
 
 class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
@@ -36,7 +37,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
             value varchar(45));'
         );
 
-        $this->userDefinition = new UserDefinition('users', $loginField);
+        $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
         $this->object = new UsersDBDataset(
             self::CONNECTION_STRING,
@@ -74,7 +75,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
+        $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
         $this->assertEquals('no', $user->getAdmin());
         $this->assertEquals('', $user->getCreated()); // There is no default action for it
 
@@ -141,5 +142,15 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('#-user4@gmail.com-#', $user->getEmail());
         $this->assertEquals('%@pwd4@%', $user->getPassword());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
+    }
+
+    public function testSaveAndSave()
+    {
+        $user = $this->object->getById(1);
+        $this->object->save($user);
+
+        $user2 = $this->object->getById(1);
+
+        $this->assertEquals($user, $user2);
     }
 }

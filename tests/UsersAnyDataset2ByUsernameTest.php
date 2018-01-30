@@ -4,6 +4,7 @@ namespace ByJG\Authenticate;
 
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Model\UserModel;
 
 require_once 'UsersAnyDatasetByUsernameTest.php';
 
@@ -16,6 +17,7 @@ class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
 
         $this->userDefinition = new UserDefinition(
             'mytable',
+            UserModel::class,
             $loginField,
             [
                 'userid' => 'myuserid',

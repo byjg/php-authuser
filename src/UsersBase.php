@@ -7,6 +7,7 @@ use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
+use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Interfaces\UsersInterface;
 use ByJG\Authenticate\Model\UserModel;
@@ -65,8 +66,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $userName
      * @param string $email
      * @param string $password
-     * @return bool
-     * @throws \Exception
+     * @return void
      */
     public function addUser($name, $userName, $email, $password)
     {
@@ -76,14 +76,27 @@ abstract class UsersBase implements UsersInterface
         $model->setUsername($userName);
         $model->setPassword($password);
 
-        return $this->add($model);
+        $this->save($model);
     }
 
     /**
      * @param $model
      * @return bool
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
      */
-    abstract public function add($model);
+    public function canAddUser($model)
+    {
+        if ($this->getByEmail($model->getEmail()) !== null) {
+            throw new UserExistsException('Email already exists');
+        }
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
+        if ($this->getUser($filter) !== null) {
+            throw new UserExistsException('Username already exists');
+        }
+
+        return false;
+    }
 
     /**
      * Get the user based on a filter.
@@ -105,6 +118,20 @@ abstract class UsersBase implements UsersInterface
     {
         $filter = new IteratorFilter();
         $filter->addRelation($this->getUserDefinition()->getEmail(), Relation::EQUAL, strtolower($email));
+        return $this->getUser($filter);
+    }
+
+    /**
+     * Get the user based on his username.
+     * Return Row if user was found; null, otherwise
+     *
+     * @param $username
+     * @return UserModel
+     */
+    public function getByUsername($username)
+    {
+        $filter = new IteratorFilter();
+        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $username);
         return $this->getUser($filter);
     }
 
@@ -352,10 +379,7 @@ abstract class UsersBase implements UsersInterface
     }
 
     /**
-     * @inheritdoc
+     * @param $userid
      */
-    public function generateUserId()
-    {
-        return null;
-    }
+    abstract public function removeUserById($userid);
 }

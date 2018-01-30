@@ -3,19 +3,16 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
-use ByJG\AnyDataset\Enum\Relation;
 use ByJG\AnyDataset\Factory;
 use ByJG\AnyDataset\Dataset\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\MicroOrm\Updatable;
-use ByJG\Serializer\BinderObject;
 
 class UsersDBDataset extends UsersBase
 {
@@ -41,9 +38,6 @@ class UsersDBDataset extends UsersBase
      * @param string $connectionString
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \Exception
      */
     public function __construct(
         $connectionString,
@@ -65,7 +59,7 @@ class UsersDBDataset extends UsersBase
             $userTable->getUserid()
         );
 
-        $propertyDefinition = BinderObject::toArrayFrom($userTable);
+        $propertyDefinition = $userTable->toArray();
 
         foreach ($propertyDefinition as $property => $map) {
             $userMapper->addFieldMap(
@@ -96,38 +90,31 @@ class UsersDBDataset extends UsersBase
      * Save the current UsersAnyDataset
      *
      * @param \ByJG\Authenticate\Model\UserModel $user
+     * @return \ByJG\Authenticate\Model\UserModel
      * @throws \Exception
      */
     public function save(UserModel $user)
     {
+        $newUser = false;
+        if (empty($user->getUserid())) {
+            $this->canAddUser($user);
+            $newUser = true;
+        }
+
+        $this->userRepository->setBeforeUpdate($this->userTable->getBeforeUpdate());
+        $this->userRepository->setBeforeInsert($this->userTable->getBeforeInsert());
         $this->userRepository->save($user);
 
         foreach ($user->getProperties() as $property) {
             $property->setUserid($user->getUserid());
             $this->propertiesRepository->save($property);
         }
-    }
 
-    /**
-     * @param UserModel $model
-     * @return bool
-     * @throws \ByJG\Authenticate\Exception\UserExistsException
-     * @throws \Exception
-     */
-    public function add($model)
-    {
-        if ($this->getByEmail($model->getEmail()) !== null) {
-            throw new UserExistsException('Email already exists');
-        }
-        $filter = new IteratorFilter();
-        $filter->addRelation($this->getUserDefinition()->getUsername(), Relation::EQUAL, $model->getUsername());
-        if ($this->getUser($filter) !== null) {
-            throw new UserExistsException('Username already exists');
+        if ($newUser) {
+            $user = $this->getByEmail($user->getEmail());
         }
 
-        $this->userRepository->save($model);
-
-        return true;
+        return $user;
     }
 
     /**
@@ -206,7 +193,7 @@ class UsersDBDataset extends UsersBase
             ->where(
                 "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
                 [
-                    "id" => $this->getUserDefinition()->getUserid()
+                    "id" => $userId
                 ]
             );
         $this->propertiesRepository->deleteByQuery($updtableProperties);

@@ -5,6 +5,7 @@ namespace ByJG\Authenticate;
 // backward compatibility
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Model\UserModel;
 
 if (!class_exists('\PHPUnit\Framework\TestCase')) {
     class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
@@ -34,7 +35,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     {
         $this->prefix = "user";
 
-        $this->userDefinition = new UserDefinition('users', $loginField);
+        $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
 
         $this->object = new UsersAnyDataset(
@@ -71,7 +72,7 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
+        $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
     }
 
     /**
@@ -80,27 +81,6 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     public function testAddUserError()
     {
         $this->object->addUser('some user with same username', 'user2', 'user2@gmail.com', 'mypassword');
-    }
-
-    public function testAddUser_generatedId()
-    {
-        $mock = $this->getMockBuilder('\ByJG\Authenticate\UsersAnyDataset')
-            ->setMethods( [ 'generateUserId' ] )
-            ->setConstructorArgs( ['php://memory'] )
-            ->getMock();
-
-        $mock->expects($this->once())
-            ->method('generateUserId')
-            ->will($this->returnValue(1234));
-
-        $mock->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
-
-        $user = $mock->getByLoginField('john');
-        $this->assertEquals('1234', $user->getUserid());
-        $this->assertEquals('John Doe', $user->getName());
-        $this->assertEquals('john', $user->getUsername());
-        $this->assertEquals('johndoe@gmail.com', $user->getEmail());
-        $this->assertEquals('91DFD9DDB4198AFFC5C194CD8CE6D338FDE470E2', $user->getPassword());
     }
 
     public function testAddProperty()
@@ -296,5 +276,37 @@ class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
     {
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
         $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', 'Invalid token');
+    }
+
+    public function testSaveAndSave()
+    {
+        $user = $this->object->getById('user1');
+        $this->object->save($user);
+
+        $user2 = $this->object->getById('user1');
+
+        $this->assertEquals($user, $user2);
+    }
+
+    public function testRemoveUserById()
+    {
+        $user = $this->object->getById($this->prefix . '1');
+        $this->assertNotNull($user);
+
+        $this->object->removeUserById($this->prefix . '1');
+
+        $user2 = $this->object->getById($this->prefix . '1');
+        $this->assertNull($user2);
+    }
+
+    public function testGetByUsername()
+    {
+        $user = $this->object->getByUsername('user2');
+
+        $this->assertEquals($this->prefix . '2', $user->getUserid());
+        $this->assertEquals('User 2', $user->getName());
+        $this->assertEquals('user2', $user->getUsername());
+        $this->assertEquals('user2@gmail.com', $user->getEmail());
+        $this->assertEquals('c88b5c841897dafe75cdd9f8ba98b32f007d6bc3', $user->getPassword());
     }
 }
