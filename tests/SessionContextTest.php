@@ -3,14 +3,9 @@
 namespace ByJG\Authenticate;
 
 use ByJG\Cache\Factory;
+use PHPUnit\Framework\TestCase;
 
-// backward compatibility
-
-if (!class_exists('\PHPUnit\Framework\TestCase')) {
-    class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
-}
-
-class SessionContextTest extends \PHPUnit\Framework\TestCase
+class SessionContextTest extends TestCase
 {
     /**
      * @var \ByJG\Authenticate\Interfaces\UserContextInterface

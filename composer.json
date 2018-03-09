@@ -1,27 +1,27 @@
 {
-    "name": "byjg/authuser",
-    "description": "A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.",
-    "authors": [
-        {
-            "name": "João Gilberto Magalhães",
-            "email": "joao@byjg.com.br"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "ByJG\\Authenticate\\": "src/"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": ">=5.6.0",
-        "byjg/micro-orm": "2.2.*",
-        "byjg/cache-engine": "4.0.*",
-        "byjg/jwt-wrapper": "1.0.*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "5.7.*|6.5.*"
-    },
-    "license": "MIT"
+  "name": "byjg/authuser",
+  "description": "A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.",
+  "authors": [
+    {
+      "name": "João Gilberto Magalhães",
+      "email": "joao@byjg.com.br"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "ByJG\\Authenticate\\": "src/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=5.6.0",
+    "byjg/micro-orm": "2.2.*",
+    "byjg/cache-engine": "4.0.*",
+    "byjg/jwt-wrapper": "1.0.*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">5.7"
+  },
+  "license": "MIT"
 }

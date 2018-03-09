@@ -31,7 +31,7 @@ class UserDefinition
      * @param string $model
      * @param string $loginField
      * @param array $fieldDef
-     * @throws \Exception
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __construct(
         $table = 'users',

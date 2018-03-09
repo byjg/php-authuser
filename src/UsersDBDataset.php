@@ -38,6 +38,8 @@ class UsersDBDataset extends UsersBase
      * @param string $connectionString
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __construct(
         $connectionString,
@@ -91,6 +93,9 @@ class UsersDBDataset extends UsersBase
      *
      * @param \ByJG\Authenticate\Model\UserModel $user
      * @return \ByJG\Authenticate\Model\UserModel
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\MicroOrm\Exception\OrmBeforeInvalidException
+     * @throws \ByJG\MicroOrm\Exception\OrmInvalidFieldsException
      * @throws \Exception
      */
     public function save(UserModel $user)
@@ -122,6 +127,7 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel[]
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getIterator(IteratorFilter $filter = null)
     {
@@ -146,7 +152,8 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel
-     * */
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getUser($filter)
     {
         $result = $this->getIterator($filter);
@@ -209,6 +216,8 @@ class UsersDBDataset extends UsersBase
      * @param string $value
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\MicroOrm\Exception\OrmBeforeInvalidException
+     * @throws \ByJG\MicroOrm\Exception\OrmInvalidFieldsException
      * @throws \Exception
      */
     public function addProperty($userId, $propertyName, $value)
@@ -236,7 +245,7 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * @throws \Exception
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function removeProperty($userId, $propertyName, $value = null)
     {
@@ -267,7 +276,7 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     * @throws \Exception
+     *
      */
     public function removeAllProperties($propertyName, $value = null)
     {
