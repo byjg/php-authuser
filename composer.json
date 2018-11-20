@@ -16,7 +16,7 @@
   "prefer-stable": true,
   "require": {
     "php": ">=5.6.0",
-    "byjg/micro-orm": "2.2.*",
+    "byjg/micro-orm": "dev-master",
     "byjg/cache-engine": "4.0.*",
     "byjg/jwt-wrapper": "1.0.*"
   },
