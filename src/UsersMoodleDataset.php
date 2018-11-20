@@ -122,8 +122,9 @@ class UsersMoodleDataset extends UsersDBDataset
     }
 
     /**
-     * @param \ByJG\AnyDataset\Dataset\IteratorFilter $filter
+     * @param \ByJG\AnyDataset\Core\IteratorFilter $filter
      * @return \ByJG\Authenticate\Model\UserModel
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getUser($filter)

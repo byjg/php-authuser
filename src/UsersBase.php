@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Core\Enum\Relation;
+use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;

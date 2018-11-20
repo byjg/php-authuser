@@ -2,9 +2,9 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Dataset\IteratorFilterSqlFormatter;
-use ByJG\AnyDataset\Factory;
-use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Core\IteratorFilter;
+use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
+use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Model\UserPropertiesModel;
@@ -28,7 +28,7 @@ class UsersDBDataset extends UsersBase
     protected $propertiesRepository;
 
     /**
-     * @var \ByJG\AnyDataset\DbDriverInterface
+     * @var \ByJG\AnyDataset\Db\DbDriverInterface
      */
     protected $provider;
 
@@ -127,6 +127,7 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel[]
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getIterator(IteratorFilter $filter = null)
@@ -152,6 +153,7 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getUser($filter)
@@ -245,6 +247,7 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function removeProperty($userId, $propertyName, $value = null)
@@ -276,7 +279,7 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
-     *
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      */
     public function removeAllProperties($propertyName, $value = null)
     {
@@ -297,6 +300,8 @@ class UsersDBDataset extends UsersBase
      * Return all property's fields from this user
      *
      * @param UserModel $userRow
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     protected function setPropertiesInUser(UserModel $userRow)
     {
