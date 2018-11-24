@@ -340,7 +340,7 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 
 ## Install
 
-Just type: `composer require "byjg/authuser=2.1.*"`
+Just type: `composer require "byjg/authuser=4.0.*"`
 
 ## Running Tests
 
