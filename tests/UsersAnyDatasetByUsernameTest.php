@@ -2,16 +2,12 @@
 
 namespace ByJG\Authenticate;
 
-// backward compatibility
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use PHPUnit\Framework\TestCase;
 
-if (!class_exists('\PHPUnit\Framework\TestCase')) {
-    class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
-}
-
-class UsersAnyDatasetByUsernameTest extends \PHPUnit\Framework\TestCase
+class UsersAnyDatasetByUsernameTest extends TestCase
 {
     /**
      * @var UsersAnyDataset

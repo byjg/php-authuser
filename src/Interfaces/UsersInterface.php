@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate\Interfaces;
 
-use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\Dataset\Row;
+use ByJG\AnyDataset\Core\IteratorFilter;
+use ByJG\AnyDataset\Core\Row;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Model\UserModel;
@@ -147,7 +147,7 @@ interface UsersInterface
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
-     * @return \ByJG\AnyDataset\Dataset\Row Return the TOKEN or false if dont.
+     * @return \ByJG\AnyDataset\Core\Row Return the TOKEN or false if dont.
      */
     public function createAuthToken(
         $login,

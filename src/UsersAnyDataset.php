@@ -2,11 +2,11 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Dataset\AnyDataset;
-use ByJG\AnyDataset\Dataset\IteratorFilter;
-use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\IteratorInterface;
-use ByJG\AnyDataset\Dataset\Row;
+use ByJG\AnyDataset\Core\AnyDataset;
+use ByJG\AnyDataset\Core\IteratorFilter;
+use ByJG\AnyDataset\Core\Enum\Relation;
+use ByJG\AnyDataset\Core\IteratorInterface;
+use ByJG\AnyDataset\Core\Row;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Model\UserPropertiesModel;
@@ -34,6 +34,8 @@ class UsersAnyDataset extends UsersBase
      * @param string $file
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function __construct(
         $file,
@@ -58,8 +60,10 @@ class UsersAnyDataset extends UsersBase
      * Save the current UsersAnyDataset
      *
      * @param \ByJG\Authenticate\Model\UserModel $model
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
-     * @throws \Exception
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function save(UserModel $model)
     {
@@ -95,7 +99,7 @@ class UsersAnyDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel
-     * @throws \Exception
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getUser($filter)
     {
@@ -113,7 +117,8 @@ class UsersAnyDataset extends UsersBase
      *
      * @param string $login
      * @return boolean
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function removeByLoginField($login)
@@ -149,9 +154,11 @@ class UsersAnyDataset extends UsersBase
      * @param string $propertyName
      * @param string $value
      * @return boolean
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
-     * @throws \Exception
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function addProperty($userId, $propertyName, $value)
     {
@@ -173,8 +180,10 @@ class UsersAnyDataset extends UsersBase
      * @param string $propertyName
      * @param string $value
      * @return boolean
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
-     * @throws \Exception
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function removeProperty($userId, $propertyName, $value = null)
     {
@@ -201,8 +210,10 @@ class UsersAnyDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool|void
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
-     * @throws \Exception
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function removeAllProperties($propertyName, $value = null)
     {
@@ -215,9 +226,9 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param \ByJG\AnyDataset\Dataset\Row $row
+     * @param \ByJG\AnyDataset\Core\Row $row
      * @return \ByJG\Authenticate\Model\UserModel
-     * @throws \Exception
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     private function createUserModel(Row $row)
     {
@@ -241,6 +252,11 @@ class UsersAnyDataset extends UsersBase
         return $userModel;
     }
 
+    /**
+     * @param $userid
+     * @return bool
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function removeUserById($userid)
     {
         $iteratorFilter = new IteratorFilter();

@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\AnyDataset\Enum\Relation;
-use ByJG\AnyDataset\Dataset\IteratorFilter;
+use ByJG\AnyDataset\Core\Enum\Relation;
+use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
@@ -32,6 +32,7 @@ abstract class UsersBase implements UsersInterface
 
     /**
      * @return UserDefinition
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getUserDefinition()
     {
@@ -67,6 +68,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $email
      * @param string $password
      * @return void
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function addUser($name, $userName, $email, $password)
     {
@@ -80,9 +82,10 @@ abstract class UsersBase implements UsersInterface
     }
 
     /**
-     * @param $model
+     * @param UserModel $model
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserExistsException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function canAddUser($model)
     {
@@ -113,7 +116,8 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $email
      * @return UserModel
-     * */
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getByEmail($email)
     {
         $filter = new IteratorFilter();
@@ -127,6 +131,7 @@ abstract class UsersBase implements UsersInterface
      *
      * @param $username
      * @return UserModel
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getByUsername($username)
     {
@@ -141,7 +146,8 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $login
      * @return UserModel
-     * */
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getByLoginField($login)
     {
         $filter = new IteratorFilter();
@@ -156,7 +162,8 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $userid
      * @return UserModel
-     * */
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getById($userid)
     {
         $filter = new IteratorFilter();
@@ -179,7 +186,8 @@ abstract class UsersBase implements UsersInterface
      * @param string $userName User login
      * @param string $password Plain text password
      * @return UserModel
-     * */
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
@@ -202,6 +210,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $value Property value
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function hasProperty($userId, $propertyName, $value = null)
     {
@@ -228,6 +237,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName Property name
      * @return array
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function getProperty($userId, $propertyName)
     {
@@ -279,6 +289,7 @@ abstract class UsersBase implements UsersInterface
      * @param int|string $userId
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function isAdmin($userId)
     {
@@ -305,6 +316,7 @@ abstract class UsersBase implements UsersInterface
      * @param array $updateTokenInfo
      * @return string the TOKEN or false if dont.
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function createAuthToken(
         $login,
@@ -354,6 +366,7 @@ abstract class UsersBase implements UsersInterface
      * @return array
      * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
      * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function isValidToken($login, $uri, $secret, $token)
     {

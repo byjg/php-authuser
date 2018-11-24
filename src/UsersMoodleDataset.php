@@ -27,6 +27,9 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $connectionString
      * @param string $siteSalt
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
+     * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __construct($connectionString, $siteSalt = "")
     {
@@ -70,6 +73,7 @@ class UsersMoodleDataset extends UsersDBDataset
      * @param string $userName
      * @param string $password
      * @return \ByJG\Authenticate\Model\UserModel|null
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      * @throws \ErrorException
      */
     public function isValidUser($userName, $password)
@@ -118,6 +122,12 @@ class UsersMoodleDataset extends UsersDBDataset
         return $validatedUser;
     }
 
+    /**
+     * @param \ByJG\AnyDataset\Core\IteratorFilter $filter
+     * @return \ByJG\Authenticate\Model\UserModel
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getUser($filter)
     {
         $user = parent::getUser($filter);
@@ -193,6 +203,10 @@ class UsersMoodleDataset extends UsersDBDataset
         throw new NotImplementedException('Remove property value from all users is not implemented');
     }
 
+    /**
+     * @return \ByJG\Authenticate\Definition\UserDefinition
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     */
     public function getUserDefinition()
     {
         if (is_null($this->userTable)) {
