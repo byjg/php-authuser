@@ -38,6 +38,7 @@ class UsersDBDataset extends UsersBase
      * @param string $connectionString
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */

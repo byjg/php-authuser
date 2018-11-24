@@ -27,6 +27,7 @@ class UsersMoodleDataset extends UsersDBDataset
      *
      * @param string $connectionString
      * @param string $siteSalt
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */

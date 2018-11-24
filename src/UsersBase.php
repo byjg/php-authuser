@@ -82,7 +82,7 @@ abstract class UsersBase implements UsersInterface
     }
 
     /**
-     * @param $model
+     * @param UserModel $model
      * @return bool
      * @throws \ByJG\Authenticate\Exception\UserExistsException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
