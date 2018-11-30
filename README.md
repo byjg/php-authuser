@@ -1,18 +1,19 @@
 # Auth User PHP
+
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg.com-brightgreen.svg)](http://opensource.byjg.com)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5/mini.png)](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/authuser/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/authuser/?branch=master)
 [![Build Status](https://travis-ci.org/byjg/authuser.svg?branch=master)](https://travis-ci.org/byjg/authuser)
 
-## Description
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
 
 The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer. 
 This class can persist into session (or file, memcache, etc) the user data between requests. 
 
-## Examples
+# Examples
 
-### Creating a Users handling class
+## Creating a Users handling class
 
 
 **Using the FileSystem (XML) as the user storage**
@@ -44,7 +45,7 @@ $users = new UsersMoodleDataset('connection');
 ```
 
 
-### Authenticate a user with your username and password and persist into the session
+## Authenticate a user with your username and password and persist into the session
 
 ```php
 <?php
@@ -58,7 +59,7 @@ if (!is_null($user))
 }
 ```
 
-### Check if user was previously authenticated
+## Check if user was previously authenticated
 
 ```php
 <?php
@@ -76,7 +77,7 @@ if ($sessionContext->isAuthenticated()) {
 }
 ```
 
-### Saving extra info into the user session 
+## Saving extra info into the user session 
 
 You can save data in the session data exists only during the user is logged in. Once the user logged off the
 data stored with the user session will be released.
@@ -99,7 +100,7 @@ $value = $sessionContext->getSessionData('key');
 
 Note: If the user is not logged an error will be throw
 
-### Adding a custom property to the users;
+## Adding a custom property to the users;
 
 ```php
 <?php
@@ -108,13 +109,13 @@ $user->setField('somefield', 'somevalue');
 $users->save();
 ```
 
-### Logout from a session
+## Logout from a session
 
 ```php
 <?php
 $sessionContext->registerLogout();
 ```
-### Important note about SessionContext
+# Important note about SessionContext
 
 `SessionContext` object will store the info about the current context. 
 As SessionContext uses CachePool interface defined in PSR-6 you can set any storage
@@ -135,7 +136,7 @@ $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::cre
 If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
 
 
-## Architecture
+# Architecture
 
 ```
                             +----------------+            +----------------+
@@ -155,7 +156,7 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
    +-----------------+      +----------------+       +--------------------+
 ```
 
-### Database
+## Database
 
 The default structure adopted for store the user data in the database through the
 UsersDBDataset class is the follow:
@@ -199,7 +200,7 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 );
 ```
 
-### Custom Database
+## Custom Database
 
 If you have an existing database with different names but containing all fields above
 you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
@@ -222,7 +223,7 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
 );
 ```
 
-#### Adding custom modifiers for read and update
+## Adding custom modifiers for read and update
 
 ```php
 <?php
@@ -251,7 +252,7 @@ $userDefinition->markPropertyAsReadOnly('created');
 ```
 
 
-#### Extending UserModel
+# Extending UserModel
 
 It is possible extending the UserModel table, since you are adding new Fields. 
 
@@ -338,11 +339,15 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 
 
 
-## Install
+# Install
 
-Just type: `composer require "byjg/authuser=4.0.*"`
+Just type: 
 
-## Running Tests
+```
+composer require "byjg/authuser=4.0.*"
+```
+
+# Running Tests
 
 Because this project uses PHP Session you need to run the unit test the following manner:
  
