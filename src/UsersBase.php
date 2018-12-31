@@ -4,8 +4,8 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\Enum\Relation;
 use ByJG\AnyDataset\Core\IteratorFilter;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;

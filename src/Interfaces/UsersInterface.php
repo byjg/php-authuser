@@ -4,8 +4,8 @@ namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Core\Row;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 
 /**

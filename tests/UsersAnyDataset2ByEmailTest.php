@@ -2,7 +2,6 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
 
 require_once 'UsersAnyDataset2ByUsernameTest.php';

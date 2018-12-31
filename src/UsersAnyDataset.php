@@ -3,14 +3,14 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\AnyDataset;
-use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Core\Enum\Relation;
+use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Core\IteratorInterface;
 use ByJG\AnyDataset\Core\Row;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 
 class UsersAnyDataset extends UsersBase
 {
