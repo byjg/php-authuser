@@ -5,6 +5,7 @@ namespace ByJG\Authenticate;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Util\JwtWrapper;
 use PHPUnit\Framework\TestCase;
 
 class UsersAnyDatasetByUsernameTest extends TestCase
@@ -211,11 +212,12 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     {
         $loginCreated = $this->__chooseValue('user2', 'user2@gmail.com');
 
+        $jwtWrapper = new JwtWrapper('api.test.com', base64_encode('12345678'));
+
         $token = $this->object->createAuthToken(
             $loginCreated,
             'pwd2',
-            'api.test.com',
-            '1234567',
+            $jwtWrapper,
             1200,
             ['userData'=>'userValue'],
             ['tokenData'=>$tokenData]
@@ -233,7 +235,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
                 'user' => $user,
                 'data' => $dataFromToken
             ],
-            $this->object->isValidToken($loginCreated, 'api.test.com', '1234567', $token)
+            $this->object->isValidToken($loginCreated, $jwtWrapper, $token)
         );
     }
 
@@ -252,17 +254,17 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
 
+        $jwtWrapper = new JwtWrapper('api.test.com', base64_encode('1234567'));
         $token = $this->object->createAuthToken(
             $login,
             'pwd2',
-            'api.test.com',
-            '1234567',
+            $jwtWrapper,
             1200,
             ['userData'=>'userValue'],
             ['tokenData'=>'tokenValue']
         );
 
-        $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', $token);
+        $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
     }
 
     /**
