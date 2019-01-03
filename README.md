@@ -355,3 +355,6 @@ Because this project uses PHP Session you need to run the unit test the followin
 phpunit --stderr
 ```
 
+
+----
+[Open source ByJG](http://opensource.byjg.com)
