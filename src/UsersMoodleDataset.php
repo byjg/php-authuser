@@ -7,11 +7,11 @@ namespace ByJG\Authenticate;
  */
 define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password field when password is not stored.
 
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotImplementedException;
-use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ErrorException;
 
 class UsersMoodleDataset extends UsersDBDataset

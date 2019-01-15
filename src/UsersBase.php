@@ -4,8 +4,8 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\Enum\Relation;
 use ByJG\AnyDataset\Core\IteratorFilter;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
@@ -309,20 +309,18 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $login
      * @param string $password
-     * @param string $serverUri
-     * @param string $secret
+     * @param JwtWrapper $jwtWrapper
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
      * @return string the TOKEN or false if dont.
-     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws UserNotFoundException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function createAuthToken(
         $login,
         $password,
-        $serverUri,
-        $secret,
+        $jwtWrapper,
         $expires = 1200,
         $updateUserInfo = [],
         $updateTokenInfo = []
@@ -340,15 +338,14 @@ abstract class UsersBase implements UsersInterface
             $user->set($key, $value);
         }
 
-        $jwt = new JwtWrapper($serverUri, $secret);
         $updateTokenInfo['login'] = $login;
         $updateTokenInfo['userid'] = $user->getUserid();
-        $jwtData = $jwt->createJwtData(
+        $jwtData = $jwtWrapper->createJwtData(
             $updateTokenInfo,
             $expires
         );
 
-        $token = $jwt->generateToken($jwtData);
+        $token = $jwtWrapper->generateToken($jwtData);
 
         $user->set('TOKEN_HASH', sha1($token));
         $this->save($user);
@@ -360,15 +357,15 @@ abstract class UsersBase implements UsersInterface
      * Check if the Auth Token is valid
      *
      * @param string $login
-     * @param string $uri
-     * @param string $secret
+     * @param JwtWrapper $jwtWrapper
      * @param string $token
      * @return array
-     * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
-     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
+     * @throws NotAuthenticatedException
+     * @throws UserNotFoundException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws \ByJG\Util\JwtWrapperException
      */
-    public function isValidToken($login, $uri, $secret, $token)
+    public function isValidToken($login, $jwtWrapper, $token)
     {
         $user = $this->getByLoginField($login);
 
@@ -380,8 +377,7 @@ abstract class UsersBase implements UsersInterface
             throw new NotAuthenticatedException('Token does not match');
         }
 
-        $jwt = new JwtWrapper($uri, $secret);
-        $data = $jwt->extractData($token);
+        $data = $jwtWrapper->extractData($token);
 
         $this->save($user);
 

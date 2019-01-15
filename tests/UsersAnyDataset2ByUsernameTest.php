@@ -2,8 +2,8 @@
 
 namespace ByJG\Authenticate;
 
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 
 require_once 'UsersAnyDatasetByUsernameTest.php';

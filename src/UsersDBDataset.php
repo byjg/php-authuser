@@ -3,12 +3,12 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
-use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\AnyDataset\Db\Factory;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;

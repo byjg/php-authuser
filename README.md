@@ -344,7 +344,7 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 Just type: 
 
 ```
-composer require "byjg/authuser=4.0.*"
+composer require "byjg/authuser=4.1.*"
 ```
 
 # Running Tests
@@ -355,3 +355,6 @@ Because this project uses PHP Session you need to run the unit test the followin
 phpunit --stderr
 ```
 
+
+----
+[Open source ByJG](http://opensource.byjg.com)

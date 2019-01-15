@@ -4,9 +4,10 @@ namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Core\Row;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Util\JwtWrapper;
 
 /**
  * IUsersBase is a Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -142,8 +143,7 @@ interface UsersInterface
      *
      * @param string $login
      * @param string $password
-     * @param string $serverUri
-     * @param string $secret
+     * @param JwtWrapper $jwtWrapper
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
@@ -152,8 +152,7 @@ interface UsersInterface
     public function createAuthToken(
         $login,
         $password,
-        $serverUri,
-        $secret,
+        $jwtWrapper,
         $expires = 1200,
         $updateUserInfo = [],
         $updateTokenInfo = []
@@ -163,12 +162,11 @@ interface UsersInterface
      * Check if the Auth Token is valid
      *
      * @param string $login
-     * @param string $uri
-     * @param string $secret
+     * @param JwtWrapper $jwtWrapper
      * @param string $token
      * @return bool
      */
-    public function isValidToken($login, $uri, $secret, $token);
+    public function isValidToken($login, $jwtWrapper, $token);
 
     /**
      * @return UserDefinition Description
