@@ -229,6 +229,7 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
 <?php
 $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     'users',    // $table
+    \ByJG\Authenticate\Model\User::class,
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
 );
 
@@ -254,51 +255,14 @@ $userDefinition->markPropertyAsReadOnly('created');
 
 # Extending UserModel
 
-It is possible extending the UserModel table, since you are adding new Fields. 
+It is possible extending the UserModel table, since you create a new class extending from UserModel to add the new fields. 
 
 For example, imagine your table has one field called "otherfield". 
+
 You'll have to extend like this:
 
 ```php
 <?php
-/**
- * Create a class that inherit the UserDefinition and add
- * the new fields
- */
-class MyUserDefinition extends \ByJG\Authenticate\Definition\UserDefinition
-{
-    /**
-     * This is the property that maps the field.
-     * The property name have the name of property in the class
-     * And your value have the the mapping for the field in the database 
-     * @var string
-     */
-    protected $otherfield = 'otherfield';
-
-    /**
-     * Class Constructor
-     */
-    public function __construct(
-        $table = 'users',
-        $loginField = self::LOGIN_IS_USERNAME,
-        array $fieldDef = []
-    ) {
-        // Remember to call the parent
-        parent::__construct($table, $loginField, $fieldDef);
-        
-        // Set the Model class
-        $this->model = MyUserModel::class;
-    }
-
-    /**
-     * This will be set the mapping; 
-     */
-    public function getOtherfield()
-    {
-        return $this->otherfield;
-    }
-}
-
 /**
  * This class is your model
  * This need to support the basic field plus your new fields
@@ -332,7 +296,11 @@ After that you can use your new definition:
 <?php
 $users = new ByJG\Authenticate\UsersDBDataset(
     'connection',
-    new MyUserDefinition(),
+    new \ByJG\Authenticate\Definition\UserDefinition(
+        'tablename',
+        MyUserModel::class,
+        UserDefinition::LOGIN_IS_EMAIL
+    ),
     new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
 );
 ```
