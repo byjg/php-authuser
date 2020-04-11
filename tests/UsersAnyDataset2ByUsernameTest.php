@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\AnyDataset\Core\AnyDataset;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
@@ -38,8 +39,9 @@ class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
             'theiruserid'
         );
 
+        $anydataset = new AnyDataset('php://memory');
         $this->object = new UsersAnyDataset(
-            'php://memory',
+            $anydataset,
             $this->userDefinition,
             $this->propertyDefinition
         );

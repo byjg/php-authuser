@@ -22,28 +22,22 @@ class UsersAnyDataset extends UsersBase
     protected $anyDataSet;
 
     /**
-     * Internal Users file name
-     *
-     * @var string
-     */
-    protected $usersFile;
-
-    /**
      * AnyDataset constructor
      *
-     * @param string $file
+     * @param AnyDataset $anyDataset
      * @param UserDefinition $userTable
      * @param UserPropertiesDefinition $propertiesTable
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      * @throws \ByJG\Util\Exception\XmlUtilException
      */
     public function __construct(
-        $file,
+        AnyDataset $anyDataset,
         UserDefinition $userTable = null,
         UserPropertiesDefinition $propertiesTable = null
     ) {
-        $this->usersFile = $file;
-        $this->anyDataSet = new AnyDataset($this->usersFile);
+        $this->anyDataSet = $anyDataset;
+        $this->anyDataSet->save();
         $this->userTable = $userTable;
         if (!$userTable->existsClosure('update', 'userid')) {
             $userTable->defineClosureForUpdate('userid', function ($value, $instance) {
@@ -90,7 +84,7 @@ class UsersAnyDataset extends UsersBase
             $this->anyDataSet->addField($value->getName(), $value->getValue());
         }
 
-        $this->anyDataSet->save($this->usersFile);
+        $this->anyDataSet->save();
     }
 
     /**
@@ -131,7 +125,7 @@ class UsersAnyDataset extends UsersBase
         if ($iterator->hasNext()) {
             $oldRow = $iterator->moveNext();
             $this->anyDataSet->removeRow($oldRow);
-            $this->anyDataSet->save($this->usersFile);
+            $this->anyDataSet->save();
             return true;
         }
 

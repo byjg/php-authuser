@@ -45,7 +45,7 @@ class UsersDBDataset extends UsersBase
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __construct(
-        $dbDriver,
+        DbDriverInterface $dbDriver,
         UserDefinition $userTable = null,
         UserPropertiesDefinition $propertiesTable = null
     ) {
