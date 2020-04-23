@@ -298,6 +298,29 @@ class UsersDBDataset extends UsersBase
         return true;
     }
 
+    public function getProperty($userId, $propertyName)
+    {
+        $query = Query::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userId])
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ['name' =>$propertyName]);
+
+        $result = [];
+        foreach ($this->propertiesRepository->getByQuery($query) as $model) {
+            $result[] = $model->getValue();
+        }
+
+        if (count($result) === 0) {
+            return null;
+        }
+
+        if (count($result) === 1) {
+            return $result[0];
+        }
+
+        return $result;
+    }
+
     /**
      * Return all property's fields from this user
      *
