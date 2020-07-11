@@ -32,6 +32,8 @@ class MyUserModel extends UserModel
 
 class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 {
+    protected $db;
+
     /**
      * @param $loginField
      * @throws \ByJG\AnyDataset\Exception\NotFoundException
@@ -43,8 +45,8 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     {
         $this->prefix = "";
 
-        $db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
-        $db->execute('create table mytable (
+        $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
+        $this->db->execute('create table mytable (
             myuserid integer primary key  autoincrement, 
             myname varchar(45), 
             myemail varchar(200), 
@@ -55,7 +57,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             myadmin char(1));'
         );
 
-        $db->execute('create table theirproperty (
+        $this->db->execute('create table theirproperty (
             theirid integer primary key  autoincrement, 
             theiruserid integer, 
             theirname varchar(45), 
@@ -81,7 +83,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
 
         $this->object = new UsersDBDataset(
-            self::CONNECTION_STRING,
+            $this->db,
             $this->userDefinition,
             $this->propertyDefinition
         );
@@ -180,7 +182,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
         // Test it!
         $newObject = new UsersDBDataset(
-            self::CONNECTION_STRING,
+            $this->db,
             $this->userDefinition,
             $this->propertyDefinition
         );

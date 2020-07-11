@@ -7,6 +7,7 @@ namespace ByJG\Authenticate;
  */
 define('AUTH_PASSWORD_NOT_CACHED', 'not cached'); // String used in password field when password is not stored.
 
+use ByJG\AnyDataset\Db\DbDriverInterface;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotImplementedException;
@@ -25,15 +26,15 @@ class UsersMoodleDataset extends UsersDBDataset
     /**
      * DBDataset constructor
      *
-     * @param string $connectionString
+     * @param DbDriverInterface $dbDriver
      * @param string $siteSalt
      * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
-    public function __construct($connectionString, $siteSalt = "")
+    public function __construct(DbDriverInterface $dbDriver, $siteSalt = "")
     {
-        parent::__construct($connectionString);
+        parent::__construct($dbDriver);
 
         $this->siteSalt = $siteSalt;
     }

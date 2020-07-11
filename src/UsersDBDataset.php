@@ -3,6 +3,7 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
+use ByJG\AnyDataset\Db\DbDriverInterface;
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\Authenticate\Definition\UserDefinition;
@@ -35,15 +36,16 @@ class UsersDBDataset extends UsersBase
     /**
      * UsersDBDataset constructor
      *
-     * @param string $connectionString
-     * @param UserDefinition $userTable
-     * @param UserPropertiesDefinition $propertiesTable
+     * @param \ByJG\AnyDataset\Db\DbDriverInterface $dbDriver
+     * @param \ByJG\Authenticate\Definition\UserDefinition $userTable
+     * @param \ByJG\Authenticate\Definition\UserPropertiesDefinition $propertiesTable
+     *
      * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __construct(
-        $connectionString,
+        DbDriverInterface $dbDriver,
         UserDefinition $userTable = null,
         UserPropertiesDefinition $propertiesTable = null
     ) {
@@ -55,7 +57,6 @@ class UsersDBDataset extends UsersBase
             $propertiesTable = new UserPropertiesDefinition();
         }
 
-        $provider = Factory::getDbRelationalInstance($connectionString);
         $userMapper = new Mapper(
             $userTable->model(),
             $userTable->table(),
@@ -72,7 +73,7 @@ class UsersDBDataset extends UsersBase
                 $userTable->getClosureForSelect($property)
             );
         }
-        $this->userRepository = new Repository($provider, $userMapper);
+        $this->userRepository = new Repository($dbDriver, $userMapper);
 
         $propertiesMapper = new Mapper(
             UserPropertiesModel::class,
@@ -83,7 +84,7 @@ class UsersDBDataset extends UsersBase
         $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
         $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
         $propertiesMapper->addFieldMap('userid', $propertiesTable->getUserid());
-        $this->propertiesRepository = new Repository($provider, $propertiesMapper);
+        $this->propertiesRepository = new Repository($dbDriver, $propertiesMapper);
 
         $this->userTable = $userTable;
         $this->propertiesTable = $propertiesTable;
@@ -295,6 +296,29 @@ class UsersDBDataset extends UsersBase
         $this->propertiesRepository->deleteByQuery($updateable);
 
         return true;
+    }
+
+    public function getProperty($userId, $propertyName)
+    {
+        $query = Query::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' =>$userId])
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ['name' =>$propertyName]);
+
+        $result = [];
+        foreach ($this->propertiesRepository->getByQuery($query) as $model) {
+            $result[] = $model->getValue();
+        }
+
+        if (count($result) === 0) {
+            return null;
+        }
+
+        if (count($result) === 1) {
+            return $result[0];
+        }
+
+        return $result;
     }
 
     /**

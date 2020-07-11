@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\AnyDataset\Core\AnyDataset;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
@@ -36,8 +37,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
 
+        $anydataSet = new AnyDataset('php://memory');
         $this->object = new UsersAnyDataset(
-            'php://memory',
+            $anydataSet,
             $this->userDefinition,
             $this->propertyDefinition
         );
@@ -83,6 +85,10 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     public function testAddProperty()
     {
+        // Check state
+        $user = $this->object->getById($this->prefix . '2');
+        $this->assertEmpty($user->get('city'));
+
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $user = $this->object->getById($this->prefix . '2');

@@ -11,12 +11,14 @@ use ByJG\Authenticate\Model\UserModel;
 
 class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
 {
+    protected $db;
+
     public function __setUp($loginField)
     {
         $this->prefix = "";
 
-        $db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
-        $db->execute('create table mytable (
+        $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
+        $this->db->execute('create table mytable (
             myuserid integer primary key  autoincrement, 
             myname varchar(45), 
             myemail varchar(200), 
@@ -26,7 +28,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
             myadmin char(1));'
         );
 
-        $db->execute('create table theirproperty (
+        $this->db->execute('create table theirproperty (
             theirid integer primary key  autoincrement, 
             theiruserid integer, 
             theirname varchar(45), 
@@ -51,7 +53,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
         $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
 
         $this->object = new UsersDBDataset(
-            self::CONNECTION_STRING,
+            $this->db,
             $this->userDefinition,
             $this->propertyDefinition
         );

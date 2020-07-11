@@ -15,12 +15,14 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
     const CONNECTION_STRING='sqlite:///tmp/teste.db';
 
+    protected $db;
+
     public function __setUp($loginField)
     {
         $this->prefix = "";
 
-        $db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
-        $db->execute('create table users (
+        $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
+        $this->db->execute('create table users (
             userid integer primary key  autoincrement, 
             name varchar(45), 
             email varchar(200), 
@@ -30,7 +32,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
             admin char(1));'
         );
 
-        $db->execute('create table users_property (
+        $this->db->execute('create table users_property (
             id integer primary key  autoincrement, 
             userid integer, 
             name varchar(45), 
@@ -40,7 +42,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
         $this->propertyDefinition = new UserPropertiesDefinition();
         $this->object = new UsersDBDataset(
-            self::CONNECTION_STRING,
+            $this->db,
             $this->userDefinition,
             $this->propertyDefinition
         );
@@ -126,7 +128,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
         // Test it!
         $newObject = new UsersDBDataset(
-            self::CONNECTION_STRING,
+            $this->db,
             $this->userDefinition,
             $this->propertyDefinition
         );
