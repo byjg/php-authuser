@@ -85,6 +85,10 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     public function testAddProperty()
     {
+        // Check state
+        $user = $this->object->getById($this->prefix . '2');
+        $this->assertEmpty($user->get('city'));
+
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $user = $this->object->getById($this->prefix . '2');
