@@ -1,17 +1,18 @@
 # Auth User PHP
 
-[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg.com-brightgreen.svg)](http://opensource.byjg.com)
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
+[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/authuser/)
+[![GitHub license](https://img.shields.io/github/license/byjg/authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
+[![GitHub release](https://img.shields.io/github/release/byjg/authuser.svg)](https://github.com/byjg/authuser/releases/)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5/mini.png)](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/authuser/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/authuser/?branch=master)
-[![Build Status](https://travis-ci.org/byjg/authuser.svg?branch=master)](https://travis-ci.org/byjg/authuser)
+[![Build Status](https://travis-ci.com/byjg/authuser.svg?branch=master)](https://travis-ci.com/byjg/authuser)
 
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
 
 The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer. 
 This class can persist into session (or file, memcache, etc) the user data between requests. 
-
-# Examples
 
 ## Creating a Users handling class
 
@@ -136,7 +137,7 @@ $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::cre
 If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
 
 
-# Architecture
+## Architecture
 
 ```
                             +----------------+            +----------------+
@@ -156,7 +157,7 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
    +-----------------+      +----------------+       +--------------------+
 ```
 
-## Database
+### Database
 
 The default structure adopted for store the user data in the database through the
 UsersDBDataset class is the follow:
@@ -200,7 +201,7 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 );
 ```
 
-## Custom Database
+### Custom Database
 
 If you have an existing database with different names but containing all fields above
 you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
@@ -223,7 +224,7 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
 );
 ```
 
-## Adding custom modifiers for read and update
+### Adding custom modifiers for read and update
 
 ```php
 <?php
@@ -253,7 +254,7 @@ $userDefinition->markPropertyAsReadOnly('created');
 ```
 
 
-# Extending UserModel
+## Extending UserModel
 
 It is possible extending the UserModel table, since you create a new class extending from UserModel to add the new fields. 
 
@@ -307,15 +308,15 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 
 
 
-# Install
+## Install
 
 Just type: 
 
 ```
-composer require "byjg/authuser=4.1.*"
+composer require "byjg/authuser=4.3.*"
 ```
 
-# Running Tests
+## Running Tests
 
 Because this project uses PHP Session you need to run the unit test the following manner:
  
