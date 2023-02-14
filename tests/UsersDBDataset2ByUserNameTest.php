@@ -63,7 +63,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }

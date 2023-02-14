@@ -52,12 +52,12 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $uri = new Uri(self::CONNECTION_STRING);
         unlink($uri->getPath());

@@ -1,12 +1,11 @@
 # Auth User PHP
 
+
+[![Build Status](https://github.com/byjg/authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/authuser/actions/workflows/phpunit.yml)
 [![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/authuser/)
 [![GitHub license](https://img.shields.io/github/license/byjg/authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/authuser.svg)](https://github.com/byjg/authuser/releases/)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5/mini.png)](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/authuser/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/authuser/?branch=master)
-[![Build Status](https://travis-ci.com/byjg/authuser.svg?branch=master)](https://travis-ci.com/byjg/authuser)
 
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.

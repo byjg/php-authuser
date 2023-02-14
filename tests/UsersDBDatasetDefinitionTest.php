@@ -105,7 +105,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws \ByJG\Authenticate\UserExistsException
      * @throws \Exception
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }

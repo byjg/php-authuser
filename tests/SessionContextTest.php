@@ -12,12 +12,12 @@ class SessionContextTest extends TestCase
      */
     protected $object;
     
-    public function setUp()
+    public function setUp(): void
     {
         $this->object = new SessionContext(Factory::createSessionPool());
     }
     
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->object = null;
     }
@@ -42,19 +42,15 @@ class SessionContextTest extends TestCase
         $this->assertFalse($this->object->isAuthenticated());
     }
 
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
-     */
     public function testUserContextNotActiveSession()
     {
+        $this->expectException(\ByJG\Authenticate\Exception\NotAuthenticatedException::class);
         $this->assertEmpty($this->object->getSessionData('property1'));
     }
 
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
-     */
     public function testUserContextNotActive2Session()
     {
+        $this->expectException(\ByJG\Authenticate\Exception\NotAuthenticatedException::class);
         $this->object->setSessionData('property1', 'value');
     }
 }

@@ -5,6 +5,8 @@ namespace ByJG\Authenticate;
 use ByJG\AnyDataset\Core\AnyDataset;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Exception\NotAuthenticatedException;
+use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Util\JwtKeySecret;
 use ByJG\Util\JwtWrapper;
@@ -57,7 +59,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         return $searchForList[$this->userDefinition->loginField()];
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
@@ -75,11 +77,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
     }
 
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\UserExistsException
-     */
     public function testAddUserError()
     {
+        $this->expectException(UserExistsException::class);
         $this->object->addUser('some user with same username', 'user2', 'user2@gmail.com', 'mypassword');
     }
 
@@ -253,11 +253,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->expectedToken('tokenValue', $login, 'user2');
     }
 
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
-     */
     public function testValidateTokenWithAnotherUser()
     {
+        $this->expectException(NotAuthenticatedException::class);
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
 
@@ -274,11 +272,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
     }
 
-    /**
-     * @expectedException \ByJG\Authenticate\Exception\NotAuthenticatedException
-     */
     public function testCreateAuthTokenFail_2()
     {
+        $this->expectException(NotAuthenticatedException::class);
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
         $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', 'Invalid token');
     }

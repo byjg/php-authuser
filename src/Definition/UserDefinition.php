@@ -4,7 +4,7 @@ namespace ByJG\Authenticate\Definition;
 
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Mapper;
-use ByJG\Serializer\BinderObject;
+use ByJG\Serializer\SerializerObject;
 
 /**
  * Structure to represent the users
@@ -44,7 +44,7 @@ class UserDefinition
 
         // Set Default User Definition
         $modelInstance = $this->modelInstance();
-        $modelProperties = BinderObject::toArrayFrom($modelInstance);
+        $modelProperties = SerializerObject::instance($modelInstance)->serialize();
         foreach (array_keys($modelProperties) as $property) {
             $this->__properties[$property] = $property;
         }
