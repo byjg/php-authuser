@@ -4,3 +4,4 @@ composer.lock
 vendor
 .idea/*
 !.idea/runConfigurations
+.phpunit.result.cache
