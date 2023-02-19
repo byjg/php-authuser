@@ -112,7 +112,8 @@ class UserModel
      */
     public function setPassword($password)
     {
-        if (!empty($password) && !empty($this->passwordDefinition) && !$this->passwordDefinition->matchPassword($password)) {
+        // Password len equals to 40 means that the password is already encrypted with sha1
+        if (!empty($password) && strlen($password) != 40 && !empty($this->passwordDefinition) && !$this->passwordDefinition->matchPassword($password)) {
             throw new \InvalidArgumentException("Password does not match the password definition");
         }
         $this->password = $password;
