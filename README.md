@@ -138,23 +138,35 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
 
 ## Architecture
 
+```text
+                                   ┌───────────────────┐                                   
+                                   │  SessionContext   │                                   
+                                   └───────────────────┘                                   
+                                             │                                             
+┌────────────────────────┐                                       ┌────────────────────────┐
+│     UserDefinition     │─ ─ ┐              │               ─ ─ ┤       UserModel        │
+└────────────────────────┘         ┌───────────────────┐    │    └────────────────────────┘
+┌────────────────────────┐    └────│  UsersInterface   │────┐    ┌────────────────────────┐
+│ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
+└────────────────────────┘                   ▲                   └────────────────────────┘
+                                             │                                             
+                    ┌────────────────────────┼─────────────────────────┐                   
+                    │                        │                         │                   
+                    │                        │                         │                   
+                    │                        │                         │                   
+          ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐         
+          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ UsersMoodleDataset │         
+          └───────────────────┘    └───────────────────┘    └────────────────────┘         
 ```
-                            +----------------+            +----------------+
-                            |                |            |                |
-                            | UsersInterface |------------| SessionContext |
-                            |                |            |                |
-                            +----------------+            +----------------+
-                                    ^
-                                    |
-                                    |
-            +-----------------------+--------------------------+
-            |                       |                          |
-   +-----------------+      +----------------+       +--------------------+
-   |                 |      |                |       |                    |
-   | UsersAnyDataset |      | UsersDBDataset |       | UsersMoodleDataset |
-   |                 |      |                |       |                    |
-   +-----------------+      +----------------+       +--------------------+
-```
+
+- UserInterface contain the basic interface for the concrete implementation
+- UsersDBDataset is a concrete implementation to retrieve/save user in a Database
+- UserAnyDataset is a concrete implementation to retrieve/save user in a Xml file
+- UsersMoodleDatabase is a concrete implementation to retrieve users in a Moodle database structure. 
+- UserModel is the basic model get/set for the user
+- UserPropertyModel is the basic model get/set for extra user property
+- UserDefinition will map the model to the database
+
 
 ### Database
 
