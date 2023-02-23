@@ -336,7 +336,7 @@ class UsersDBDataset extends UsersBase
      */
     protected function setPropertiesInUser(UserModel $userRow)
     {
-        $value = $this->propertiesRepository->getMapper()->getFieldMap('userid')[Mapper::FIELDMAP_UPDATEMASK]($userRow->getUserid());
+        $value = $this->propertiesRepository->getMapper()->getFieldMap('userid')[Mapper::FIELDMAP_UPDATEMASK]($userRow->getUserid(), $userRow);
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' => $value]);
