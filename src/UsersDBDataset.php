@@ -84,7 +84,12 @@ class UsersDBDataset extends UsersBase
         $propertiesMapper->addFieldMap('id', $propertiesTable->getId());
         $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
         $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
-        $propertiesMapper->addFieldMap('userid', $propertiesTable->getUserid());
+        $propertiesMapper->addFieldMap(
+            'userid',
+            $propertiesTable->getUserid(),
+            $userTable->getClosureForUpdate('userid'),
+            $userTable->getClosureForSelect('userid')
+        );
         $this->propertiesRepository = new Repository($dbDriver, $propertiesMapper);
 
         $this->userTable = $userTable;
