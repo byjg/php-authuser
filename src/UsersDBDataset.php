@@ -60,7 +60,8 @@ class UsersDBDataset extends UsersBase
         $userMapper = new Mapper(
             $userTable->model(),
             $userTable->table(),
-            $userTable->getUserid()
+            $userTable->getUserid(),
+            $userTable->getGenerateKeyClosure()
         );
 
         $propertyDefinition = $userTable->toArray();

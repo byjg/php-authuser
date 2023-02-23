@@ -16,6 +16,7 @@ class UserDefinition
     protected $__loginField;
     protected $__model;
     protected $__properties = [];
+    protected $__generateKey = null;
 
     const UPDATE="update";
     const SELECT="select";
@@ -182,6 +183,16 @@ class UserDefinition
     public function getClosureForUpdate($property)
     {
         return $this->getClosureDef(self::UPDATE, $property);
+    }
+
+    public function defineGenerateKeyClosure(\Closure $closure)
+    {
+        $this->__generateKey = $closure;
+    }
+
+    public function getGenerateKeyClosure()
+    {
+        return $this->__generateKey;
     }
 
     /**
