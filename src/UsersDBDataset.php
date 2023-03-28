@@ -10,10 +10,12 @@ use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\MicroOrm\Exception\InvalidArgumentException as ExceptionInvalidArgumentException;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\MicroOrm\Updatable;
+use ByJG\Serializer\Exception\InvalidArgumentException;
 
 class UsersDBDataset extends UsersBase
 {
@@ -85,10 +87,10 @@ class UsersDBDataset extends UsersBase
         $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
         $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
         $propertiesMapper->addFieldMap(
-            'userid',
+            UserDefinition::FIELD_USERID,
             $propertiesTable->getUserid(),
-            $userTable->getClosureForUpdate('userid'),
-            $userTable->getClosureForSelect('userid')
+            $userTable->getClosureForUpdate(UserDefinition::FIELD_USERID),
+            $userTable->getClosureForSelect(UserDefinition::FIELD_USERID)
         );
         $this->propertiesRepository = new Repository($dbDriver, $propertiesMapper);
 
@@ -205,7 +207,7 @@ class UsersDBDataset extends UsersBase
      */
     public function removeUserById($userId)
     {
-        $updtableProperties = Updatable::getInstance()
+        $updateTableProperties = Updatable::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where(
                 "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
@@ -213,11 +215,31 @@ class UsersDBDataset extends UsersBase
                     "id" => $userId
                 ]
             );
-        $this->propertiesRepository->deleteByQuery($updtableProperties);
+        $this->propertiesRepository->deleteByQuery($updateTableProperties);
 
         $this->userRepository->delete($userId);
 
         return true;
+    }
+
+    /**
+     * Get the user based on his property.
+     * 
+     * @param mixed $propertyName 
+     * @param mixed $value 
+     * @return array 
+     * @throws InvalidArgumentException 
+     * @throws ExceptionInvalidArgumentException 
+     */
+    public function getUsersByProperty($propertyName, $value)
+    {
+        $query = Query::getInstance()
+            ->table($this->getUserDefinition()->table(),  "u")
+            ->join($this->getUserPropertiesDefinition()->table(), "p.{$this->getUserPropertiesDefinition()->getUserid()} == u.{$this->getUserDefinition()->getUserid()}", "p")
+            ->where("p.{$this->getUserPropertiesDefinition()->getName()} == :name", ["name" => $propertyName])
+            ->where("p.{$this->getUserPropertiesDefinition()->getValue()} == :value", ["value" => $value]);
+
+        return $this->userRepository->getByQuery($query);
     }
 
     /**
@@ -336,7 +358,7 @@ class UsersDBDataset extends UsersBase
      */
     protected function setPropertiesInUser(UserModel $userRow)
     {
-        $value = $this->propertiesRepository->getMapper()->getFieldMap('userid')[Mapper::FIELDMAP_UPDATEMASK]($userRow->getUserid(), $userRow);
+        $value = $this->propertiesRepository->getMapper()->getFieldMap(UserDefinition::FIELD_USERID)[Mapper::FIELDMAP_UPDATEMASK]($userRow->getUserid(), $userRow);
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' => $value]);

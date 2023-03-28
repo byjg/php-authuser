@@ -18,6 +18,14 @@ class UserDefinition
     protected $__properties = [];
     protected $__generateKey = null;
 
+    const FIELD_USERID = 'userid';
+    const FIELD_NAME = 'name';
+    const FIELD_EMAIL = 'email';
+    const FIELD_USERNAME = 'username';
+    const FIELD_PASSWORD = 'password';
+    const FIELD_CREATED = 'created';
+    const FIELD_ADMIN = 'admin';
+
     const UPDATE="update";
     const SELECT="select";
 
@@ -56,7 +64,7 @@ class UserDefinition
             $this->__properties[$property] = $value;
         }
 
-        $this->defineClosureForUpdate('password', function ($value) {
+        $this->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value) {
             // Already have a SHA1 password
             if (strlen($value) === 40) {
                 return $value;

@@ -224,13 +224,13 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     \ByJG\Authenticate\Model\UserModel::class, // Model class
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
     [
-        'userid'   => 'fieldname of userid',
-        'name'     => 'fieldname of name',
-        'email'    => 'fieldname of email',
-        'username' => 'fieldname of username',
-        'password' => 'fieldname of password',
-        'created'  => 'fieldname of created',
-        'admin'    => 'fieldname of admin'
+        UserDefinition::FIELD_USERID   => 'fieldname of userid',
+        UserDefinition::FIELD_NAME     => 'fieldname of name',
+        UserDefinition::FIELD_EMAIL    => 'fieldname of email',
+        UserDefinition::FIELD_USERNAME => 'fieldname of username',
+        UserDefinition::FIELD_PASSWORD => 'fieldname of password',
+        UserDefinition::FIELD_CREATED  => 'fieldname of created',
+        UserDefinition::FIELD_ADMIN    => 'fieldname of admin'
     ]
 );
 ```
@@ -245,23 +245,23 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
 );
 
-// Defines a custom function to be applied BEFORE update/insert the field 'password'
+// Defines a custom function to be applied BEFORE update/insert the field UserDefinition::FIELD_PASSWORD
 // $value --> the current value to be updated
 // $instance -> The array with all other fields;
-$userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+$userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
     return strtoupper(sha1($value));
 });
 
-// Defines a custom function to be applied After the field 'created' is read but before
+// Defines a custom function to be applied After the field UserDefinition::FIELD_CREATED is read but before
 // the user get the result
 // $value --> the current value retrieved from database
 // $instance -> The array with all other fields;
-$userDefinition->defineClosureForSelect('created', function ($value, $instance) {
+$userDefinition->defineClosureForSelect(UserDefinition::FIELD_CREATED, function ($value, $instance) {
     return date('Y', $value);
 });
 
 // If you want make the field READONLY just do it:
-$userDefinition->markPropertyAsReadOnly('created');
+$userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 ```
 
 

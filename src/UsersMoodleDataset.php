@@ -216,13 +216,13 @@ class UsersMoodleDataset extends UsersDBDataset
                 UserModel::class,
                 UserDefinition::LOGIN_IS_EMAIL,
                 [
-                    "userid" => "id",
-                    "name" => "concat(firstname, ' ', lastname)",  // This disable update data
-                    "email" => "email",
-                    "username" => "username",
-                    "password" => "password",
-                    "created" => 'created',
-                    "admin" => "auth"                            // This disable update data
+                    UserDefinition::FIELD_USERID => "id",
+                    UserDefinition::FIELD_NAME => "concat(firstname, ' ', lastname)",  // This disable update data
+                    UserDefinition::FIELD_EMAIL => "email",
+                    UserDefinition::FIELD_USERNAME => "username",
+                    UserDefinition::FIELD_PASSWORD => "password",
+                    UserDefinition::FIELD_CREATED => 'created',
+                    UserDefinition::FIELD_ADMIN => "auth"                            // This disable update data
                 ]
             );
         }

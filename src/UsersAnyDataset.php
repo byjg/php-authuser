@@ -39,8 +39,8 @@ class UsersAnyDataset extends UsersBase
         $this->anyDataSet = $anyDataset;
         $this->anyDataSet->save();
         $this->userTable = $userTable;
-        if (!$userTable->existsClosure('update', 'userid')) {
-            $userTable->defineClosureForUpdate('userid', function ($value, $instance) {
+        if (!$userTable->existsClosure('update', UserDefinition::FIELD_USERID)) {
+            $userTable->defineClosureForUpdate(UserDefinition::FIELD_USERID, function ($value, $instance) {
                 if (empty($value)) {
                     return preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($instance->getUsername()));
                 }
@@ -141,6 +141,17 @@ class UsersAnyDataset extends UsersBase
     public function getIterator($filter = null)
     {
         return $this->anyDataSet->getIterator($filter);
+    }
+
+    public function getUsersByProperty($propertyName, $value)
+    {
+        $filter = new IteratorFilter();
+        $filter->addRelation($propertyName, Relation::EQUAL, $value);
+        $result = [];
+        foreach ($this->getIterator($filter) as $model) {
+            $result[] = $this->createUserModel($model);
+        }
+        return $result;
     }
 
     /**

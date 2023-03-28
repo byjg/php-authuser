@@ -310,4 +310,21 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals('user2@gmail.com', $user->getEmail());
         $this->assertEquals('c88b5c841897dafe75cdd9f8ba98b32f007d6bc3', $user->getPassword());
     }
+
+    public function testGetByUserProperty()
+    {
+        // Add property to user2
+        $user = $this->object->getById($this->prefix . '2');
+        $user->set('property1', 'value1');
+        $this->object->save($user);
+
+        // Get user by property
+        $user = $this->object->getUsersByProperty('property1', 'value2');
+        $this->assertCount(0, $user);
+
+        // Get user by property
+        $user = $this->object->getUsersByProperty('property1', 'value1');
+        $this->assertCount(1, $user);
+        $this->assertEquals($this->prefix . '2', $user[0]->getUserid());
+    }
 }
