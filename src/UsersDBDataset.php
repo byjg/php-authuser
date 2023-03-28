@@ -236,8 +236,8 @@ class UsersDBDataset extends UsersBase
         $query = Query::getInstance()
             ->table($this->getUserDefinition()->table(),  "u")
             ->join($this->getUserPropertiesDefinition()->table(), "p.{$this->getUserPropertiesDefinition()->getUserid()} == u.{$this->getUserDefinition()->getUserid()}", "p")
-            ->where("p.{$this->getUserPropertiesDefinition()->getName()} == :name", ["name" => $propertyName])
-            ->where("p.{$this->getUserPropertiesDefinition()->getValue()} == :value", ["value" => $value]);
+            ->where("p.{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName])
+            ->where("p.{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
 
         return $this->userRepository->getByQuery($query);
     }
