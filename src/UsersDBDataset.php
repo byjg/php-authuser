@@ -253,8 +253,8 @@ class UsersDBDataset extends UsersBase
         foreach ($propertiesArray as $propertyName => $value) {
             $count++;
             $query->join($this->getUserPropertiesDefinition()->table(), "p$count.{$this->getUserPropertiesDefinition()->getUserid()} = u.{$this->getUserDefinition()->getUserid()}", "p$count")
-                ->where("p$count.{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName])
-                ->where("p$count.{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
+                ->where("p$count.{$this->getUserPropertiesDefinition()->getName()} = :name$count", ["name$count" => $propertyName])
+                ->where("p$count.{$this->getUserPropertiesDefinition()->getValue()} = :value$count", ["value$count" => $value]);
         }
 
         return $this->userRepository->getByQuery($query);

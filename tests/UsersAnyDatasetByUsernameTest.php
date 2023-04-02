@@ -333,6 +333,10 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertCount(1, $user);
         $this->assertEquals($this->prefix . '1', $user[0]->getUserid());
 
+        // Only one property is valid, so no results
+        $user = $this->object->getUsersByPropertySet(['property1'=>'xyz', 'property2'=>'value2']);
+        $this->assertCount(0, $user);
+
         // Get user2 by property using method getUsersByPropertySet
         $user = $this->object->getUsersByPropertySet(['property1'=>'value1', 'property2'=>'value2']);
         $this->assertCount(1, $user);
