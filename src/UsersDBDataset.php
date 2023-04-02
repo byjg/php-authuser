@@ -233,11 +233,29 @@ class UsersDBDataset extends UsersBase
      */
     public function getUsersByProperty($propertyName, $value)
     {
+        return $this->getUsersByPropertySet([$propertyName => $value]);
+    }
+
+    /**
+     * Get the user based on his property and value. e.g. [ 'key' => 'value', 'key2' => 'value2' ].
+     * 
+     * @param mixed $propertiesArray 
+     * @return array 
+     * @throws InvalidArgumentException 
+     * @throws ExceptionInvalidArgumentException 
+     */
+    public function getUsersByPropertySet($propertiesArray)
+    {
         $query = Query::getInstance()
-            ->table($this->getUserDefinition()->table(),  "u")
-            ->join($this->getUserPropertiesDefinition()->table(), "p.{$this->getUserPropertiesDefinition()->getUserid()} = u.{$this->getUserDefinition()->getUserid()}", "p")
-            ->where("p.{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName])
-            ->where("p.{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
+            ->table($this->getUserDefinition()->table(),  "u");
+
+        $count = 0;
+        foreach ($propertiesArray as $propertyName => $value) {
+            $count++;
+            $query->join($this->getUserPropertiesDefinition()->table(), "p$count.{$this->getUserPropertiesDefinition()->getUserid()} = u.{$this->getUserDefinition()->getUserid()}", "p$count")
+                ->where("p$count.{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName])
+                ->where("p$count.{$this->getUserPropertiesDefinition()->getValue()} = :value", ["value" => $value]);
+        }
 
         return $this->userRepository->getByQuery($query);
     }

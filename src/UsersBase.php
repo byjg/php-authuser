@@ -257,6 +257,8 @@ abstract class UsersBase implements UsersInterface
 
     abstract public function getUsersByProperty($propertyName, $value);
 
+    abstract public function getUsersByPropertySet($propertiesArray);
+
     /**
      *
      * @param int $userId

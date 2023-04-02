@@ -313,9 +313,15 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     public function testGetByUserProperty()
     {
+        // Add property to user1
+        $user = $this->object->getById($this->prefix . '1');
+        $user->set('property1', 'somevalue');
+        $this->object->save($user);
+
         // Add property to user2
         $user = $this->object->getById($this->prefix . '2');
         $user->set('property1', 'value1');
+        $user->set('property2', 'value2');
         $this->object->save($user);
 
         // Get user by property
@@ -323,8 +329,14 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertCount(0, $user);
 
         // Get user by property
-        $user = $this->object->getUsersByProperty('property1', 'value1');
+        $user = $this->object->getUsersByProperty('property1', 'somevalue');
+        $this->assertCount(1, $user);
+        $this->assertEquals($this->prefix . '1', $user[0]->getUserid());
+
+        // Get user2 by property using method getUsersByPropertySet
+        $user = $this->object->getUsersByPropertySet(['property1'=>'value1', 'property2'=>'value2']);
         $this->assertCount(1, $user);
         $this->assertEquals($this->prefix . '2', $user[0]->getUserid());
+
     }
 }

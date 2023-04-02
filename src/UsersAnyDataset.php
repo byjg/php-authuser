@@ -145,8 +145,15 @@ class UsersAnyDataset extends UsersBase
 
     public function getUsersByProperty($propertyName, $value)
     {
+        return $this->getUsersByPropertySet([$propertyName => $value]);
+    }
+
+    public function getUsersByPropertySet($propertiesArray)
+    {
         $filter = new IteratorFilter();
-        $filter->addRelation($propertyName, Relation::EQUAL, $value);
+        foreach ($propertiesArray as $propertyName => $value) {
+            $filter->addRelation($propertyName, Relation::EQUAL, $value);
+        }
         $result = [];
         foreach ($this->getIterator($filter) as $model) {
             $result[] = $this->createUserModel($model);
