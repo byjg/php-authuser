@@ -11,6 +11,7 @@ use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\Exception\InvalidArgumentException as ExceptionInvalidArgumentException;
+use ByJG\MicroOrm\FieldMapping;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
@@ -62,18 +63,20 @@ class UsersDBDataset extends UsersBase
         $userMapper = new Mapper(
             $userTable->model(),
             $userTable->table(),
-            $userTable->getUserid(),
-            $userTable->getGenerateKeyClosure()
+            $userTable->getUserid()
         );
+        $seed = $userTable->getGenerateKeyClosure();
+        if (!empty($seed)) {
+            $userMapper->withPrimaryKeySeedFunction($seed);
+        }
 
         $propertyDefinition = $userTable->toArray();
 
         foreach ($propertyDefinition as $property => $map) {
-            $userMapper->addFieldMap(
-                $property,
-                $map,
-                $userTable->getClosureForUpdate($property),
-                $userTable->getClosureForSelect($property)
+            $userMapper->addFieldMapping(FieldMapping::create($property)
+                ->withFieldName($map)
+                ->withUpdateFunction($userTable->getClosureForUpdate($property))
+                ->withSelectFunction($userTable->getClosureForSelect($property))
             );
         }
         $this->userRepository = new Repository($dbDriver, $userMapper);
@@ -83,14 +86,13 @@ class UsersDBDataset extends UsersBase
             $propertiesTable->table(),
             $propertiesTable->getId()
         );
-        $propertiesMapper->addFieldMap('id', $propertiesTable->getId());
-        $propertiesMapper->addFieldMap('name', $propertiesTable->getName());
-        $propertiesMapper->addFieldMap('value', $propertiesTable->getValue());
-        $propertiesMapper->addFieldMap(
-            UserDefinition::FIELD_USERID,
-            $propertiesTable->getUserid(),
-            $userTable->getClosureForUpdate(UserDefinition::FIELD_USERID),
-            $userTable->getClosureForSelect(UserDefinition::FIELD_USERID)
+        $propertiesMapper->addFieldMapping(FieldMapping::create('id')->withFieldName($propertiesTable->getId()));
+        $propertiesMapper->addFieldMapping(FieldMapping::create('name')->withFieldName($propertiesTable->getName()));
+        $propertiesMapper->addFieldMapping(FieldMapping::create('value')->withFieldName($propertiesTable->getValue()));
+        $propertiesMapper->addFieldMapping(FieldMapping::create(UserDefinition::FIELD_USERID)
+            ->withFieldName($propertiesTable->getUserid())
+            ->withUpdateFunction($userTable->getClosureForUpdate(UserDefinition::FIELD_USERID))
+            ->withSelectFunction($userTable->getClosureForSelect(UserDefinition::FIELD_USERID))
         );
         $this->propertiesRepository = new Repository($dbDriver, $propertiesMapper);
 
@@ -224,12 +226,12 @@ class UsersDBDataset extends UsersBase
 
     /**
      * Get the user based on his property.
-     * 
-     * @param mixed $propertyName 
-     * @param mixed $value 
-     * @return array 
-     * @throws InvalidArgumentException 
-     * @throws ExceptionInvalidArgumentException 
+     *
+     * @param mixed $propertyName
+     * @param mixed $value
+     * @return array
+     * @throws InvalidArgumentException
+     * @throws ExceptionInvalidArgumentException
      */
     public function getUsersByProperty($propertyName, $value)
     {
@@ -238,11 +240,11 @@ class UsersDBDataset extends UsersBase
 
     /**
      * Get the user based on his property and value. e.g. [ 'key' => 'value', 'key2' => 'value2' ].
-     * 
-     * @param mixed $propertiesArray 
-     * @return array 
-     * @throws InvalidArgumentException 
-     * @throws ExceptionInvalidArgumentException 
+     *
+     * @param mixed $propertiesArray
+     * @return array
+     * @throws InvalidArgumentException
+     * @throws ExceptionInvalidArgumentException
      */
     public function getUsersByPropertySet($propertiesArray)
     {
