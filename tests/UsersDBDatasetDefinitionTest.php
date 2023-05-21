@@ -69,13 +69,13 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             MyUserModel::class,
             $loginField,
             [
-                'userid' => 'myuserid',
-                'name' => 'myname',
-                'email' => 'myemail',
-                'username' => 'myusername',
-                'password' => 'mypassword',
-                'created' => 'mycreated',
-                'admin' => 'myadmin',
+                UserDefinition::FIELD_USERID => 'myuserid',
+                UserDefinition::FIELD_NAME => 'myname',
+                UserDefinition::FIELD_EMAIL => 'myemail',
+                UserDefinition::FIELD_USERNAME => 'myusername',
+                UserDefinition::FIELD_PASSWORD => 'mypassword',
+                UserDefinition::FIELD_CREATED => 'mycreated',
+                UserDefinition::FIELD_ADMIN => 'myadmin',
                 'otherfield' => 'myotherfield'
             ]
         );
@@ -105,7 +105,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws \ByJG\Authenticate\UserExistsException
      * @throws \Exception
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
@@ -146,34 +146,34 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     public function testWithUpdateValue()
     {
         // For Update Definitions
-        $this->userDefinition->defineClosureForUpdate('name', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_NAME, function ($value, $instance) {
             return '[' . $value . ']';
         });
-        $this->userDefinition->defineClosureForUpdate('username', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
             return ']' . $value . '[';
         });
-        $this->userDefinition->defineClosureForUpdate('email', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
             return '-' . $value . '-';
         });
-        $this->userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
             return "@" . $value . "@";
         });
-        $this->userDefinition->markPropertyAsReadOnly('created');
+        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
         $this->userDefinition->defineClosureForUpdate('otherfield', function ($value, $instance) {
             return "*" . $value . "*";
         });
 
         // For Select Definitions
-        $this->userDefinition->defineClosureForSelect('name', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_NAME, function ($value, $instance) {
             return '(' . $value . ')';
         });
-        $this->userDefinition->defineClosureForSelect('username', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
             return ')' . $value . '(';
         });
-        $this->userDefinition->defineClosureForSelect('email', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
             return '#' . $value . '#';
         });
-        $this->userDefinition->defineClosureForSelect('password', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
             return '%'. $value . '%';
         });
         $this->userDefinition->defineClosureForSelect('otherfield', function ($value, $instance) {

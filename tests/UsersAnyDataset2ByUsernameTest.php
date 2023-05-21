@@ -21,15 +21,16 @@ class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
             UserModel::class,
             $loginField,
             [
-                'userid' => 'myuserid',
-                'name' => 'myname',
-                'email' => 'myemail',
-                'username' => 'myusername',
-                'password' => 'mypassword',
-                'created' => 'mycreated',
-                'admin' => 'myadmin'
+                UserDefinition::FIELD_USERID => 'myuserid',
+                UserDefinition::FIELD_NAME => 'myname',
+                UserDefinition::FIELD_EMAIL => 'myemail',
+                UserDefinition::FIELD_USERNAME => 'myusername',
+                UserDefinition::FIELD_PASSWORD => 'mypassword',
+                UserDefinition::FIELD_CREATED => 'mycreated',
+                UserDefinition::FIELD_ADMIN => 'myadmin'
             ]
         );
+        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 
         $this->propertyDefinition = new UserPropertiesDefinition(
             'theirproperty',
@@ -50,7 +51,7 @@ class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }

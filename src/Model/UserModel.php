@@ -12,6 +12,8 @@ class UserModel
     protected $created;
     protected $admin;
 
+    protected $passwordDefinition;
+
     protected $propertyList = [];
 
     /**
@@ -28,7 +30,7 @@ class UserModel
         $this->name = $name;
         $this->email = $email;
         $this->username = $username;
-        $this->password = $password;
+        $this->setPassword($password);
         $this->admin = $admin;
     }
 
@@ -110,6 +112,10 @@ class UserModel
      */
     public function setPassword($password)
     {
+        // Password len equals to 40 means that the password is already encrypted with sha1
+        if (!empty($password) && strlen($password) != 40 && !empty($this->passwordDefinition) && !$this->passwordDefinition->matchPassword($password)) {
+            throw new \InvalidArgumentException("Password does not match the password definition");
+        }
         $this->password = $password;
     }
 
@@ -203,5 +209,11 @@ class UserModel
     public function addProperty(UserPropertiesModel $property)
     {
         $this->propertyList[] = $property;
+    }
+
+    public function withPasswordDefinition($passwordDefinition)
+    {
+        $this->passwordDefinition = $passwordDefinition;
+        return $this;
     }
 }

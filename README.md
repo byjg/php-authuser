@@ -1,12 +1,11 @@
 # Auth User PHP
 
+
+[![Build Status](https://github.com/byjg/authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/authuser/actions/workflows/phpunit.yml)
 [![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/authuser/)
 [![GitHub license](https://img.shields.io/github/license/byjg/authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/authuser.svg)](https://github.com/byjg/authuser/releases/)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5/mini.png)](https://insight.sensiolabs.com/projects/69f04d22-055d-40b5-8c8d-90598a5367b5)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/authuser/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/authuser/?branch=master)
-[![Build Status](https://travis-ci.com/byjg/authuser.svg?branch=master)](https://travis-ci.com/byjg/authuser)
 
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
@@ -139,23 +138,35 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
 
 ## Architecture
 
+```text
+                                   ┌───────────────────┐                                   
+                                   │  SessionContext   │                                   
+                                   └───────────────────┘                                   
+                                             │                                             
+┌────────────────────────┐                                       ┌────────────────────────┐
+│     UserDefinition     │─ ─ ┐              │               ─ ─ ┤       UserModel        │
+└────────────────────────┘         ┌───────────────────┐    │    └────────────────────────┘
+┌────────────────────────┐    └────│  UsersInterface   │────┐    ┌────────────────────────┐
+│ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
+└────────────────────────┘                   ▲                   └────────────────────────┘
+                                             │                                             
+                    ┌────────────────────────┼─────────────────────────┐                   
+                    │                        │                         │                   
+                    │                        │                         │                   
+                    │                        │                         │                   
+          ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐         
+          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ UsersMoodleDataset │         
+          └───────────────────┘    └───────────────────┘    └────────────────────┘         
 ```
-                            +----------------+            +----------------+
-                            |                |            |                |
-                            | UsersInterface |------------| SessionContext |
-                            |                |            |                |
-                            +----------------+            +----------------+
-                                    ^
-                                    |
-                                    |
-            +-----------------------+--------------------------+
-            |                       |                          |
-   +-----------------+      +----------------+       +--------------------+
-   |                 |      |                |       |                    |
-   | UsersAnyDataset |      | UsersDBDataset |       | UsersMoodleDataset |
-   |                 |      |                |       |                    |
-   +-----------------+      +----------------+       +--------------------+
-```
+
+- UserInterface contain the basic interface for the concrete implementation
+- UsersDBDataset is a concrete implementation to retrieve/save user in a Database
+- UserAnyDataset is a concrete implementation to retrieve/save user in a Xml file
+- UsersMoodleDatabase is a concrete implementation to retrieve users in a Moodle database structure. 
+- UserModel is the basic model get/set for the user
+- UserPropertyModel is the basic model get/set for extra user property
+- UserDefinition will map the model to the database
+
 
 ### Database
 
@@ -213,13 +224,13 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     \ByJG\Authenticate\Model\UserModel::class, // Model class
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
     [
-        'userid'   => 'fieldname of userid',
-        'name'     => 'fieldname of name',
-        'email'    => 'fieldname of email',
-        'username' => 'fieldname of username',
-        'password' => 'fieldname of password',
-        'created'  => 'fieldname of created',
-        'admin'    => 'fieldname of admin'
+        UserDefinition::FIELD_USERID   => 'fieldname of userid',
+        UserDefinition::FIELD_NAME     => 'fieldname of name',
+        UserDefinition::FIELD_EMAIL    => 'fieldname of email',
+        UserDefinition::FIELD_USERNAME => 'fieldname of username',
+        UserDefinition::FIELD_PASSWORD => 'fieldname of password',
+        UserDefinition::FIELD_CREATED  => 'fieldname of created',
+        UserDefinition::FIELD_ADMIN    => 'fieldname of admin'
     ]
 );
 ```
@@ -234,23 +245,23 @@ $userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
     \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
 );
 
-// Defines a custom function to be applied BEFORE update/insert the field 'password'
+// Defines a custom function to be applied BEFORE update/insert the field UserDefinition::FIELD_PASSWORD
 // $value --> the current value to be updated
 // $instance -> The array with all other fields;
-$userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+$userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
     return strtoupper(sha1($value));
 });
 
-// Defines a custom function to be applied After the field 'created' is read but before
+// Defines a custom function to be applied After the field UserDefinition::FIELD_CREATED is read but before
 // the user get the result
 // $value --> the current value retrieved from database
 // $instance -> The array with all other fields;
-$userDefinition->defineClosureForSelect('created', function ($value, $instance) {
+$userDefinition->defineClosureForSelect(UserDefinition::FIELD_CREATED, function ($value, $instance) {
     return date('Y', $value);
 });
 
 // If you want make the field READONLY just do it:
-$userDefinition->markPropertyAsReadOnly('created');
+$userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 ```
 
 

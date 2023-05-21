@@ -26,7 +26,7 @@ class UserPropertiesDefinition
         $id = 'id',
         $name = 'name',
         $value = 'value',
-        $userid = 'userid'
+        $userid = UserDefinition::FIELD_USERID
     ) {
         $this->table = $table;
         $this->id = $id;

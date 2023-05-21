@@ -67,7 +67,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $userName
      * @param string $email
      * @param string $password
-     * @return void
+     * @return UserModel
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function addUser($name, $userName, $email, $password)
@@ -78,7 +78,7 @@ abstract class UsersBase implements UsersInterface
         $model->setUsername($userName);
         $model->setPassword($password);
 
-        $this->save($model);
+        return $this->save($model);
     }
 
     /**
@@ -191,7 +191,7 @@ abstract class UsersBase implements UsersInterface
     public function isValidUser($userName, $password)
     {
         $filter = new IteratorFilter();
-        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate('password');
+        $passwordGenerator = $this->getUserDefinition()->getClosureForUpdate(UserDefinition::FIELD_PASSWORD);
         $filter->addRelation($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($userName));
         $filter->addRelation(
             $this->getUserDefinition()->getPassword(),
@@ -241,13 +241,12 @@ abstract class UsersBase implements UsersInterface
      */
     public function getProperty($userId, $propertyName)
     {
-        //anydataset.Row
         $user = $this->getById($userId);
         if ($user !== null) {
             $values = $user->get($propertyName);
 
             if ($this->isAdmin($userId)) {
-                return array("admin" => "admin");
+                return array(UserDefinition::FIELD_ADMIN => "admin");
             }
 
             return $values;
@@ -255,6 +254,10 @@ abstract class UsersBase implements UsersInterface
 
         return null;
     }
+
+    abstract public function getUsersByProperty($propertyName, $value);
+
+    abstract public function getUsersByPropertySet($propertiesArray);
 
     /**
      *
@@ -339,7 +342,7 @@ abstract class UsersBase implements UsersInterface
         }
 
         $updateTokenInfo['login'] = $login;
-        $updateTokenInfo['userid'] = $user->getUserid();
+        $updateTokenInfo[UserDefinition::FIELD_USERID] = $user->getUserid();
         $jwtData = $jwtWrapper->createJwtData(
             $updateTokenInfo,
             $expires

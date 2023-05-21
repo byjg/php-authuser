@@ -40,6 +40,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         );
 
         $this->userDefinition = new UserDefinition('users', UserModel::class, $loginField);
+        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
         $this->propertyDefinition = new UserPropertiesDefinition();
         $this->object = new UsersDBDataset(
             $this->db,
@@ -47,17 +48,24 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
             $this->propertyDefinition
         );
 
-        $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
+        $user = $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
+        $this->assertEquals(1, $user->getUserid());
+        $this->assertEquals('User 1', $user->getName());
+        $this->assertEquals('user1', $user->getUsername());
+        $this->assertEquals('a63d4b132a9a1d3430f9ae507825f572449e0d17', $user->getPassword());
+        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
+        
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $uri = new Uri(self::CONNECTION_STRING);
         unlink($uri->getPath());
@@ -79,7 +87,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
         $this->assertEquals('no', $user->getAdmin());
-        $this->assertEquals('', $user->getCreated()); // There is no default action for it
+        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
 
         // Setting as Admin
         $user->setAdmin('y');
@@ -98,31 +106,31 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
     public function testWithUpdateValue()
     {
         // For Update Definitions
-        $this->userDefinition->defineClosureForUpdate('name', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_NAME, function ($value, $instance) {
             return '[' . $value . ']';
         });
-        $this->userDefinition->defineClosureForUpdate('username', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
             return ']' . $value . '[';
         });
-        $this->userDefinition->defineClosureForUpdate('email', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
             return '-' . $value . '-';
         });
-        $this->userDefinition->defineClosureForUpdate('password', function ($value, $instance) {
+        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
             return "@" . $value . "@";
         });
-        $this->userDefinition->markPropertyAsReadOnly('created');
+        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 
         // For Select Definitions
-        $this->userDefinition->defineClosureForSelect('name', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_NAME, function ($value, $instance) {
             return '(' . $value . ')';
         });
-        $this->userDefinition->defineClosureForSelect('username', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
             return ')' . $value . '(';
         });
-        $this->userDefinition->defineClosureForSelect('email', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
             return '#' . $value . '#';
         });
-        $this->userDefinition->defineClosureForSelect('password', function ($value, $instance) {
+        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
             return '%'. $value . '%';
         });
 
