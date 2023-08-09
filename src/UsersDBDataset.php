@@ -249,6 +249,7 @@ class UsersDBDataset extends UsersBase
     public function getUsersByPropertySet($propertiesArray)
     {
         $query = Query::getInstance()
+            ->field("u.*")
             ->table($this->getUserDefinition()->table(),  "u");
 
         $count = 0;
