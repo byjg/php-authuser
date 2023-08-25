@@ -187,6 +187,17 @@ class UsersAnyDataset extends UsersBase
         return false;
     }
 
+    public function setProperty($userId, $propertyName, $value)
+    {
+        $user = $this->getById($userId);
+        if ($user !== null) {
+            $user->set($propertyName, $value);
+            $this->save($user);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @param int $userId
      * @param string $propertyName

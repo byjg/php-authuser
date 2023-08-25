@@ -226,7 +226,16 @@ abstract class UsersBase implements UsersInterface
         }
 
         $values = $user->get($propertyName);
-        return ($values !== null ? in_array($value, (array)$values) : false);
+
+        if ($values === null) {
+            return false;
+        }
+
+        if ($value === null) {
+            return true;
+        }
+
+        return in_array($value, (array)$values);
     }
 
     /**

@@ -343,4 +343,13 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals($this->prefix . '2', $user[0]->getUserid());
 
     }
+
+    public function testSetProperty()
+    {
+        $this->assertFalse($this->object->hasProperty($this->prefix . '1', 'propertySet'));
+        $this->object->setProperty($this->prefix . '1', 'propertySet', 'somevalue');
+        $this->assertTrue($this->object->hasProperty($this->prefix . '1', 'propertySet'));
+        $this->assertTrue($this->object->hasProperty($this->prefix . '1', 'propertySet', 'somevalue'));
+        $this->assertEquals('somevalue', $this->object->getProperty($this->prefix . '1', 'propertySet'));
+    }
 }

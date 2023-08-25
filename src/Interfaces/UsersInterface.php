@@ -128,6 +128,14 @@ interface UsersInterface
      * @param string $propertyName
      * @param string $value
      */
+    public function setProperty($userId, $propertyName, $value);
+
+    /**
+     *
+     * @param int $userId
+     * @param string $propertyName
+     * @param string $value
+     */
     public function removeProperty($userId, $propertyName, $value = null);
 
     /**

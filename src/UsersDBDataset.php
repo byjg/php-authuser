@@ -290,6 +290,24 @@ class UsersDBDataset extends UsersBase
         return true;
     }
 
+    public function setProperty($userId, $propertyName, $value)
+    {
+        $query = Query::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
+
+        $userProperty = $this->propertiesRepository->getByQuery($query);
+        if (empty($userProperty)) {
+            $userProperty = new UserPropertiesModel($propertyName, $value);
+            $userProperty->setUserid($userId);
+        } else {
+            $userProperty = $userProperty[0];
+        }
+
+        $this->propertiesRepository->save($userProperty);
+    }
+
     /**
      * Remove a specific site from user
      * Return True or false
