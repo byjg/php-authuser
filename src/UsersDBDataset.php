@@ -303,6 +303,7 @@ class UsersDBDataset extends UsersBase
             $userProperty->setUserid($userId);
         } else {
             $userProperty = $userProperty[0];
+            $userProperty->setValue($value);
         }
 
         $this->propertiesRepository->save($userProperty);
