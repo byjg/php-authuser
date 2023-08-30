@@ -162,7 +162,7 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      * @return boolean
@@ -199,7 +199,7 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      * @return boolean

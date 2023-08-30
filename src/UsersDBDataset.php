@@ -264,7 +264,7 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      * @return bool
@@ -313,7 +313,7 @@ class UsersDBDataset extends UsersBase
      * Remove a specific site from user
      * Return True or false
      *
-     * @param int $userId User Id
+     * @param int|string $userId User Id
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool

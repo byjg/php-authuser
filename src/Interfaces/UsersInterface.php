@@ -49,7 +49,7 @@ interface UsersInterface
     /**
      * Enter description here...
      *
-     * @param int $userid
+     * @param int|string $userid
      * @return Row
      */
     public function getById($userid);
@@ -99,7 +99,7 @@ interface UsersInterface
 
     /**
      * @desc Check if the user have rights to edit specific site.
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      * @return True if have rights; false, otherwisebool
@@ -108,7 +108,7 @@ interface UsersInterface
 
     /**
      * @desc Return all sites from a specific user
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @return string[] String vector with all sites
      */
@@ -116,7 +116,7 @@ interface UsersInterface
 
     /**
      *
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      */
@@ -124,7 +124,7 @@ interface UsersInterface
 
     /**
      *
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      */
@@ -132,7 +132,7 @@ interface UsersInterface
 
     /**
      *
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      */
