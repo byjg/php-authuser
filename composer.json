@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=5.6.0",
+    "php": ">=7.4",
     "byjg/micro-orm": "4.9.*",
     "byjg/cache-engine": "4.9.*",
     "byjg/jwt-wrapper": "4.9.*"

@@ -335,6 +335,15 @@ Because this project uses PHP Session you need to run the unit test the followin
 phpunit --stderr
 ```
 
+## Dependencies
+
+```mermaid  
+flowchart TD  
+    byjg/authuser --> byjg/micro-orm
+    byjg/authuser --> byjg/cache-engine
+    byjg/authuser --> byjg/jwt-wrapper  
+```
+
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
