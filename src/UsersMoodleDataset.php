@@ -181,7 +181,7 @@ class UsersMoodleDataset extends UsersDBDataset
     /**
      * Remove the user based on his user id.
      *
-     * @param int $userId
+     * @param int|string $userId
      * @return void
      * @throws \ByJG\Authenticate\Exception\NotImplementedException
      */

@@ -226,7 +226,16 @@ abstract class UsersBase implements UsersInterface
         }
 
         $values = $user->get($propertyName);
-        return ($values !== null ? in_array($value, (array)$values) : false);
+
+        if ($values === null) {
+            return false;
+        }
+
+        if ($value === null) {
+            return true;
+        }
+
+        return in_array($value, (array)$values);
     }
 
     /**
@@ -261,7 +270,7 @@ abstract class UsersBase implements UsersInterface
 
     /**
      *
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      */
@@ -271,7 +280,7 @@ abstract class UsersBase implements UsersInterface
      * Remove a specific site from user
      * Return True or false
      *
-     * @param int $userId User login
+     * @param int|string $userId User login
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool

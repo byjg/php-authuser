@@ -1,29 +1,26 @@
 # Auth User PHP
 
-
-[![Build Status](https://github.com/byjg/authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/authuser/actions/workflows/phpunit.yml)
+[![Build Status](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml)
 [![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
-[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/authuser/)
-[![GitHub license](https://img.shields.io/github/license/byjg/authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
-[![GitHub release](https://img.shields.io/github/release/byjg/authuser.svg)](https://github.com/byjg/authuser/releases/)
-
+[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-authuser/)
+[![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
+[![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
 
-The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer. 
-This class can persist into session (or file, memcache, etc) the user data between requests. 
+The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer.
+This class can persist into session (or file, memcache, etc) the user data between requests.
 
 ## Creating a Users handling class
 
-
-**Using the FileSystem (XML) as the user storage**
+Using the FileSystem (XML) as the user storage:
 
 ```php
 <?php
 $users = new UsersAnyDataset('/tmp/pass.anydata.xml');
 ```
 
-**Using the Database as the user storage**
+Using the Database as the user storage:
 
 ```php
 <?php
@@ -37,13 +34,12 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 *Note*: See the [Anydataset project](https://github.com/byjg/anydataset#connection-based-on-uri) to see the
 database available and the connection strings as well.
 
-**Using the Moodle as the user storage**
+Using the Moodle as the user storage:
 
 ```php
 <?php
 $users = new UsersMoodleDataset('connection');
 ```
-
 
 ## Authenticate a user with your username and password and persist into the session
 
@@ -53,7 +49,7 @@ $user = $users->isValidUser('someuser', '12345');
 if (!is_null($user))
 {
     $userId = $user->getUserid();
-    
+
     $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
     $sessionContext->registerLogin($userId);
 }
@@ -67,7 +63,7 @@ $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::cre
 
 // Check if the user is authenticated
 if ($sessionContext->isAuthenticated()) {
-    
+
     // Get the userId of the authenticated users
     $userId = $sessionContext->userInfo();
 
@@ -77,12 +73,12 @@ if ($sessionContext->isAuthenticated()) {
 }
 ```
 
-## Saving extra info into the user session 
+## Saving extra info into the user session
 
 You can save data in the session data exists only during the user is logged in. Once the user logged off the
 data stored with the user session will be released.
 
-**Store the data for the current user session**
+Store the data for the current user session:
 
 ```php
 <?php
@@ -90,7 +86,7 @@ $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::cre
 $sessionContext->setSessionData('key', 'value');
 ```
 
-**Getting the data from the current user session**
+Getting the data from the current user session:
 
 ```php
 <?php
@@ -100,7 +96,7 @@ $value = $sessionContext->getSessionData('key');
 
 Note: If the user is not logged an error will be throw
 
-## Adding a custom property to the users;
+## Adding a custom property to the users
 
 ```php
 <?php
@@ -115,17 +111,18 @@ $users->save();
 <?php
 $sessionContext->registerLogout();
 ```
-# Important note about SessionContext
 
-`SessionContext` object will store the info about the current context. 
+## Important note about SessionContext
+
+`SessionContext` object will store the info about the current context.
 As SessionContext uses CachePool interface defined in PSR-6 you can set any storage
-to save your session context. 
+to save your session context.
 
 In our examples we are using a regular PHP Session for store the user context
 (`Factory::createSessionPool()`). But if you are using another store like MemCached
 you have to define a UNIQUE prefix for that session. Note if TWO users have the same
 prefix you probably have an unexpected result for the SessionContext.
- 
+
 Example for memcached:
 
 ```php
@@ -135,38 +132,36 @@ $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::cre
 
 If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
 
-
 ## Architecture
 
 ```text
-                                   ┌───────────────────┐                                   
-                                   │  SessionContext   │                                   
-                                   └───────────────────┘                                   
-                                             │                                             
+                                   ┌───────────────────┐
+                                   │  SessionContext   │
+                                   └───────────────────┘
+                                             │
 ┌────────────────────────┐                                       ┌────────────────────────┐
 │     UserDefinition     │─ ─ ┐              │               ─ ─ ┤       UserModel        │
 └────────────────────────┘         ┌───────────────────┐    │    └────────────────────────┘
 ┌────────────────────────┐    └────│  UsersInterface   │────┐    ┌────────────────────────┐
 │ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
 └────────────────────────┘                   ▲                   └────────────────────────┘
-                                             │                                             
-                    ┌────────────────────────┼─────────────────────────┐                   
-                    │                        │                         │                   
-                    │                        │                         │                   
-                    │                        │                         │                   
-          ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐         
-          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ UsersMoodleDataset │         
-          └───────────────────┘    └───────────────────┘    └────────────────────┘         
+                                             │
+                    ┌────────────────────────┼─────────────────────────┐
+                    │                        │                         │
+                    │                        │                         │
+                    │                        │                         │
+          ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐
+          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ UsersMoodleDataset │
+          └───────────────────┘    └───────────────────┘    └────────────────────┘
 ```
 
 - UserInterface contain the basic interface for the concrete implementation
 - UsersDBDataset is a concrete implementation to retrieve/save user in a Database
 - UserAnyDataset is a concrete implementation to retrieve/save user in a Xml file
-- UsersMoodleDatabase is a concrete implementation to retrieve users in a Moodle database structure. 
+- UsersMoodleDatabase is a concrete implementation to retrieve users in a Moodle database structure.
 - UserModel is the basic model get/set for the user
 - UserPropertyModel is the basic model get/set for extra user property
 - UserDefinition will map the model to the database
-
 
 ### Database
 
@@ -184,7 +179,7 @@ create table users
     created datetime,
     admin enum('Y','N'),
 
-   	constraint pk_users primary key (userid)
+    constraint pk_users primary key (userid)
 )
 ENGINE=InnoDB;
 
@@ -264,12 +259,11 @@ $userDefinition->defineClosureForSelect(UserDefinition::FIELD_CREATED, function 
 $userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 ```
 
-
 ## Extending UserModel
 
-It is possible extending the UserModel table, since you create a new class extending from UserModel to add the new fields. 
+It is possible extending the UserModel table, since you create a new class extending from UserModel to add the new fields.
 
-For example, imagine your table has one field called "otherfield". 
+For example, imagine your table has one field called "otherfield".
 
 You'll have to extend like this:
 
@@ -278,7 +272,7 @@ You'll have to extend like this:
 /**
  * This class is your model
  * This need to support the basic field plus your new fields
- * already set in your definition class 
+ * already set in your definition class
  */
 class MyUserModel extends UserModel
 {
@@ -317,22 +311,29 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 );
 ```
 
-
-
 ## Install
 
-Just type: 
+Just type:
 
-```
-composer require "byjg/authuser=4.3.*"
+```bash
+composer require "byjg/authuser"
 ```
 
 ## Running Tests
 
 Because this project uses PHP Session you need to run the unit test the following manner:
- 
+
+```bash
+./vendor/bin/phpunit --stderr
 ```
-phpunit --stderr
+
+## Dependencies
+
+```mermaid  
+flowchart TD  
+    byjg/authuser --> byjg/micro-orm
+    byjg/authuser --> byjg/cache-engine
+    byjg/authuser --> byjg/jwt-wrapper  
 ```
 
 

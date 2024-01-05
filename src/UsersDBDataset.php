@@ -249,6 +249,7 @@ class UsersDBDataset extends UsersBase
     public function getUsersByPropertySet($propertiesArray)
     {
         $query = Query::getInstance()
+            ->field("u.*")
             ->table($this->getUserDefinition()->table(),  "u");
 
         $count = 0;
@@ -263,7 +264,7 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * @param int $userId
+     * @param int|string $userId
      * @param string $propertyName
      * @param string $value
      * @return bool
@@ -289,11 +290,30 @@ class UsersDBDataset extends UsersBase
         return true;
     }
 
+    public function setProperty($userId, $propertyName, $value)
+    {
+        $query = Query::getInstance()
+            ->table($this->getUserPropertiesDefinition()->table())
+            ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
+            ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
+
+        $userProperty = $this->propertiesRepository->getByQuery($query);
+        if (empty($userProperty)) {
+            $userProperty = new UserPropertiesModel($propertyName, $value);
+            $userProperty->setUserid($userId);
+        } else {
+            $userProperty = $userProperty[0];
+            $userProperty->setValue($value);
+        }
+
+        $this->propertiesRepository->save($userProperty);
+    }
+
     /**
      * Remove a specific site from user
      * Return True or false
      *
-     * @param int $userId User Id
+     * @param int|string $userId User Id
      * @param string $propertyName Property name
      * @param string $value Property value with a site
      * @return bool
