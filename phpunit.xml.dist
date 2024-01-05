@@ -13,6 +13,7 @@ and open the template in the editor.
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          convertDeprecationsToExceptions="true"
+         stderr="true"
          stopOnFailure="false">
 
     <php>
@@ -26,11 +27,11 @@ and open the template in the editor.
             <directory>./src</directory>
         </whitelist>
     </filter>
-    
+
     <testsuites>
         <testsuite name="Test Suite">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
-    
+
 </phpunit>
