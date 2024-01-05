@@ -1,10 +1,10 @@
 # Auth User PHP
 
-[![Build Status](https://github.com/byjg/authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/authuser/actions/workflows/phpunit.yml)
+[![Build Status](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml)
 [![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
-[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/authuser/)
-[![GitHub license](https://img.shields.io/github/license/byjg/authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
-[![GitHub release](https://img.shields.io/github/release/byjg/authuser.svg)](https://github.com/byjg/authuser/releases/)
+[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-authuser/)
+[![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
+[![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
 A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
 
@@ -316,7 +316,7 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 Just type:
 
 ```bash
-composer require "byjg/authuser=5.0.*"
+composer require "byjg/authuser"
 ```
 
 ## Running Tests
@@ -324,8 +324,18 @@ composer require "byjg/authuser=5.0.*"
 Because this project uses PHP Session you need to run the unit test the following manner:
 
 ```bash
-phpunit --stderr
+./vendor/bin/phpunit --stderr
 ```
+
+## Dependencies
+
+```mermaid  
+flowchart TD  
+    byjg/authuser --> byjg/micro-orm
+    byjg/authuser --> byjg/cache-engine
+    byjg/authuser --> byjg/jwt-wrapper  
+```
+
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
