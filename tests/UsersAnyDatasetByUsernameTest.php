@@ -8,7 +8,7 @@ use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
-use ByJG\Util\JwtKeySecret;
+use ByJG\Util\JwtHashHmacSecret;
 use ByJG\Util\JwtWrapper;
 use PHPUnit\Framework\TestCase;
 
@@ -219,7 +219,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     {
         $loginCreated = $this->__chooseValue('user2', 'user2@gmail.com');
 
-        $jwtWrapper = new JwtWrapper('api.test.com', new JwtKeySecret('12345678', false));
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
 
         $token = $this->object->createAuthToken(
             $loginCreated,
@@ -259,7 +259,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
 
-        $jwtWrapper = new JwtWrapper('api.test.com', new JwtKeySecret('1234567'));
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('1234567'));
         $token = $this->object->createAuthToken(
             $login,
             'pwd2',
