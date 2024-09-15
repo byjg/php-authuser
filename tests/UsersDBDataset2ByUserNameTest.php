@@ -1,18 +1,22 @@
 <?php
 
-namespace ByJG\Authenticate;
-
-require_once 'UsersDBDatasetByUsernameTest.php';
+namespace Tests;
 
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\UsersDBDataset;
+use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 
 class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
 {
     protected $db;
 
+    /**
+     * @throws \ReflectionException
+     * @throws OrmModelInvalidException
+     */
     public function __setUp($loginField)
     {
         $this->prefix = "";

@@ -5,27 +5,28 @@ namespace ByJG\Authenticate;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Interfaces\UserContextInterface;
 use ByJG\Cache\Psr6\CachePool;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class SessionContext implements UserContextInterface
 {
     /**
      *
-     * @var \ByJG\Cache\Psr6\CachePool
+     * @var CachePool
      */
-    protected $session;
+    protected CachePool $session;
 
     /**
      * @var string
      */
-    protected $key;
+    protected string $key;
 
     /**
      * SessionContext constructor.
      *
-     * @param \ByJG\Cache\Psr6\CachePool $cachePool
+     * @param CachePool $cachePool
      * @param string $key
      */
-    public function __construct(CachePool $cachePool, $key = 'default')
+    public function __construct(CachePool $cachePool, string $key = 'default')
     {
         $this->session = $cachePool;
         $this->key = $key;
@@ -36,39 +37,39 @@ class SessionContext implements UserContextInterface
      *
      * @access public
      * @return bool Return true if authenticated; false otherwise.
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function isAuthenticated()
+    public function isAuthenticated(): bool
     {
-        $item = $this->session->getItem("user.{$this->key}");
+        $item = $this->session->getItem("user.$this->key");
         return $item->isHit();
     }
 
     /**
-     * Get the authenticated user name
+     * Get the authenticated username
      *
      * @access public
-     * @return string The authenticated username if exists.
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @return string|int The authenticated username if exists.
+     * @throws InvalidArgumentException
      */
-    public function userInfo()
+    public function userInfo(): string|int
     {
-        $item = $this->session->getItem("user.{$this->key}");
+        $item = $this->session->getItem("user.$this->key");
         return $item->get();
     }
 
     /**
-     * @param $userId
+     * @param string|int $userId
      * @param array $data
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function registerLogin($userId, $data = [])
+    public function registerLogin(string|int $userId, array $data = []): void
     {
-        $item = $this->session->getItem("user.{$this->key}");
+        $item = $this->session->getItem("user.$this->key");
         $item->set($userId);
         $this->session->saveDeferred($item);
 
-        $data = $this->session->getItem("user.{$this->key}.data");
+        $data = $this->session->getItem("user.$this->key.data");
         $data->set($data);
         $this->session->saveDeferred($data);
 
@@ -79,17 +80,17 @@ class SessionContext implements UserContextInterface
      * @param string $name
      * @param mixed $value
      * @throws NotAuthenticatedException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function setSessionData($name, $value)
+    public function setSessionData(string $name, mixed $value): void
     {
         if (!$this->isAuthenticated()) {
             throw new NotAuthenticatedException('There is no active logged user');
         }
 
-        $item = $this->session->getItem("user.{$this->key}.data");
+        $item = $this->session->getItem("user.$this->key.data");
         $oldData = $item->get();
 
         if (!is_array($oldData)) {
@@ -106,16 +107,16 @@ class SessionContext implements UserContextInterface
      * @param string $name
      * @return mixed
      * @throws NotAuthenticatedException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function getSessionData($name)
+    public function getSessionData(string $name): mixed
     {
         if (!$this->isAuthenticated()) {
             throw new NotAuthenticatedException('There is no active logged user');
         }
 
-        $item = $this->session->getItem("user.{$this->key}.data");
+        $item = $this->session->getItem("user.$this->key.data");
 
         if (!$item->isHit()) {
             return false;
@@ -133,12 +134,12 @@ class SessionContext implements UserContextInterface
      * Make logout from XMLNuke Engine
      *
      * @access public
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function registerLogout()
+    public function registerLogout(): void
     {
-        $this->session->deleteItem("user.{$this->key}");
-        $this->session->deleteItem("user.{$this->key}.data");
+        $this->session->deleteItem("user.$this->key");
+        $this->session->deleteItem("user.$this->key.data");
     }
 }

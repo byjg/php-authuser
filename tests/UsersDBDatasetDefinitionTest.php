@@ -1,13 +1,22 @@
 <?php
 
-namespace ByJG\Authenticate;
-
-require_once 'UsersDBDatasetByUsernameTest.php';
+namespace Tests;
 
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\AnyDataset\Exception\DatabaseException;
+use ByJG\AnyDataset\Exception\NotFoundException;
+use ByJG\AnyDataset\Exception\NotImplementedException;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\UsersDBDataset;
+use ByJG\MicroOrm\Exception\InvalidArgumentException;
+use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
+use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
+use ByJG\MicroOrm\Exception\OrmModelInvalidException;
+use ByJG\Util\Exception\XmlUtilException;
+use Exception;
 
 class MyUserModel extends UserModel
 {
@@ -36,16 +45,19 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
     /**
      * @param $loginField
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \ByJG\Authenticate\UserExistsException
-     * @throws \Exception
+     * @throws UserExistsException
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws InvalidArgumentException
+     * @throws OrmBeforeInvalidException
+     * @throws OrmInvalidFieldsException
+     * @throws OrmModelInvalidException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function __setUp($loginField)
     {
         $this->prefix = "";
 
-        $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
+        $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
         $this->db->execute('create table mytable (
             myuserid integer primary key  autoincrement, 
             myname varchar(45), 
@@ -100,10 +112,13 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     }
 
     /**
-     * @throws \ByJG\AnyDataset\Exception\NotFoundException
-     * @throws \ByJG\AnyDataset\Exception\NotImplementedException
-     * @throws \ByJG\Authenticate\UserExistsException
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws OrmBeforeInvalidException
+     * @throws OrmInvalidFieldsException
+     * @throws OrmModelInvalidException
+     * @throws UserExistsException
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function setUp(): void
     {
@@ -111,10 +126,9 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     }
 
     /**
-     * @throws \ByJG\AnyDataset\Exception\DatabaseException
-     * @throws \ByJG\Authenticate\Exception\UserExistsException
-     * @throws \ByJG\Util\Exception\XmlUtilException
-     * @throws \Exception
+     * @throws UserExistsException
+     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function testAddUser()
     {
@@ -129,6 +143,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
         $this->assertEquals('no', $user->getAdmin());
+        /** @psalm-suppress UndefinedMethod Check UserModel::__call */
         $this->assertEquals('other john', $user->getOtherfield());
         $this->assertEquals('', $user->getCreated()); // There is no default action for it
 
@@ -141,7 +156,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testWithUpdateValue()
     {
@@ -174,10 +189,10 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             return '#' . $value . '#';
         });
         $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
-            return '%'. $value . '%';
+            return '%' . $value . '%';
         });
         $this->userDefinition->defineClosureForSelect('otherfield', function ($value, $instance) {
-            return ']'. $value . '[';
+            return ']' . $value . '[';
         });
 
         // Test it!
@@ -199,6 +214,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $this->assertEquals(')]user4[(', $user->getUsername());
         $this->assertEquals('#-user4@gmail.com-#', $user->getEmail());
         $this->assertEquals('%@pwd4@%', $user->getPassword());
+        /** @psalm-suppress UndefinedMethod Check UserModel::__call */
         $this->assertEquals(']*other john*[', $user->getOtherfield());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
     }

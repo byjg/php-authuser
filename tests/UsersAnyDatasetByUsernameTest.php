@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
 use ByJG\AnyDataset\Core\AnyDataset;
 use ByJG\Authenticate\Definition\UserDefinition;
@@ -8,6 +8,8 @@ use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\UsersAnyDataset;
+use ByJG\Authenticate\UsersBase;
 use ByJG\Util\JwtHashHmacSecret;
 use ByJG\Util\JwtWrapper;
 use PHPUnit\Framework\TestCase;
@@ -15,9 +17,9 @@ use PHPUnit\Framework\TestCase;
 class UsersAnyDatasetByUsernameTest extends TestCase
 {
     /**
-     * @var UsersAnyDataset
+     * @var UsersBase|null
      */
-    protected $object;
+    protected UsersBase|null $object = null;
 
     /**
      * @var UserDefinition
@@ -270,13 +272,6 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         );
 
         $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
-    }
-
-    public function testCreateAuthTokenFail_2()
-    {
-        $this->expectException(NotAuthenticatedException::class);
-        $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
-        $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', 'Invalid token');
     }
 
     public function testSaveAndSave()

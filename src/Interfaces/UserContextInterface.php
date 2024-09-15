@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate\Interfaces;
 
+use ByJG\Authenticate\Exception\NotAuthenticatedException;
+
 interface UserContextInterface
 {
     /**
@@ -9,41 +11,41 @@ interface UserContextInterface
      * @access public
      * @return bool Return true if authenticated; false otherwise.
      */
-    public function isAuthenticated();
+    public function isAuthenticated(): bool;
 
     /**
-     * Get the authenticated user name
+     * Get the authenticated username
      * @access public
-     * @return string The authenticated username if exists.
+     * @return string|int The authenticated username if exists.
      */
-    public function userInfo();
+    public function userInfo(): string|int;
 
     /**
-     * @param $userId
+     * @param string|int $userId
      * @param array $data
      * @return void
      */
-    public function registerLogin($userId, $data = []);
+    public function registerLogin(string|int $userId, array $data = []): void;
 
     /**
      *
      * @param string $name
      * @param mixed $value
-     * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
+     * @throws NotAuthenticatedException
      */
-    public function setSessionData($name, $value);
+    public function setSessionData(string $name, mixed $value): void;
 
     /**
      *
      * @param string $name
      * @return mixed
-     * @throws \ByJG\Authenticate\Exception\NotAuthenticatedException
+     * @throws NotAuthenticatedException
      */
-    public function getSessionData($name);
+    public function getSessionData(string $name): mixed;
 
     /**
      * Make logout from XMLNuke Engine
      * @access public
      */
-    public function registerLogout();
+    public function registerLogout(): void;
 }

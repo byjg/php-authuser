@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
 use PHPUnit\Framework\TestCase;

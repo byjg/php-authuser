@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Model\UserModel;
@@ -27,7 +27,7 @@ class UserModelTest extends TestCase
 
     public function testUserModel()
     {
-        $this->object->setUserid(10);
+        $this->object->setUserid("10");
         $this->object->setName('John');
         $this->object->setEmail('test@example.com');
         $this->object->setPassword('secret');
@@ -42,7 +42,7 @@ class UserModelTest extends TestCase
 
     public function testUserModelProperties()
     {
-        $this->object->setUserid(10);
+        $this->object->setUserid("10");
         $this->object->setName('John');
         $this->object->setEmail('test@example.com');
         $this->object->setPassword('secret');

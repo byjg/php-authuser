@@ -4,48 +4,55 @@ namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Db\DbDriverInterface;
-use ByJG\AnyDataset\Db\Factory;
 use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\MicroOrm\DeleteQuery;
 use ByJG\MicroOrm\Exception\InvalidArgumentException as ExceptionInvalidArgumentException;
+use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
+use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
+use ByJG\MicroOrm\Exception\OrmModelInvalidException;
+use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
+use ByJG\MicroOrm\Exception\UpdateConstraintException;
 use ByJG\MicroOrm\FieldMapping;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
-use ByJG\MicroOrm\Updatable;
 use ByJG\Serializer\Exception\InvalidArgumentException;
+use Exception;
+use ReflectionException;
 
 class UsersDBDataset extends UsersBase
 {
 
     /**
-     * @var \ByJG\MicroOrm\Repository
+     * @var Repository
      */
-    protected $userRepository;
+    protected Repository $userRepository;
 
     /**
-     * @var \ByJG\MicroOrm\Repository
+     * @var Repository
      */
-    protected $propertiesRepository;
+    protected Repository $propertiesRepository;
 
     /**
-     * @var \ByJG\AnyDataset\Db\DbDriverInterface
+     * @var DbDriverInterface
      */
-    protected $provider;
+    protected DbDriverInterface $provider;
 
     /**
      * UsersDBDataset constructor
      *
-     * @param \ByJG\AnyDataset\Db\DbDriverInterface $dbDriver
-     * @param \ByJG\Authenticate\Definition\UserDefinition $userTable
-     * @param \ByJG\Authenticate\Definition\UserPropertiesDefinition $propertiesTable
+     * @param DbDriverInterface $dbDriver
+     * @param UserDefinition|null $userTable
+     * @param UserPropertiesDefinition|null $propertiesTable
      *
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
-     * @throws \ByJG\MicroOrm\Exception\OrmModelInvalidException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws OrmModelInvalidException
+     * @throws ReflectionException
      */
     public function __construct(
         DbDriverInterface $dbDriver,
@@ -103,46 +110,48 @@ class UsersDBDataset extends UsersBase
     /**
      * Save the current UsersAnyDataset
      *
-     * @param \ByJG\Authenticate\Model\UserModel $user
-     * @return \ByJG\Authenticate\Model\UserModel
-     * @throws \ByJG\Authenticate\Exception\UserExistsException
-     * @throws \ByJG\MicroOrm\Exception\OrmBeforeInvalidException
-     * @throws \ByJG\MicroOrm\Exception\OrmInvalidFieldsException
-     * @throws \Exception
+     * @param UserModel $model
+     * @return UserModel
+     * @throws UserExistsException
+     * @throws OrmBeforeInvalidException
+     * @throws OrmInvalidFieldsException
+     * @throws Exception
      */
-    public function save(UserModel $user)
+    public function save(UserModel $model): UserModel
     {
         $newUser = false;
-        if (empty($user->getUserid())) {
-            $this->canAddUser($user);
+        if (empty($model->getUserid())) {
+            $this->canAddUser($model);
             $newUser = true;
         }
 
         $this->userRepository->setBeforeUpdate($this->userTable->getBeforeUpdate());
         $this->userRepository->setBeforeInsert($this->userTable->getBeforeInsert());
-        $this->userRepository->save($user);
+        $this->userRepository->save($model);
 
-        foreach ($user->getProperties() as $property) {
-            $property->setUserid($user->getUserid());
+        foreach ($model->getProperties() as $property) {
+            $property->setUserid($model->getUserid());
             $this->propertiesRepository->save($property);
         }
 
         if ($newUser) {
-            $user = $this->getByEmail($user->getEmail());
+            $model = $this->getByEmail($model->getEmail());
         }
 
-        return $user;
+        if ($model === null) {
+            throw new UserExistsException("User not found");
+        }
+
+        return $model;
     }
 
     /**
      * Get the users database information based on a filter.
      *
-     * @param IteratorFilter $filter Filter to find user
+     * @param IteratorFilter|null $filter Filter to find user
      * @return UserModel[]
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
-    public function getIterator(IteratorFilter $filter = null)
+    public function getIterator(IteratorFilter $filter = null): array
     {
         if (is_null($filter)) {
             $filter = new IteratorFilter();
@@ -164,11 +173,9 @@ class UsersDBDataset extends UsersBase
      * Return Row if user was found; null, otherwise
      *
      * @param IteratorFilter $filter Filter to find user
-     * @return UserModel
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @return UserModel|null
      */
-    public function getUser($filter)
+    public function getUser(IteratorFilter $filter): UserModel|null
     {
         $result = $this->getIterator($filter);
         if (count($result) === 0) {
@@ -187,9 +194,9 @@ class UsersDBDataset extends UsersBase
      *
      * @param string $login
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    public function removeByLoginField($login)
+    public function removeByLoginField(string $login): bool
     {
         $user = $this->getByLoginField($login);
 
@@ -203,23 +210,23 @@ class UsersDBDataset extends UsersBase
     /**
      * Remove the user based on his user id.
      *
-     * @param mixed $userId
+     * @param string $userid
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    public function removeUserById($userId)
+    public function removeUserById(string $userid): bool
     {
-        $updateTableProperties = Updatable::getInstance()
+        $updateTableProperties = DeleteQuery::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where(
                 "{$this->getUserPropertiesDefinition()->getUserid()} = :id",
                 [
-                    "id" => $userId
+                    "id" => $userid
                 ]
             );
         $this->propertiesRepository->deleteByQuery($updateTableProperties);
 
-        $this->userRepository->delete($userId);
+        $this->userRepository->delete($userid);
 
         return true;
     }
@@ -227,13 +234,13 @@ class UsersDBDataset extends UsersBase
     /**
      * Get the user based on his property.
      *
-     * @param mixed $propertyName
-     * @param mixed $value
+     * @param string $propertyName
+     * @param string $value
      * @return array
      * @throws InvalidArgumentException
      * @throws ExceptionInvalidArgumentException
      */
-    public function getUsersByProperty($propertyName, $value)
+    public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
     }
@@ -241,12 +248,12 @@ class UsersDBDataset extends UsersBase
     /**
      * Get the user based on his property and value. e.g. [ 'key' => 'value', 'key2' => 'value2' ].
      *
-     * @param mixed $propertiesArray
+     * @param array $propertiesArray
      * @return array
      * @throws InvalidArgumentException
      * @throws ExceptionInvalidArgumentException
      */
-    public function getUsersByPropertySet($propertiesArray)
+    public function getUsersByPropertySet(array $propertiesArray): array
     {
         $query = Query::getInstance()
             ->field("u.*")
@@ -264,16 +271,16 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * @param int|string $userId
+     * @param string $userId
      * @param string $propertyName
-     * @param string $value
+     * @param string|null $value
      * @return bool
-     * @throws \ByJG\Authenticate\Exception\UserNotFoundException
-     * @throws \ByJG\MicroOrm\Exception\OrmBeforeInvalidException
-     * @throws \ByJG\MicroOrm\Exception\OrmInvalidFieldsException
-     * @throws \Exception
+     * @throws UserNotFoundException
+     * @throws OrmBeforeInvalidException
+     * @throws OrmInvalidFieldsException
+     * @throws Exception
      */
-    public function addProperty($userId, $propertyName, $value)
+    public function addProperty(string $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
         $user = $this->getById($userId);
@@ -290,7 +297,15 @@ class UsersDBDataset extends UsersBase
         return true;
     }
 
-    public function setProperty($userId, $propertyName, $value)
+    /**
+     * @throws UpdateConstraintException
+     * @throws RepositoryReadOnlyException
+     * @throws InvalidArgumentException
+     * @throws OrmBeforeInvalidException
+     * @throws ExceptionInvalidArgumentException
+     * @throws OrmInvalidFieldsException
+     */
+    public function setProperty(string $userId, string $propertyName, string|null $value): bool
     {
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
@@ -307,25 +322,28 @@ class UsersDBDataset extends UsersBase
         }
 
         $this->propertiesRepository->save($userProperty);
+
+        return true;
     }
 
     /**
      * Remove a specific site from user
      * Return True or false
      *
-     * @param int|string $userId User Id
+     * @param string $userId User Id
      * @param string $propertyName Property name
-     * @param string $value Property value with a site
+     * @param string|null $value Property value with a site
      * @return bool
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws ExceptionInvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws RepositoryReadOnlyException
      */
-    public function removeProperty($userId, $propertyName, $value = null)
+    public function removeProperty(string $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
         if ($user !== null) {
 
-            $updateable = Updatable::getInstance()
+            $updateable = DeleteQuery::getInstance()
                 ->table($this->getUserPropertiesDefinition()->table())
                 ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ["id" => $userId])
                 ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
@@ -347,13 +365,14 @@ class UsersDBDataset extends UsersBase
      * Return True or false
      *
      * @param string $propertyName Property name
-     * @param string $value Property value with a site
-     * @return bool
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
+     * @param string|null $value Property value with a site
+     * @return void
+     * @throws ExceptionInvalidArgumentException
+     * @throws RepositoryReadOnlyException
      */
-    public function removeAllProperties($propertyName, $value = null)
+    public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
-        $updateable = Updatable::getInstance()
+        $updateable = DeleteQuery::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getName()} = :name", ["name" => $propertyName]);
 
@@ -362,11 +381,9 @@ class UsersDBDataset extends UsersBase
         }
 
         $this->propertiesRepository->deleteByQuery($updateable);
-
-        return true;
     }
 
-    public function getProperty($userId, $propertyName)
+    public function getProperty(string $userId, string $propertyName): array|string|null
     {
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
@@ -393,10 +410,8 @@ class UsersDBDataset extends UsersBase
      * Return all property's fields from this user
      *
      * @param UserModel $userRow
-     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
-    protected function setPropertiesInUser(UserModel $userRow)
+    protected function setPropertiesInUser(UserModel $userRow): void
     {
         $value = $this->propertiesRepository->getMapper()->getFieldMap(UserDefinition::FIELD_USERID)->getUpdateFunctionValue($userRow->getUserid(), $userRow);
         $query = Query::getInstance()
