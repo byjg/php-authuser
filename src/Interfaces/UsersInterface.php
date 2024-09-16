@@ -6,6 +6,7 @@ use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Util\JwtWrapper;
 
 /**
@@ -109,9 +110,9 @@ interface UsersInterface
      * @desc Return all sites from a specific user
      * @param string $userId
      * @param string $propertyName
-     * @return string|array|null String vector with all sites
+     * @return UserPropertiesModel|array<array-key, mixed>|null|string String vector with all sites
      */
-    public function getProperty(string $userId, string $propertyName): array|string|null;
+    public function getProperty(string $userId, string $propertyName): array|string|\ByJG\Authenticate\Model\UserPropertiesModel|null;
 
     /**
      *

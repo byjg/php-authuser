@@ -11,6 +11,7 @@ use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Interfaces\UsersInterface;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Util\JwtWrapper;
 use ByJG\Util\JwtWrapperException;
 use InvalidArgumentException;
@@ -242,11 +243,11 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $userId User ID
      * @param string $propertyName Property name
-     * @return array|string|null
+     * @return array|string|UserPropertiesModel|null
      * @throws UserNotFoundException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
-    public function getProperty(string $userId, string $propertyName): array|string|null
+    public function getProperty(string $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $user = $this->getById($userId);
         if ($user !== null) {

@@ -383,7 +383,7 @@ class UsersDBDataset extends UsersBase
         $this->propertiesRepository->deleteByQuery($updateable);
     }
 
-    public function getProperty(string $userId, string $propertyName): array|string|null
+    public function getProperty(string $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
