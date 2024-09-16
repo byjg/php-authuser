@@ -10,8 +10,8 @@ use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersAnyDataset;
 use ByJG\Authenticate\UsersBase;
-use ByJG\Util\JwtHashHmacSecret;
-use ByJG\Util\JwtWrapper;
+use ByJG\JwtWrapper\JwtHashHmacSecret;
+use ByJG\JwtWrapper\JwtWrapper;
 use PHPUnit\Framework\TestCase;
 
 class UsersAnyDatasetByUsernameTest extends TestCase

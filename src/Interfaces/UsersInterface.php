@@ -7,7 +7,7 @@ use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
-use ByJG\Util\JwtWrapper;
+use ByJG\JwtWrapper\JwtWrapper;
 
 /**
  * IUsersBase is an Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.

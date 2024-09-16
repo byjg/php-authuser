@@ -2,21 +2,18 @@
 
 namespace Tests;
 
+use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Db\Factory;
-use ByJG\AnyDataset\Exception\DatabaseException;
-use ByJG\AnyDataset\Exception\NotFoundException;
-use ByJG\AnyDataset\Exception\NotImplementedException;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersDBDataset;
-use ByJG\MicroOrm\Exception\InvalidArgumentException;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
-use ByJG\Util\Exception\XmlUtilException;
 use Exception;
+use ReflectionException;
 
 class MyUserModel extends UserModel
 {
@@ -45,13 +42,11 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
     /**
      * @param $loginField
-     * @throws UserExistsException
-     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
-     * @throws InvalidArgumentException
      * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
      * @throws OrmModelInvalidException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws UserExistsException
+     * @throws ReflectionException
      */
     public function __setUp($loginField)
     {
@@ -112,13 +107,11 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     }
 
     /**
-     * @throws InvalidArgumentException
      * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
      * @throws OrmModelInvalidException
+     * @throws ReflectionException
      * @throws UserExistsException
-     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function setUp(): void
     {
@@ -127,7 +120,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
     /**
      * @throws UserExistsException
-     * @throws \ByJG\AnyDataset\Core\Exception\DatabaseException
+     * @throws DatabaseException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
     public function testAddUser()

@@ -12,9 +12,8 @@ use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Interfaces\UsersInterface;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
-use ByJG\Util\JwtWrapper;
-use ByJG\Util\JwtWrapperException;
-use InvalidArgumentException;
+use ByJG\JwtWrapper\JwtWrapper;
+use ByJG\JwtWrapper\JwtWrapperException;
 
 /**
  * Base implementation to search and handle users in XMLNuke.
