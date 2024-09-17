@@ -19,6 +19,7 @@ use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
 use ByJG\MicroOrm\Exception\UpdateConstraintException;
 use ByJG\MicroOrm\FieldMapping;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
@@ -210,11 +211,11 @@ class UsersDBDataset extends UsersBase
     /**
      * Remove the user based on his user id.
      *
-     * @param string $userid
+     * @param string|HexUuidLiteral|int $userid
      * @return bool
      * @throws Exception
      */
-    public function removeUserById(string $userid): bool
+    public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $updateTableProperties = DeleteQuery::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
@@ -271,7 +272,7 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool
@@ -280,7 +281,7 @@ class UsersDBDataset extends UsersBase
      * @throws OrmInvalidFieldsException
      * @throws Exception
      */
-    public function addProperty(string $userId, string $propertyName, string|null $value): bool
+    public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
         $user = $this->getById($userId);
@@ -305,7 +306,7 @@ class UsersDBDataset extends UsersBase
      * @throws ExceptionInvalidArgumentException
      * @throws OrmInvalidFieldsException
      */
-    public function setProperty(string $userId, string $propertyName, string|null $value): bool
+    public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
@@ -330,7 +331,7 @@ class UsersDBDataset extends UsersBase
      * Remove a specific site from user
      * Return True or false
      *
-     * @param string $userId User Id
+     * @param string|int|HexUuidLiteral $userId User Id
      * @param string $propertyName Property name
      * @param string|null $value Property value with a site
      * @return bool
@@ -338,7 +339,7 @@ class UsersDBDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws RepositoryReadOnlyException
      */
-    public function removeProperty(string $userId, string $propertyName, string|null $value = null): bool
+    public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
         if ($user !== null) {
@@ -383,7 +384,7 @@ class UsersDBDataset extends UsersBase
         $this->propertiesRepository->deleteByQuery($updateable);
     }
 
-    public function getProperty(string $userId, string $propertyName): array|string|UserPropertiesModel|null
+    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())

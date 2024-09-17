@@ -14,6 +14,7 @@ use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use ByJG\Serializer\Exception\InvalidArgumentException;
 use ByJG\XmlUtil\Exception\FileException;
 
@@ -175,7 +176,7 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      * @return boolean
@@ -185,7 +186,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws UserNotFoundException
      */
-    public function addProperty(string $userId, string $propertyName, string|null $value): bool
+    public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
         $user = $this->getById($userId);
@@ -206,7 +207,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws FileException
      */
-    public function setProperty(string $userId, string $propertyName, string|null $value): bool
+    public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $user = $this->getById($userId);
         if ($user !== null) {
@@ -218,7 +219,7 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      * @return boolean
@@ -227,7 +228,7 @@ class UsersAnyDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws UserExistsException
      */
-    public function removeProperty(string $userId, string $propertyName, string|null $value = null): bool
+    public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
         if (!empty($user)) {
@@ -295,11 +296,11 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @param string $userid
+     * @param string|HexUuidLiteral|int $userid
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function removeUserById(string $userid): bool
+    public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $iteratorFilter = new IteratorFilter();
         $iteratorFilter->and($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);

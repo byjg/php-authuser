@@ -3,11 +3,12 @@
 namespace ByJG\Authenticate\Model;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use InvalidArgumentException;
 
 class UserModel
 {
-    protected ?string $userid = null;
+    protected string|int|HexUuidLiteral|null $userid = null;
     protected ?string $name = null;
     protected ?string $email = null;
     protected ?string $username = null;
@@ -39,17 +40,17 @@ class UserModel
 
 
     /**
-     * @return string|null
+     * @return string|int|HexUuidLiteral|null
      */
-    public function getUserid(): ?string
+    public function getUserid(): string|int|HexUuidLiteral|null
     {
         return $this->userid;
     }
 
     /**
-     * @param string|null $userid
+     * @param string|int|HexUuidLiteral|null $userid
      */
-    public function setUserid(?string $userid): void
+    public function setUserid(string|int|HexUuidLiteral|null $userid): void
     {
         $this->userid = $userid;
     }

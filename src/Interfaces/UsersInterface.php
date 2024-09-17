@@ -8,6 +8,7 @@ use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\JwtWrapper\JwtWrapper;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 
 /**
  * IUsersBase is an Interface to Store and Retrive USERS from an AnyDataset or a DBDataset structure.
@@ -49,10 +50,10 @@ interface UsersInterface
     /**
      * Enter description here...
      *
-     * @param string $userid
+     * @param string|HexUuidLiteral|int $userid
      * @return UserModel|null
      */
-    public function getById(string $userid): UserModel|null;
+    public function getById(string|HexUuidLiteral|int $userid): UserModel|null;
 
     /**
      * @desc Get the user based on his email.
@@ -92,51 +93,51 @@ interface UsersInterface
 
     /**
      *
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @return bool
      */
-    public function isAdmin(string $userId): bool;
+    public function isAdmin(string|HexUuidLiteral|int $userId): bool;
 
     /**
      * @desc Check if the user have rights to edit specific site.
-     * @param string $userId
+     * @param string|int|HexUuidLiteral|null $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool True, if it has the property; false, otherwisebool
      */
-    public function hasProperty(string $userId, string $propertyName, string $value = null): bool;
+    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string $value = null): bool;
 
     /**
      * @desc Return all sites from a specific user
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @return UserPropertiesModel|array<array-key, mixed>|null|string String vector with all sites
      */
-    public function getProperty(string $userId, string $propertyName): array|string|\ByJG\Authenticate\Model\UserPropertiesModel|null;
+    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|\ByJG\Authenticate\Model\UserPropertiesModel|null;
 
     /**
      *
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      */
-    public function addProperty(string $userId, string $propertyName, string|null $value): bool;
+    public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool;
 
     /**
      *
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      */
-    public function setProperty(string $userId, string $propertyName, string|null $value): bool;
+    public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool;
 
     /**
      *
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      */
-    public function removeProperty(string $userId, string $propertyName, string|null $value = null): bool;
+    public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool;
 
     /**
      * @desc Remove a specific site from all users
@@ -187,8 +188,8 @@ interface UsersInterface
     public function getUserPropertiesDefinition(): UserPropertiesDefinition;
 
     /**
-     * @param string $userid
+     * @param string|int|HexUuidLiteral $userid
      * @return bool
      */
-    public function removeUserById(string $userid): bool;
+    public function removeUserById(string|HexUuidLiteral|int $userid): bool;
 }

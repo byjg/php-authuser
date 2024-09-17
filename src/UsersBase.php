@@ -14,6 +14,8 @@ use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\JwtWrapper\JwtWrapper;
 use ByJG\JwtWrapper\JwtWrapperException;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\Serializer\Exception\InvalidArgumentException;
 
 /**
  * Base implementation to search and handle users in XMLNuke.
@@ -84,7 +86,7 @@ abstract class UsersBase implements UsersInterface
      * @param UserModel $model
      * @return bool
      * @throws UserExistsException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function canAddUser(UserModel $model): bool
     {
@@ -115,7 +117,7 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $email
      * @return UserModel|null
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function getByEmail(string $email): UserModel|null
     {
@@ -130,7 +132,7 @@ abstract class UsersBase implements UsersInterface
      *
      * @param string $username
      * @return UserModel|null
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function getByUsername(string $username): UserModel|null
     {
@@ -158,11 +160,11 @@ abstract class UsersBase implements UsersInterface
      * Get the user based on his id.
      * Return Row if user was found; null, otherwise
      *
-     * @param string $userid
+     * @param string|HexUuidLiteral|int $userid
      * @return UserModel|null
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function getById(string $userid): UserModel|null
+    public function getById(string|HexUuidLiteral|int $userid): UserModel|null
     {
         $filter = new IteratorFilter();
         $filter->and($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
@@ -184,7 +186,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $userName User login
      * @param string $password Plain text password
      * @return UserModel|null
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function isValidUser(string $userName, string $password): UserModel|null
     {
@@ -203,14 +205,14 @@ abstract class UsersBase implements UsersInterface
      * Check if the user have a property and it has a specific value.
      * Return True if you have rights; false, otherwise
      *
-     * @param string $userId User identification
+     * @param string|int|HexUuidLiteral|null $userId User identification
      * @param string $propertyName
      * @param string|null $value Property value
      * @return bool
      * @throws UserNotFoundException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function hasProperty(string $userId, string $propertyName, string $value = null): bool
+    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string $value = null): bool
     {
         //anydataset.Row
         $user = $this->getById($userId);
@@ -240,13 +242,13 @@ abstract class UsersBase implements UsersInterface
      * Return all sites from a specific user
      * Return String vector with all sites
      *
-     * @param string $userId User ID
+     * @param string|int|HexUuidLiteral $userId User ID
      * @param string $propertyName Property name
      * @return array|string|UserPropertiesModel|null
      * @throws UserNotFoundException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function getProperty(string $userId, string $propertyName): array|string|UserPropertiesModel|null
+    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $user = $this->getById($userId);
         if ($user !== null) {
@@ -268,22 +270,22 @@ abstract class UsersBase implements UsersInterface
 
     /**
      *
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @param string $propertyName
      * @param string|null $value
      */
-    abstract public function addProperty(string $userId, string $propertyName, string|null $value): bool;
+    abstract public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool;
 
     /**
      * Remove a specific site from user
      * Return True or false
      *
-     * @param string $userId User login
+     * @param string|int|HexUuidLiteral $userId User login
      * @param string $propertyName Property name
      * @param string|null $value Property value with a site
      * @return bool
      * */
-    abstract public function removeProperty(string $userId, string $propertyName, string|null $value = null): bool;
+    abstract public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool;
 
     /**
      * Remove a specific site from all users
@@ -296,12 +298,12 @@ abstract class UsersBase implements UsersInterface
     abstract public function removeAllProperties(string $propertyName, string|null $value = null): void;
 
     /**
-     * @param string $userId
+     * @param string|int|HexUuidLiteral $userId
      * @return bool
      * @throws UserNotFoundException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function isAdmin(string $userId): bool
+    public function isAdmin(string|HexUuidLiteral|int $userId): bool
     {
         $user = $this->getById($userId);
 
@@ -325,7 +327,7 @@ abstract class UsersBase implements UsersInterface
      * @param array $updateTokenInfo
      * @return string|null the TOKEN or false if you don't.
      * @throws UserNotFoundException
-     * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function createAuthToken(
         string     $login,
@@ -394,7 +396,7 @@ abstract class UsersBase implements UsersInterface
     }
 
     /**
-     * @param string $userid
+     * @param string|int|HexUuidLiteral $userid
      */
-    abstract public function removeUserById(string $userid): bool;
+    abstract public function removeUserById(string|HexUuidLiteral|int $userid): bool;
 }
