@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
 use ByJG\AnyDataset\Core\AnyDataset;
 use ByJG\Authenticate\Definition\UserDefinition;
@@ -8,16 +8,18 @@ use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Model\UserModel;
-use ByJG\Util\JwtKeySecret;
-use ByJG\Util\JwtWrapper;
+use ByJG\Authenticate\UsersAnyDataset;
+use ByJG\Authenticate\UsersBase;
+use ByJG\JwtWrapper\JwtHashHmacSecret;
+use ByJG\JwtWrapper\JwtWrapper;
 use PHPUnit\Framework\TestCase;
 
 class UsersAnyDatasetByUsernameTest extends TestCase
 {
     /**
-     * @var UsersAnyDataset
+     * @var UsersBase|null
      */
-    protected $object;
+    protected UsersBase|null $object = null;
 
     /**
      * @var UserDefinition
@@ -219,7 +221,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     {
         $loginCreated = $this->__chooseValue('user2', 'user2@gmail.com');
 
-        $jwtWrapper = new JwtWrapper('api.test.com', new JwtKeySecret('12345678', false));
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
 
         $token = $this->object->createAuthToken(
             $loginCreated,
@@ -259,7 +261,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
 
-        $jwtWrapper = new JwtWrapper('api.test.com', new JwtKeySecret('1234567'));
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('1234567'));
         $token = $this->object->createAuthToken(
             $login,
             'pwd2',
@@ -270,13 +272,6 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         );
 
         $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
-    }
-
-    public function testCreateAuthTokenFail_2()
-    {
-        $this->expectException(NotAuthenticatedException::class);
-        $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
-        $this->object->isValidToken($loginToFail, 'api.test.com', '1234567', 'Invalid token');
     }
 
     public function testSaveAndSave()

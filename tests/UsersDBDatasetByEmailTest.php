@@ -1,8 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate;
-
-require_once 'UsersDBDatasetByUsernameTest.php';
+namespace Tests;
 
 use ByJG\Authenticate\Definition\UserDefinition;
 

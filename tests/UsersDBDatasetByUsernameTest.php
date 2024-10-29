@@ -1,13 +1,12 @@
 <?php
 
-namespace ByJG\Authenticate;
-
-require_once 'UsersAnyDatasetByUsernameTest.php';
+namespace Tests;
 
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\UsersDBDataset;
 use ByJG\Util\Uri;
 
 class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
@@ -21,7 +20,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
     {
         $this->prefix = "";
 
-        $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
+        $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
         $this->db->execute('create table users (
             userid integer primary key  autoincrement, 
             name varchar(45), 
@@ -156,10 +155,10 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
     public function testSaveAndSave()
     {
-        $user = $this->object->getById(1);
+        $user = $this->object->getById("1");
         $this->object->save($user);
 
-        $user2 = $this->object->getById(1);
+        $user2 = $this->object->getById("1");
 
         $this->assertEquals($user, $user2);
     }

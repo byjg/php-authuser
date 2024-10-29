@@ -2,85 +2,87 @@
 
 namespace ByJG\Authenticate\Model;
 
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
+
 class UserPropertiesModel
 {
-    protected $userid;
-    protected $id;
-    protected $name;
-    protected $value;
+    protected string|int|HexUuidLiteral|null $userid = null;
+    protected ?string $id = null;
+    protected ?string $name = null;
+    protected ?string $value = null;
 
     /**
      * UserPropertiesModel constructor.
      *
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param string $value
      */
-    public function __construct($name = "", $value = "")
+    public function __construct(string $name = "", string $value = "")
     {
         $this->name = $name;
         $this->value = $value;
     }
 
     /**
-     * @return mixed
+     * @return string|int|HexUuidLiteral|null
      */
-    public function getUserid()
+    public function getUserid(): string|int|HexUuidLiteral|null
     {
         return $this->userid;
     }
 
     /**
-     * @param mixed $userid
+     * @param string|int|HexUuidLiteral|null $userid
      */
-    public function setUserid($userid)
+    public function setUserid(string|int|HexUuidLiteral|null $userid): void
     {
         $this->userid = $userid;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getId()
+    public function getId(): ?string
     {
         return $this->id;
     }
 
     /**
-     * @param mixed $id
+     * @param string|null $id
      */
-    public function setId($id)
+    public function setId(?string $id): void
     {
         $this->id = $id;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
     /**
-     * @param mixed $name
+     * @param string|null $name
      */
-    public function setName($name)
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getValue()
+    public function getValue(): ?string
     {
         return $this->value;
     }
 
     /**
-     * @param mixed $value
+     * @param string|null $value
      */
-    public function setValue($value)
+    public function setValue(?string $value): void
     {
         $this->value = $value;
     }

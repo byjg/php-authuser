@@ -2,30 +2,34 @@
 
 namespace ByJG\Authenticate\Model;
 
+use ByJG\Authenticate\Definition\PasswordDefinition;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use InvalidArgumentException;
+
 class UserModel
 {
-    protected $userid;
-    protected $name;
-    protected $email;
-    protected $username;
-    protected $password;
-    protected $created;
-    protected $admin;
+    protected string|int|HexUuidLiteral|null $userid = null;
+    protected ?string $name = null;
+    protected ?string $email = null;
+    protected ?string $username = null;
+    protected ?string $password = null;
+    protected ?string $created = null;
+    protected ?string $admin = null;
 
-    protected $passwordDefinition;
+    protected ?PasswordDefinition $passwordDefinition = null;
 
-    protected $propertyList = [];
+    protected array $propertyList = [];
 
     /**
      * UserModel constructor.
      *
-     * @param $name
-     * @param $email
-     * @param $username
-     * @param $password
-     * @param $admin
+     * @param string $name
+     * @param string $email
+     * @param string $username
+     * @param string $password
+     * @param string $admin
      */
-    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no")
+    public function __construct(string $name = "", string $email = "", string $username = "", string $password = "", string $admin = "no")
     {
         $this->name = $name;
         $this->email = $email;
@@ -36,122 +40,122 @@ class UserModel
 
 
     /**
-     * @return mixed
+     * @return string|int|HexUuidLiteral|null
      */
-    public function getUserid()
+    public function getUserid(): string|int|HexUuidLiteral|null
     {
         return $this->userid;
     }
 
     /**
-     * @param mixed $userid
+     * @param string|int|HexUuidLiteral|null $userid
      */
-    public function setUserid($userid)
+    public function setUserid(string|int|HexUuidLiteral|null $userid): void
     {
         $this->userid = $userid;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
     /**
-     * @param mixed $name
+     * @param string|null $name
      */
-    public function setName($name)
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getEmail()
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
     /**
-     * @param mixed $email
+     * @param string|null $email
      */
-    public function setEmail($email)
+    public function setEmail(?string $email): void
     {
         $this->email = $email;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getUsername()
+    public function getUsername(): ?string
     {
         return $this->username;
     }
 
     /**
-     * @param mixed $username
+     * @param string|null $username
      */
-    public function setUsername($username)
+    public function setUsername(?string $username): void
     {
         $this->username = $username;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getPassword()
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
     /**
-     * @param mixed $password
+     * @param string|null $password
      */
-    public function setPassword($password)
+    public function setPassword(?string $password): void
     {
         // Password len equals to 40 means that the password is already encrypted with sha1
         if (!empty($password) && strlen($password) != 40 && !empty($this->passwordDefinition) && !$this->passwordDefinition->matchPassword($password)) {
-            throw new \InvalidArgumentException("Password does not match the password definition");
+            throw new InvalidArgumentException("Password does not match the password definition");
         }
         $this->password = $password;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getCreated()
+    public function getCreated(): ?string
     {
         return $this->created;
     }
 
     /**
-     * @param mixed $created
+     * @param string|null $created
      */
-    public function setCreated($created)
+    public function setCreated(?string $created): void
     {
         $this->created = $created;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getAdmin()
+    public function getAdmin(): ?string
     {
         return $this->admin;
     }
 
     /**
-     * @param mixed $admin
+     * @param string|null $admin
      */
-    public function setAdmin($admin)
+    public function setAdmin(?string $admin): void
     {
         $this->admin = $admin;
     }
 
-    public function set($name, $value)
+    public function set(string $name, string|null $value): void
     {
         $property = $this->get($name, true);
         if (empty($property)) {
@@ -163,11 +167,11 @@ class UserModel
     }
 
     /**
-     * @param $property
+     * @param string $property
      * @param bool $instance
-     * @return \ByJG\Authenticate\Model\UserPropertiesModel|array|string
+     * @return array|string|UserPropertiesModel|null
      */
-    public function get($property, $instance = false)
+    public function get(string $property, bool $instance = false): array|string|UserPropertiesModel|null
     {
         $result = [];
         foreach ($this->getProperties() as $propertiesModel) {
@@ -191,27 +195,27 @@ class UserModel
     }
 
     /**
-     * @return \ByJG\Authenticate\Model\UserPropertiesModel[]
+     * @return UserPropertiesModel[]
      */
-    public function getProperties()
+    public function getProperties(): array
     {
         return $this->propertyList;
     }
 
     /**
-     * @param \ByJG\Authenticate\Model\UserPropertiesModel[] $properties
+     * @param UserPropertiesModel[] $properties
      */
-    public function setProperties(array $properties)
+    public function setProperties(array $properties): void
     {
         $this->propertyList = $properties;
     }
 
-    public function addProperty(UserPropertiesModel $property)
+    public function addProperty(UserPropertiesModel $property): void
     {
         $this->propertyList[] = $property;
     }
 
-    public function withPasswordDefinition($passwordDefinition)
+    public function withPasswordDefinition(PasswordDefinition $passwordDefinition): static
     {
         $this->passwordDefinition = $passwordDefinition;
         return $this;

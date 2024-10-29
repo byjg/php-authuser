@@ -1,14 +1,16 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
+use ByJG\Authenticate\Interfaces\UserContextInterface;
+use ByJG\Authenticate\SessionContext;
 use ByJG\Cache\Factory;
 use PHPUnit\Framework\TestCase;
 
 class SessionContextTest extends TestCase
 {
     /**
-     * @var \ByJG\Authenticate\Interfaces\UserContextInterface
+     * @var UserContextInterface
      */
     protected $object;
     

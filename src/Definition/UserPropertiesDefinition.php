@@ -4,12 +4,11 @@ namespace ByJG\Authenticate\Definition;
 
 class UserPropertiesDefinition
 {
-
-    protected $table;
-    protected $id;
-    protected $name;
-    protected $value;
-    protected $userid;
+    protected string $table;
+    protected string $id;
+    protected string $name;
+    protected string $value;
+    protected string $userid;
 
     /**
      * Define the name of fields and table to store and retrieve info from database
@@ -22,11 +21,11 @@ class UserPropertiesDefinition
      * @param string $userid
      */
     public function __construct(
-        $table = 'users_property',
-        $id = 'id',
-        $name = 'name',
-        $value = 'value',
-        $userid = UserDefinition::FIELD_USERID
+        string $table = 'users_property',
+        string $id = 'id',
+        string $name = 'name',
+        string $value = 'value',
+        string $userid = UserDefinition::FIELD_USERID
     ) {
         $this->table = $table;
         $this->id = $id;
@@ -38,7 +37,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function table()
+    public function table(): string
     {
         return $this->table;
     }
@@ -46,7 +45,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
@@ -54,7 +53,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -62,7 +61,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
     }
@@ -70,7 +69,7 @@ class UserPropertiesDefinition
     /**
      * @return string
      */
-    public function getUserid()
+    public function getUserid(): string
     {
         return $this->userid;
     }

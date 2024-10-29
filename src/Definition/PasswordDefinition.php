@@ -2,6 +2,8 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use InvalidArgumentException;
+
 class PasswordDefinition
 {
     const MINIMUM_CHARS = "minimum_chars";
@@ -13,7 +15,7 @@ class PasswordDefinition
     const ALLOW_SEQUENTIAL = "allow_sequential";
     const ALLOW_REPEATED = "allow_repeated";
 
-    protected $rules = [];
+    protected array $rules = [];
 
     public function __construct($rules = null)
     {
@@ -32,28 +34,28 @@ class PasswordDefinition
         }
     }
 
-    public function setRule($rule, $value)
+    public function setRule(string $rule, string|bool|int $value): void
     {
         if (!array_key_exists($rule, $this->rules)) {
-            throw new \InvalidArgumentException("Invalid rule");
+            throw new InvalidArgumentException("Invalid rule");
         }
         $this->rules[$rule] = $value;
     }
 
-    public function getRules()
+    public function getRules(): array
     {
         return $this->rules;
     }
 
-    public function getRule($rule)
+    public function getRule($rule): string|bool|int
     {
         if (!array_key_exists($rule, $this->rules)) {
-            throw new \InvalidArgumentException("Invalid rule");
+            throw new InvalidArgumentException("Invalid rule");
         }
         return $this->rules[$rule];
     }
 
-    public function matchPassword($password)
+    public function matchPassword(string $password): bool
     {
         // match password against the rules
         if (strlen($password) < $this->rules[self::MINIMUM_CHARS]) {

@@ -1,10 +1,8 @@
 <?php
 
-namespace ByJG\Authenticate;
+namespace Tests;
 
 use ByJG\Authenticate\Definition\UserDefinition;
-
-require_once 'UsersAnyDataset2ByUsernameTest.php';
 
 class UsersAnyDataset2EmailTest extends UsersAnyDatasetByUsernameTest
 {

@@ -6,7 +6,7 @@
 [![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
-A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases and Moodle.
+A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases.
 
 The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer.
 This class can persist into session (or file, memcache, etc) the user data between requests.
@@ -33,27 +33,6 @@ $users = new ByJG\Authenticate\UsersDBDataset(
 
 *Note*: See the [Anydataset project](https://github.com/byjg/anydataset#connection-based-on-uri) to see the
 database available and the connection strings as well.
-
-Using the Moodle as the user storage:
-
-```php
-<?php
-$users = new UsersMoodleDataset('connection');
-```
-
-## Authenticate a user with your username and password and persist into the session
-
-```php
-<?php
-$user = $users->isValidUser('someuser', '12345');
-if (!is_null($user))
-{
-    $userId = $user->getUserid();
-
-    $sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
-    $sessionContext->registerLogin($userId);
-}
-```
 
 ## Check if user was previously authenticated
 
@@ -151,14 +130,13 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
                     │                        │                         │
                     │                        │                         │
           ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐
-          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ UsersMoodleDataset │
+          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ xxxxxxxxxxxxxxxxxx │
           └───────────────────┘    └───────────────────┘    └────────────────────┘
 ```
 
 - UserInterface contain the basic interface for the concrete implementation
 - UsersDBDataset is a concrete implementation to retrieve/save user in a Database
 - UserAnyDataset is a concrete implementation to retrieve/save user in a Xml file
-- UsersMoodleDatabase is a concrete implementation to retrieve users in a Moodle database structure.
 - UserModel is the basic model get/set for the user
 - UserPropertyModel is the basic model get/set for extra user property
 - UserDefinition will map the model to the database
