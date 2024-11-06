@@ -64,8 +64,8 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('1234567'));
-        $this->assertTrue($passwordDefinition->matchPassword('12345678'));
+        $this->assertEquals(PasswordDefinition::FAIL_MINIMUM_CHARS, $passwordDefinition->matchPassword('1234567'));
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('12345678'));
     }
 
     public function testMatchPasswordUppercase()
@@ -80,9 +80,9 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('12345678'));
-        $this->assertFalse($passwordDefinition->matchPassword('12345678A'));
-        $this->assertTrue($passwordDefinition->matchPassword('1234567BA'));
+        $this->assertEquals(PasswordDefinition::FAIL_UPPERCASE, $passwordDefinition->matchPassword('12345678'));
+        $this->assertEquals(PasswordDefinition::FAIL_UPPERCASE, $passwordDefinition->matchPassword('12345678A'));
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567BA'));
     }
 
     public function testMatchPasswordLowercase()
@@ -97,9 +97,9 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('12345678'));
-        $this->assertFalse($passwordDefinition->matchPassword('12345678a'));
-        $this->assertTrue($passwordDefinition->matchPassword('1234567ba'));
+        $this->assertEquals(PasswordDefinition::FAIL_LOWERCASE, $passwordDefinition->matchPassword('12345678'));
+        $this->assertEquals(PasswordDefinition::FAIL_LOWERCASE, $passwordDefinition->matchPassword('12345678a'));
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567ba'));
     }
 
     public function testMatchPasswordSymbols()
@@ -114,9 +114,9 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('12345678'));
-        $this->assertFalse($passwordDefinition->matchPassword('12345678!'));
-        $this->assertTrue($passwordDefinition->matchPassword('1234567!!'));
+        $this->assertEquals(PasswordDefinition::FAIL_SYMBOLS, $passwordDefinition->matchPassword('12345678'));
+        $this->assertEquals(PasswordDefinition::FAIL_SYMBOLS, $passwordDefinition->matchPassword('12345678!'));
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567!!'));
     }
 
     public function testMatchPasswordNumbers()
@@ -131,9 +131,9 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('abcdefgh'));
-        $this->assertFalse($passwordDefinition->matchPassword('abcdefg1'));
-        $this->assertTrue($passwordDefinition->matchPassword('abcdef11'));
+        $this->assertEquals(PasswordDefinition::FAIL_NUMBERS, $passwordDefinition->matchPassword('abcdefgh'));
+        $this->assertEquals(PasswordDefinition::FAIL_NUMBERS, $passwordDefinition->matchPassword('abcdefg1'));
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('abcdef11'));
     }
 
     public function testMatchPasswordWhitespace()
@@ -148,7 +148,7 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 1,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('1234 678'));
+        $this->assertEquals(PasswordDefinition::FAIL_WHITESPACE, $passwordDefinition->matchPassword('1234 678'));
     }
 
     public function testMatchPasswordSequential()
@@ -163,11 +163,11 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_SEQUENTIAL => 0,   // Allow sequential characters
             PasswordDefinition::ALLOW_REPEATED => 1      // Allow repeated characters
         ]);
-        $this->assertFalse($passwordDefinition->matchPassword('123asdkls'));     // 123 is sequential
-        $this->assertFalse($passwordDefinition->matchPassword('sds456sks'));     // 456 is sequential
-        $this->assertFalse($passwordDefinition->matchPassword('aju654sks'));     // 654 is sequential
-        $this->assertFalse($passwordDefinition->matchPassword('791fghkalal'));   // fgh is sequential
-        $this->assertTrue($passwordDefinition->matchPassword('diykdsn132'));
+        $this->assertEquals(PasswordDefinition::FAIL_SEQUENTIAL, $passwordDefinition->matchPassword('123asdkls'));     // 123 is sequential
+        $this->assertEquals(PasswordDefinition::FAIL_SEQUENTIAL, $passwordDefinition->matchPassword('sds456sks'));     // 456 is sequential
+        $this->assertEquals(PasswordDefinition::FAIL_SEQUENTIAL, $passwordDefinition->matchPassword('aju654sks'));     // 654 is sequential
+        $this->assertEquals(PasswordDefinition::FAIL_SEQUENTIAL, $passwordDefinition->matchPassword('791fghkalal'));   // fgh is sequential
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('diykdsn132'));
     }
 
     public function testMatchCharsRepeated()
@@ -183,9 +183,9 @@ class PasswordDefinitionTest extends TestCase
             PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
         ]);
 
-        $this->assertFalse($passwordDefinition->matchPassword('hay111oihsc'));      // 111 is repeated
-        $this->assertFalse($passwordDefinition->matchPassword('haycccoihsc'));      // ccc is repeated
-        $this->assertFalse($passwordDefinition->matchPassword('oilalalapo'));      // lalala is repeated
-        $this->assertTrue($passwordDefinition->matchPassword('hay1d11oihsc'));
+        $this->assertEquals(PasswordDefinition::FAIL_REPEATED, $passwordDefinition->matchPassword('hay111oihsc'));      // 111 is repeated
+        $this->assertEquals(PasswordDefinition::FAIL_REPEATED, $passwordDefinition->matchPassword('haycccoihsc'));      // ccc is repeated
+        $this->assertEquals(PasswordDefinition::FAIL_REPEATED, $passwordDefinition->matchPassword('oilalalapo'));      // lalala is repeated
+        $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('hay1d11oihsc'));
     }
 }
