@@ -411,10 +411,11 @@ class UsersDBDataset extends UsersBase
      * Return all property's fields from this user
      *
      * @param UserModel $userRow
+     * @throws RepositoryReadOnlyException
      */
     protected function setPropertiesInUser(UserModel $userRow): void
     {
-        $value = $this->propertiesRepository->getMapper()->getFieldMap(UserDefinition::FIELD_USERID)->getUpdateFunctionValue($userRow->getUserid(), $userRow);
+        $value = $this->propertiesRepository->getMapper()->getFieldMap(UserDefinition::FIELD_USERID)->getUpdateFunctionValue($userRow->getUserid(), $userRow, $this->propertiesRepository->getDbDriverWrite()->getDbHelper());
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' => $value]);
