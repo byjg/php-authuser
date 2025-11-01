@@ -16,6 +16,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
     protected $db;
 
+    #[\Override]
     public function __setUp($loginField)
     {
         $this->prefix = "";
@@ -59,11 +60,13 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
+    #[\Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         $uri = new Uri(self::CONNECTION_STRING);
@@ -73,6 +76,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->propertyDefinition = null;
     }
 
+    #[\Override]
     public function testAddUser()
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
@@ -96,6 +100,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('y', $user2->getAdmin());
     }
 
+    #[\Override]
     public function testCreateAuthToken()
     {
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
@@ -153,6 +158,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
     }
 
+    #[\Override]
     public function testSaveAndSave()
     {
         $user = $this->object->getById("1");

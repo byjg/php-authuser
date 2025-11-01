@@ -39,6 +39,7 @@ class SessionContext implements UserContextInterface
      * @return bool Return true if authenticated; false otherwise.
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function isAuthenticated(): bool
     {
         $item = $this->session->getItem("user.$this->key");
@@ -52,6 +53,7 @@ class SessionContext implements UserContextInterface
      * @return string|int The authenticated username if exists.
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function userInfo(): string|int
     {
         $item = $this->session->getItem("user.$this->key");
@@ -63,6 +65,7 @@ class SessionContext implements UserContextInterface
      * @param array $data
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function registerLogin(string|int $userId, array $data = []): void
     {
         $item = $this->session->getItem("user.$this->key");
@@ -84,6 +87,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function setSessionData(string $name, mixed $value): void
     {
         if (!$this->isAuthenticated()) {
@@ -110,6 +114,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getSessionData(string $name): mixed
     {
         if (!$this->isAuthenticated()) {
@@ -137,6 +142,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function registerLogout(): void
     {
         $this->session->deleteItem("user.$this->key");

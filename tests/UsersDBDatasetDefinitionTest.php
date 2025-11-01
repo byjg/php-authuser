@@ -48,6 +48,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws UserExistsException
      * @throws ReflectionException
      */
+    #[\Override]
     public function __setUp($loginField)
     {
         $this->prefix = "";
@@ -113,6 +114,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws ReflectionException
      * @throws UserExistsException
      */
+    #[\Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
@@ -123,6 +125,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws DatabaseException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
+    #[\Override]
     public function testAddUser()
     {
         $this->object->save(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', 'no', 'other john'));
@@ -151,6 +154,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     /**
      * @throws Exception
      */
+    #[\Override]
     public function testWithUpdateValue()
     {
         // For Update Definitions

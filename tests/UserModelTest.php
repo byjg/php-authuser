@@ -15,11 +15,13 @@ class UserModelTest extends TestCase
      */
     protected $object;
 
+    #[\Override]
     public function setUp(): void
     {
         $this->object = new UserModel();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         $this->object = null;

@@ -36,6 +36,7 @@ abstract class UsersBase implements UsersInterface
     /**
      * @return UserDefinition
      */
+    #[\Override]
     public function getUserDefinition(): UserDefinition
     {
         if ($this->userTable === null) {
@@ -47,6 +48,7 @@ abstract class UsersBase implements UsersInterface
     /**
      * @return UserPropertiesDefinition
      */
+    #[\Override]
     public function getUserPropertiesDefinition(): UserPropertiesDefinition
     {
         if ($this->propertiesTable === null) {
@@ -60,6 +62,7 @@ abstract class UsersBase implements UsersInterface
      *
      * @param UserModel $model
      */
+    #[\Override]
     abstract public function save(UserModel $model): UserModel;
 
     /**
@@ -71,6 +74,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $password
      * @return UserModel
      */
+    #[\Override]
     public function addUser(string $name, string $userName, string $email, string $password): UserModel
     {
         $model = $this->getUserDefinition()->modelInstance();
@@ -88,6 +92,7 @@ abstract class UsersBase implements UsersInterface
      * @throws UserExistsException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function canAddUser(UserModel $model): bool
     {
         if ($this->getByEmail($model->getEmail()) !== null) {
@@ -109,6 +114,7 @@ abstract class UsersBase implements UsersInterface
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel|null
      * */
+    #[\Override]
     abstract public function getUser(IteratorFilter $filter): UserModel|null;
 
     /**
@@ -119,6 +125,7 @@ abstract class UsersBase implements UsersInterface
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getByEmail(string $email): UserModel|null
     {
         $filter = new IteratorFilter();
@@ -134,6 +141,7 @@ abstract class UsersBase implements UsersInterface
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getByUsername(string $username): UserModel|null
     {
         $filter = new IteratorFilter();
@@ -148,6 +156,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $login
      * @return UserModel|null
      */
+    #[\Override]
     public function getByLoginField(string $login): UserModel|null
     {
         $filter = new IteratorFilter();
@@ -164,6 +173,7 @@ abstract class UsersBase implements UsersInterface
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getById(string|HexUuidLiteral|int $userid): UserModel|null
     {
         $filter = new IteratorFilter();
@@ -177,6 +187,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $login
      * @return bool
      * */
+    #[\Override]
     abstract public function removeByLoginField(string $login): bool;
 
     /**
@@ -188,6 +199,7 @@ abstract class UsersBase implements UsersInterface
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function isValidUser(string $userName, string $password): UserModel|null
     {
         $filter = new IteratorFilter();
@@ -212,6 +224,7 @@ abstract class UsersBase implements UsersInterface
      * @throws UserNotFoundException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string $value = null): bool
     {
         //anydataset.Row
@@ -248,6 +261,7 @@ abstract class UsersBase implements UsersInterface
      * @throws UserNotFoundException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $user = $this->getById($userId);
@@ -274,6 +288,7 @@ abstract class UsersBase implements UsersInterface
      * @param string $propertyName
      * @param string|null $value
      */
+    #[\Override]
     abstract public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool;
 
     /**
@@ -285,6 +300,7 @@ abstract class UsersBase implements UsersInterface
      * @param string|null $value Property value with a site
      * @return bool
      * */
+    #[\Override]
     abstract public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool;
 
     /**
@@ -295,6 +311,7 @@ abstract class UsersBase implements UsersInterface
      * @param string|null $value Property value with a site
      * @return void
      * */
+    #[\Override]
     abstract public function removeAllProperties(string $propertyName, string|null $value = null): void;
 
     /**
@@ -303,6 +320,7 @@ abstract class UsersBase implements UsersInterface
      * @throws UserNotFoundException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function isAdmin(string|HexUuidLiteral|int $userId): bool
     {
         $user = $this->getById($userId);
@@ -329,6 +347,7 @@ abstract class UsersBase implements UsersInterface
      * @throws UserNotFoundException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function createAuthToken(
         string     $login,
         string     $password,
@@ -373,6 +392,7 @@ abstract class UsersBase implements UsersInterface
      * @throws NotAuthenticatedException
      * @throws UserNotFoundException
      */
+    #[\Override]
     public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): array|null
     {
         $user = $this->getByLoginField($login);
@@ -398,5 +418,6 @@ abstract class UsersBase implements UsersInterface
     /**
      * @param string|int|HexUuidLiteral $userid
      */
+    #[\Override]
     abstract public function removeUserById(string|HexUuidLiteral|int $userid): bool;
 }

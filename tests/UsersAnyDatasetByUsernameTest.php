@@ -61,6 +61,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         return $searchForList[$this->userDefinition->loginField()];
     }
 
+    #[\Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);

@@ -14,11 +14,13 @@ class SessionContextTest extends TestCase
      */
     protected $object;
     
+    #[\Override]
     public function setUp(): void
     {
         $this->object = new SessionContext(Factory::createSessionPool());
     }
     
+    #[\Override]
     public function tearDown(): void
     {
         $this->object = null;

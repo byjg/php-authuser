@@ -118,6 +118,7 @@ class UsersDBDataset extends UsersBase
      * @throws OrmInvalidFieldsException
      * @throws Exception
      */
+    #[\Override]
     public function save(UserModel $model): UserModel
     {
         $newUser = false;
@@ -176,6 +177,7 @@ class UsersDBDataset extends UsersBase
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel|null
      */
+    #[\Override]
     public function getUser(IteratorFilter $filter): UserModel|null
     {
         $result = $this->getIterator($filter);
@@ -197,6 +199,7 @@ class UsersDBDataset extends UsersBase
      * @return bool
      * @throws Exception
      */
+    #[\Override]
     public function removeByLoginField(string $login): bool
     {
         $user = $this->getByLoginField($login);
@@ -215,6 +218,7 @@ class UsersDBDataset extends UsersBase
      * @return bool
      * @throws Exception
      */
+    #[\Override]
     public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $updateTableProperties = DeleteQuery::getInstance()
@@ -241,6 +245,7 @@ class UsersDBDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws ExceptionInvalidArgumentException
      */
+    #[\Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
@@ -254,6 +259,7 @@ class UsersDBDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws ExceptionInvalidArgumentException
      */
+    #[\Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $query = Query::getInstance()
@@ -281,6 +287,7 @@ class UsersDBDataset extends UsersBase
      * @throws OrmInvalidFieldsException
      * @throws Exception
      */
+    #[\Override]
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
@@ -306,6 +313,7 @@ class UsersDBDataset extends UsersBase
      * @throws ExceptionInvalidArgumentException
      * @throws OrmInvalidFieldsException
      */
+    #[\Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $query = Query::getInstance()
@@ -339,6 +347,7 @@ class UsersDBDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws RepositoryReadOnlyException
      */
+    #[\Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
@@ -371,6 +380,7 @@ class UsersDBDataset extends UsersBase
      * @throws ExceptionInvalidArgumentException
      * @throws RepositoryReadOnlyException
      */
+    #[\Override]
     public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
         $updateable = DeleteQuery::getInstance()
@@ -384,6 +394,7 @@ class UsersDBDataset extends UsersBase
         $this->propertiesRepository->deleteByQuery($updateable);
     }
 
+    #[\Override]
     public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $query = Query::getInstance()

@@ -17,6 +17,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
      * @throws \ReflectionException
      * @throws OrmModelInvalidException
      */
+    #[\Override]
     public function __setUp($loginField)
     {
         $this->prefix = "";
@@ -68,6 +69,7 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
+    #[\Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);

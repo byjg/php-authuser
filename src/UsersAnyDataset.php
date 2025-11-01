@@ -65,6 +65,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws FileException
      */
+    #[\Override]
     public function save(UserModel $model): UserModel
     {
         $new = true;
@@ -103,6 +104,7 @@ class UsersAnyDataset extends UsersBase
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getUser(IteratorFilter $filter): UserModel|null
     {
         $iterator = $this->anyDataSet->getIterator($filter);
@@ -123,6 +125,7 @@ class UsersAnyDataset extends UsersBase
      * @throws FileException
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function removeByLoginField(string $login): bool
     {
         //anydataset.Row
@@ -154,6 +157,7 @@ class UsersAnyDataset extends UsersBase
     /**
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
@@ -162,6 +166,7 @@ class UsersAnyDataset extends UsersBase
     /**
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $filter = new IteratorFilter();
@@ -186,6 +191,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws UserNotFoundException
      */
+    #[\Override]
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
@@ -207,6 +213,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws FileException
      */
+    #[\Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $user = $this->getById($userId);
@@ -228,6 +235,7 @@ class UsersAnyDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws UserExistsException
      */
+    #[\Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
@@ -258,6 +266,7 @@ class UsersAnyDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws UserExistsException
      */
+    #[\Override]
     public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
         $iterator = $this->getIterator(null);
@@ -300,6 +309,7 @@ class UsersAnyDataset extends UsersBase
      * @return bool
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $iteratorFilter = new IteratorFilter();

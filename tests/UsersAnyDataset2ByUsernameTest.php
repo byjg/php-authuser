@@ -11,6 +11,7 @@ use ByJG\Authenticate\UsersAnyDataset;
 class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
 {
 
+    #[\Override]
     public function __setUp($loginField)
     {
         $this->prefix = "user";
@@ -50,6 +51,7 @@ class UsersAnyDataset2ByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
+    #[\Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);

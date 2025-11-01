@@ -188,4 +188,76 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::FAIL_REPEATED, $passwordDefinition->matchPassword('oilalalapo'));      // lalala is repeated
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('hay1d11oihsc'));
     }
+
+    public function testGeneratePassword()
+    {
+        for ($i = 0; $i < 100; $i++) {
+            $passwordDefinition = new PasswordDefinition([
+                PasswordDefinition::MINIMUM_CHARS => 8,
+                PasswordDefinition::REQUIRE_UPPERCASE => 2,  // Number of uppercase characters
+                PasswordDefinition::REQUIRE_LOWERCASE => 2,  // Number of lowercase characters
+                PasswordDefinition::REQUIRE_SYMBOLS => 2,    // Number of symbols
+                PasswordDefinition::REQUIRE_NUMBERS => 2,    // Number of numbers
+                PasswordDefinition::ALLOW_WHITESPACE => 0,   // Allow whitespace
+                PasswordDefinition::ALLOW_SEQUENTIAL => 0,   // Allow sequential characters
+                PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
+            ]);
+
+            $password = $passwordDefinition->generatePassword();
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(8, strlen($password));
+
+            $password = $passwordDefinition->generatePassword(2);
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(10, strlen($password));
+        }
+    }
+
+    public function testGeneratePassword2()
+    {
+        for ($i = 0; $i < 100; $i++) {
+            $passwordDefinition = new PasswordDefinition([
+                PasswordDefinition::MINIMUM_CHARS => 8,
+                PasswordDefinition::REQUIRE_UPPERCASE => 1,  // Number of uppercase characters
+                PasswordDefinition::REQUIRE_LOWERCASE => 1,  // Number of lowercase characters
+                PasswordDefinition::REQUIRE_SYMBOLS => 0,    // Number of symbols
+                PasswordDefinition::REQUIRE_NUMBERS => 0,    // Number of numbers
+                PasswordDefinition::ALLOW_WHITESPACE => 0,   // Allow whitespace
+                PasswordDefinition::ALLOW_SEQUENTIAL => 0,   // Allow sequential characters
+                PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
+            ]);
+
+            $password = $passwordDefinition->generatePassword();
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(8, strlen($password));
+
+            $password = $passwordDefinition->generatePassword(2);
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(10, strlen($password));
+        }
+    }
+
+    public function testGeneratePasswordEmpty()
+    {
+        for ($i = 0; $i < 100; $i++) {
+            $passwordDefinition = new PasswordDefinition([
+                PasswordDefinition::MINIMUM_CHARS => 8,
+                PasswordDefinition::REQUIRE_UPPERCASE => 0,  // Number of uppercase characters
+                PasswordDefinition::REQUIRE_LOWERCASE => 0,  // Number of lowercase characters
+                PasswordDefinition::REQUIRE_SYMBOLS => 0,    // Number of symbols
+                PasswordDefinition::REQUIRE_NUMBERS => 0,    // Number of numbers
+                PasswordDefinition::ALLOW_WHITESPACE => 0,   // Allow whitespace
+                PasswordDefinition::ALLOW_SEQUENTIAL => 0,   // Allow sequential characters
+                PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
+            ]);
+
+            $password = $passwordDefinition->generatePassword();
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(8, strlen($password));
+
+            $password = $passwordDefinition->generatePassword(2);
+            $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword($password));
+            $this->assertEquals(10, strlen($password));
+        }
+    }
 }
