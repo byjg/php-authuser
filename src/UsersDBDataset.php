@@ -64,7 +64,7 @@ class UsersDBDataset extends UsersBase
      * @throws ExceptionInvalidArgumentException
      */
     public function __construct(
-        DbDriverInterface|DatabaseExecutor $dbDriver,
+        DatabaseExecutor|DbDriverInterface $dbDriver,
         UserDefinition|null $userTable = null,
         UserPropertiesDefinition|null $propertiesTable = null
     ) {
