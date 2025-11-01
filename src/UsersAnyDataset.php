@@ -7,11 +7,12 @@ use ByJG\AnyDataset\Core\Enum\Relation;
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Core\IteratorInterface;
-use ByJG\AnyDataset\Core\Row;
+use ByJG\AnyDataset\Core\RowInterface;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\MapperFunctions\UserIdGeneratorMapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
@@ -38,19 +39,14 @@ class UsersAnyDataset extends UsersBase
      */
     public function __construct(
         AnyDataset $anyDataset,
-        UserDefinition $userTable = null,
-        UserPropertiesDefinition $propertiesTable = null
+        UserDefinition|null $userTable = null,
+        UserPropertiesDefinition|null $propertiesTable = null
     ) {
         $this->anyDataSet = $anyDataset;
         $this->anyDataSet->save();
         $this->userTable = $userTable;
-        if (!$userTable->existsClosure('update', UserDefinition::FIELD_USERID)) {
-            $userTable->defineClosureForUpdate(UserDefinition::FIELD_USERID, function ($value, $instance) {
-                if (empty($value)) {
-                    return preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($instance->getUsername()));
-                }
-                return $value;
-            });
+        if (!$userTable->existsMapper('update', UserDefinition::FIELD_USERID)) {
+            $userTable->defineMapperForUpdate(UserDefinition::FIELD_USERID, UserIdGeneratorMapper::class);
         }
         $this->propertiesTable = $propertiesTable;
     }
@@ -86,9 +82,23 @@ class UsersAnyDataset extends UsersBase
             }
         }
 
-        $properties = $model->getProperties();
-        foreach ($properties as $value) {
-            $this->anyDataSet->addField($value->getName(), $value->getValue());
+        // Group properties by name to handle multiple values
+        $propertiesByName = [];
+        foreach ($model->getProperties() as $property) {
+            $name = $property->getName();
+            if (!isset($propertiesByName[$name])) {
+                $propertiesByName[$name] = [];
+            }
+            $propertiesByName[$name][] = $property->getValue();
+        }
+
+        // Add properties, using array if multiple values exist
+        foreach ($propertiesByName as $name => $values) {
+            if (count($values) === 1) {
+                $this->anyDataSet->addField($name, $values[0]);
+            } else {
+                $this->anyDataSet->addField($name, $values);
+            }
         }
 
         $this->anyDataSet->save();
@@ -108,11 +118,11 @@ class UsersAnyDataset extends UsersBase
     public function getUser(IteratorFilter $filter): UserModel|null
     {
         $iterator = $this->anyDataSet->getIterator($filter);
-        if (!$iterator->hasNext()) {
+        if (!$iterator->valid()) {
             return null;
         }
 
-        return $this->createUserModel($iterator->moveNext());
+        return $this->createUserModel($iterator->current());
     }
 
     /**
@@ -133,8 +143,8 @@ class UsersAnyDataset extends UsersBase
         $iteratorFilter->and($this->getUserDefinition()->loginField(), Relation::EQUAL, $login);
         $iterator = $this->anyDataSet->getIterator($iteratorFilter);
 
-        if ($iterator->hasNext()) {
-            $oldRow = $iterator->moveNext();
+        if ($iterator->valid()) {
+            $oldRow = $iterator->current();
             $this->anyDataSet->removeRow($oldRow);
             $this->anyDataSet->save();
             return true;
@@ -149,7 +159,7 @@ class UsersAnyDataset extends UsersBase
      * @param IteratorFilter|null $filter
      * @return IteratorInterface
      */
-    public function getIterator(IteratorFilter $filter = null): IteratorInterface
+    public function getIterator(IteratorFilter|null $filter = null): IteratorInterface
     {
         return $this->anyDataSet->getIterator($filter);
     }
@@ -270,19 +280,17 @@ class UsersAnyDataset extends UsersBase
     public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
         $iterator = $this->getIterator(null);
-        while ($iterator->hasNext()) {
+        foreach ($iterator as $user) {
             //anydataset.Row
-            $user = $iterator->moveNext();
             $this->removeProperty($user->get($this->getUserDefinition()->getUserid()), $propertyName, $value);
         }
     }
 
     /**
-     * @param Row $row
+     * @param RowInterface $row
      * @return UserModel
-     * @throws InvalidArgumentException
      */
-    private function createUserModel(Row $row): UserModel
+    private function createUserModel(RowInterface $row): UserModel
     {
         $allProp = $row->toArray();
         $userModel = new UserModel();
@@ -296,8 +304,17 @@ class UsersAnyDataset extends UsersBase
         }
 
         foreach (array_keys($allProp) as $property) {
-            foreach ($row->getAsArray($property) as $eachValue) {
-                $userModel->addProperty(new UserPropertiesModel($property, $eachValue));
+            $values = $row->get($property);
+
+            // Handle both single values and arrays
+            if (!is_array($values)) {
+                if ($values !== null) {
+                    $userModel->addProperty(new UserPropertiesModel($property, $values));
+                }
+            } else {
+                foreach ($values as $eachValue) {
+                    $userModel->addProperty(new UserPropertiesModel($property, $eachValue));
+                }
             }
         }
 
@@ -316,8 +333,8 @@ class UsersAnyDataset extends UsersBase
         $iteratorFilter->and($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
         $iterator = $this->anyDataSet->getIterator($iteratorFilter);
 
-        if ($iterator->hasNext()) {
-            $oldRow = $iterator->moveNext();
+        if ($iterator->valid()) {
+            $oldRow = $iterator->current();
             $this->anyDataSet->removeRow($oldRow);
             return true;
         }

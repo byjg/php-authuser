@@ -105,7 +105,7 @@ interface UsersInterface
      * @param string|null $value
      * @return bool True, if it has the property; false, otherwisebool
      */
-    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string $value = null): bool;
+    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string|null $value = null): bool;
 
     /**
      * @desc Return all sites from a specific user

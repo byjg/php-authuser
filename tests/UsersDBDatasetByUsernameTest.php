@@ -5,6 +5,7 @@ namespace Tests;
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\MapperFunctions\ClosureMapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersDBDataset;
 use ByJG\Util\Uri;
@@ -110,33 +111,33 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
     public function testWithUpdateValue()
     {
         // For Update Definitions
-        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_NAME, function ($value, $instance) {
+        $this->userDefinition->defineMapperForUpdate(UserDefinition::FIELD_NAME, new ClosureMapper(function ($value, $instance) {
             return '[' . $value . ']';
-        });
-        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForUpdate(UserDefinition::FIELD_USERNAME, new ClosureMapper(function ($value, $instance) {
             return ']' . $value . '[';
-        });
-        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForUpdate(UserDefinition::FIELD_EMAIL, new ClosureMapper(function ($value, $instance) {
             return '-' . $value . '-';
-        });
-        $this->userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForUpdate(UserDefinition::FIELD_PASSWORD, new ClosureMapper(function ($value, $instance) {
             return "@" . $value . "@";
-        });
+        }));
         $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
 
         // For Select Definitions
-        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_NAME, function ($value, $instance) {
+        $this->userDefinition->defineMapperForSelect(UserDefinition::FIELD_NAME, new ClosureMapper(function ($value, $instance) {
             return '(' . $value . ')';
-        });
-        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_USERNAME, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForSelect(UserDefinition::FIELD_USERNAME, new ClosureMapper(function ($value, $instance) {
             return ')' . $value . '(';
-        });
-        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_EMAIL, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForSelect(UserDefinition::FIELD_EMAIL, new ClosureMapper(function ($value, $instance) {
             return '#' . $value . '#';
-        });
-        $this->userDefinition->defineClosureForSelect(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
+        }));
+        $this->userDefinition->defineMapperForSelect(UserDefinition::FIELD_PASSWORD, new ClosureMapper(function ($value, $instance) {
             return '%'. $value . '%';
-        });
+        }));
 
         // Test it!
         $newObject = new UsersDBDataset(

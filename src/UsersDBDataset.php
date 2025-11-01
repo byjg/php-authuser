@@ -3,6 +3,7 @@
 namespace ByJG\Authenticate;
 
 use ByJG\AnyDataset\Core\IteratorFilter;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\DbDriverInterface;
 use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\Authenticate\Definition\UserDefinition;
@@ -41,14 +42,14 @@ class UsersDBDataset extends UsersBase
     protected Repository $propertiesRepository;
 
     /**
-     * @var DbDriverInterface
+     * @var DatabaseExecutor
      */
-    protected DbDriverInterface $provider;
+    protected DatabaseExecutor $executor;
 
     /**
      * UsersDBDataset constructor
      *
-     * @param DbDriverInterface $dbDriver
+     * @param DbDriverInterface|DatabaseExecutor $dbDriver
      * @param UserDefinition|null $userTable
      * @param UserPropertiesDefinition|null $propertiesTable
      *
@@ -56,10 +57,16 @@ class UsersDBDataset extends UsersBase
      * @throws ReflectionException
      */
     public function __construct(
-        DbDriverInterface $dbDriver,
-        UserDefinition $userTable = null,
-        UserPropertiesDefinition $propertiesTable = null
+        DbDriverInterface|DatabaseExecutor $dbDriver,
+        UserDefinition|null $userTable = null,
+        UserPropertiesDefinition|null $propertiesTable = null
     ) {
+        // Convert DbDriverInterface to DatabaseExecutor if needed
+        if ($dbDriver instanceof DbDriverInterface && !($dbDriver instanceof DatabaseExecutor)) {
+            $dbDriver = new DatabaseExecutor($dbDriver);
+        }
+        $this->executor = $dbDriver;
+
         if (empty($userTable)) {
             $userTable = new UserDefinition();
         }
@@ -83,11 +90,11 @@ class UsersDBDataset extends UsersBase
         foreach ($propertyDefinition as $property => $map) {
             $userMapper->addFieldMapping(FieldMapping::create($property)
                 ->withFieldName($map)
-                ->withUpdateFunction($userTable->getClosureForUpdate($property))
-                ->withSelectFunction($userTable->getClosureForSelect($property))
+                ->withUpdateFunction($userTable->getMapperForUpdate($property))
+                ->withSelectFunction($userTable->getMapperForSelect($property))
             );
         }
-        $this->userRepository = new Repository($dbDriver, $userMapper);
+        $this->userRepository = new Repository($this->executor, $userMapper);
 
         $propertiesMapper = new Mapper(
             UserPropertiesModel::class,
@@ -99,10 +106,10 @@ class UsersDBDataset extends UsersBase
         $propertiesMapper->addFieldMapping(FieldMapping::create('value')->withFieldName($propertiesTable->getValue()));
         $propertiesMapper->addFieldMapping(FieldMapping::create(UserDefinition::FIELD_USERID)
             ->withFieldName($propertiesTable->getUserid())
-            ->withUpdateFunction($userTable->getClosureForUpdate(UserDefinition::FIELD_USERID))
-            ->withSelectFunction($userTable->getClosureForSelect(UserDefinition::FIELD_USERID))
+            ->withUpdateFunction($userTable->getMapperForUpdate(UserDefinition::FIELD_USERID))
+            ->withSelectFunction($userTable->getMapperForSelect(UserDefinition::FIELD_USERID))
         );
-        $this->propertiesRepository = new Repository($dbDriver, $propertiesMapper);
+        $this->propertiesRepository = new Repository($this->executor, $propertiesMapper);
 
         $this->userTable = $userTable;
         $this->propertiesTable = $propertiesTable;
@@ -114,6 +121,7 @@ class UsersDBDataset extends UsersBase
      * @param UserModel $model
      * @return UserModel
      * @throws UserExistsException
+     * @throws UserNotFoundException
      * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
      * @throws Exception
@@ -137,11 +145,11 @@ class UsersDBDataset extends UsersBase
         }
 
         if ($newUser) {
-            $model = $this->getByEmail($model->getEmail());
+            $model = $this->getById($model->getUserid());
         }
 
         if ($model === null) {
-            throw new UserExistsException("User not found");
+            throw new UserNotFoundException("User not found");
         }
 
         return $model;
@@ -153,7 +161,7 @@ class UsersDBDataset extends UsersBase
      * @param IteratorFilter|null $filter Filter to find user
      * @return UserModel[]
      */
-    public function getIterator(IteratorFilter $filter = null): array
+    public function getIterator(IteratorFilter|null $filter = null): array
     {
         if (is_null($filter)) {
             $filter = new IteratorFilter();
@@ -426,7 +434,10 @@ class UsersDBDataset extends UsersBase
      */
     protected function setPropertiesInUser(UserModel $userRow): void
     {
-        $value = $this->propertiesRepository->getMapper()->getFieldMap(UserDefinition::FIELD_USERID)->getUpdateFunctionValue($userRow->getUserid(), $userRow, $this->propertiesRepository->getDbDriverWrite()->getDbHelper());
+        $value = $this->propertiesRepository
+            ->getMapper()
+            ->getFieldMap(UserDefinition::FIELD_USERID)
+            ->getUpdateFunctionValue($userRow->getUserid(), $userRow, $this->propertiesRepository->getExecutorWrite()->getHelper());
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' => $value]);

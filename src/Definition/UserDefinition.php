@@ -2,8 +2,15 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use ByJG\Authenticate\EntityProcessors\ClosureEntityProcessor;
+use ByJG\Authenticate\EntityProcessors\PassThroughEntityProcessor;
+use ByJG\Authenticate\MapperFunctions\ClosureMapper;
+use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\Authenticate\Model\UserModel;
-use ByJG\MicroOrm\MapperClosure;
+use ByJG\MicroOrm\Interface\EntityProcessorInterface;
+use ByJG\MicroOrm\Interface\MapperFunctionInterface;
+use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
+use ByJG\MicroOrm\MapperFunctions\StandardMapper;
 use ByJG\Serializer\Serialize;
 use Closure;
 use InvalidArgumentException;
@@ -14,7 +21,7 @@ use InvalidArgumentException;
 class UserDefinition
 {
     protected string $__table = 'users';
-    protected array $__closures = ["select" => [], "update" => [] ];
+    protected array $__mappers = ["select" => [], "update" => [] ];
     protected string $__loginField;
     protected string $__model;
     protected array $__properties = [];
@@ -65,32 +72,15 @@ class UserDefinition
             $this->__properties[$property] = $value;
         }
 
-        $this->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value) {
-            // Already have a SHA1 password
-            if (strlen($value) === 40) {
-                return $value;
-            }
-
-            // Leave null
-            if (empty($value)) {
-                return null;
-            }
-
-            // Return the hash password
-            return strtolower(sha1($value));
-        });
+        $this->defineMapperForUpdate(UserDefinition::FIELD_PASSWORD, PasswordSha1Mapper::class);
 
         if ($loginField !== self::LOGIN_IS_USERNAME && $loginField !== self::LOGIN_IS_EMAIL) {
             throw new InvalidArgumentException('Login field is invalid. ');
         }
         $this->__loginField = $loginField;
 
-        $this->beforeInsert = function ($instance) {
-            return $instance;
-        };
-        $this->beforeUpdate = function ($instance) {
-            return $instance;
-        };
+        $this->beforeInsert = new PassThroughEntityProcessor();
+        $this->beforeUpdate = new PassThroughEntityProcessor();
     }
 
     /**
@@ -140,58 +130,98 @@ class UserDefinition
     /**
      * @param string $event
      * @param string $property
-     * @param Closure $closure
+     * @param MapperFunctionInterface|string $mapper
      */
-    private function updateClosureDef(string $event, string $property, Closure $closure): void
+    private function updateMapperDef(string $event, string $property, MapperFunctionInterface|string $mapper): void
     {
         $this->checkProperty($property);
-        $this->__closures[$event][$property] = $closure;
+        $this->__mappers[$event][$property] = $mapper;
     }
 
-    private function getClosureDef(string $event, string $property): Closure
+    private function getMapperDef(string $event, string $property): MapperFunctionInterface|string
     {
         $this->checkProperty($property);
 
-        if (!$this->existsClosure($event, $property)) {
-            return MapperClosure::standard();
+        if (!$this->existsMapper($event, $property)) {
+            return StandardMapper::class;
         }
 
-        return $this->__closures[$event][$property];
+        return $this->__mappers[$event][$property];
     }
 
-    public function existsClosure(string $event, string $property): bool
+    public function existsMapper(string $event, string $property): bool
     {
         // Event not set
-        if (!isset($this->__closures[$event])) {
+        if (!isset($this->__mappers[$event])) {
             return false;
         }
 
         // Event is set but there is no property
-        if (!array_key_exists($property, $this->__closures[$event])) {
+        if (!array_key_exists($property, $this->__mappers[$event])) {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * @deprecated Use existsMapper instead
+     */
+    public function existsClosure(string $event, string $property): bool
+    {
+        return $this->existsMapper($event, $property);
+    }
+
     public function markPropertyAsReadOnly(string $property): void
     {
-        $this->updateClosureDef(self::UPDATE, $property, MapperClosure::readOnly());
+        $this->updateMapperDef(self::UPDATE, $property, ReadOnlyMapper::class);
     }
 
+    public function defineMapperForUpdate(string $property, MapperFunctionInterface|string $mapper): void
+    {
+        $this->updateMapperDef(self::UPDATE, $property, $mapper);
+    }
+
+    public function defineMapperForSelect(string $property, MapperFunctionInterface|string $mapper): void
+    {
+        $this->updateMapperDef(self::SELECT, $property, $mapper);
+    }
+
+    /**
+     * @deprecated Use defineMapperForUpdate instead
+     */
     public function defineClosureForUpdate(string $property, Closure $closure): void
     {
-        $this->updateClosureDef(self::UPDATE, $property, $closure);
+        $this->updateMapperDef(self::UPDATE, $property, new ClosureMapper($closure));
     }
 
+    /**
+     * @deprecated Use defineMapperForSelect instead
+     */
     public function defineClosureForSelect(string $property, Closure $closure): void
     {
-        $this->updateClosureDef(self::SELECT, $property, $closure);
+        $this->updateMapperDef(self::SELECT, $property, new ClosureMapper($closure));
     }
 
+    public function getMapperForUpdate(string $property): MapperFunctionInterface|string
+    {
+        return $this->getMapperDef(self::UPDATE, $property);
+    }
+
+    /**
+     * @deprecated Use getMapperForUpdate instead. Returns a Closure for backward compatibility.
+     */
     public function getClosureForUpdate(string $property): Closure
     {
-        return $this->getClosureDef(self::UPDATE, $property);
+        $mapper = $this->getMapperDef(self::UPDATE, $property);
+
+        // Return a closure that wraps the mapper
+        return function($value, $instance = null) use ($mapper) {
+            if (is_string($mapper)) {
+                $mapper = new $mapper();
+            }
+            return $mapper->processedValue($value, $instance, null);
+        };
     }
 
     public function defineGenerateKeyClosure(Closure $closure): void
@@ -204,13 +234,27 @@ class UserDefinition
         return $this->__generateKey;
     }
 
+    public function getMapperForSelect(string $property): MapperFunctionInterface|string
+    {
+        return $this->getMapperDef(self::SELECT, $property);
+    }
+
     /**
+     * @deprecated Use getMapperForSelect instead. Returns a Closure for backward compatibility.
      * @param $property
      * @return Closure
      */
     public function getClosureForSelect($property): Closure
     {
-        return $this->getClosureDef(self::SELECT, $property);
+        $mapper = $this->getMapperDef(self::SELECT, $property);
+
+        // Return a closure that wraps the mapper
+        return function($value, $instance = null) use ($mapper) {
+            if (is_string($mapper)) {
+                $mapper = new $mapper();
+            }
+            return $mapper->processedValue($value, $instance, null);
+        };
     }
 
     public function model(): string
@@ -224,39 +268,45 @@ class UserDefinition
         return new $model();
     }
 
-    protected Closure $beforeInsert;
+    protected EntityProcessorInterface $beforeInsert;
 
     /**
-     * @return Closure
+     * @return EntityProcessorInterface
      */
-    public function getBeforeInsert(): Closure
+    public function getBeforeInsert(): EntityProcessorInterface
     {
         return $this->beforeInsert;
     }
 
     /**
-     * @param Closure $beforeInsert
+     * @param EntityProcessorInterface|Closure $beforeInsert
      */
-    public function setBeforeInsert(Closure $beforeInsert): void
+    public function setBeforeInsert(EntityProcessorInterface|Closure $beforeInsert): void
     {
+        if ($beforeInsert instanceof Closure) {
+            $beforeInsert = new ClosureEntityProcessor($beforeInsert);
+        }
         $this->beforeInsert = $beforeInsert;
     }
 
-    protected Closure $beforeUpdate;
+    protected EntityProcessorInterface $beforeUpdate;
 
     /**
-     * @return Closure
+     * @return EntityProcessorInterface
      */
-    public function getBeforeUpdate(): Closure
+    public function getBeforeUpdate(): EntityProcessorInterface
     {
         return $this->beforeUpdate;
     }
 
     /**
-     * @param mixed $beforeUpdate
+     * @param EntityProcessorInterface|Closure $beforeUpdate
      */
-    public function setBeforeUpdate(Closure $beforeUpdate): void
+    public function setBeforeUpdate(EntityProcessorInterface|Closure $beforeUpdate): void
     {
+        if ($beforeUpdate instanceof Closure) {
+            $beforeUpdate = new ClosureEntityProcessor($beforeUpdate);
+        }
         $this->beforeUpdate = $beforeUpdate;
     }
 }

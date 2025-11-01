@@ -225,7 +225,7 @@ abstract class UsersBase implements UsersInterface
      * @throws InvalidArgumentException
      */
     #[\Override]
-    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string $value = null): bool
+    public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string|null $value = null): bool
     {
         //anydataset.Row
         $user = $this->getById($userId);
