@@ -5,6 +5,7 @@ namespace ByJG\Authenticate;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Interfaces\UserContextInterface;
 use ByJG\Cache\Psr6\CachePool;
+use Override;
 use Psr\SimpleCache\InvalidArgumentException;
 
 class SessionContext implements UserContextInterface
@@ -39,7 +40,7 @@ class SessionContext implements UserContextInterface
      * @return bool Return true if authenticated; false otherwise.
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function isAuthenticated(): bool
     {
         $item = $this->session->getItem("user.$this->key");
@@ -53,7 +54,7 @@ class SessionContext implements UserContextInterface
      * @return string|int The authenticated username if exists.
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function userInfo(): string|int
     {
         $item = $this->session->getItem("user.$this->key");
@@ -65,7 +66,7 @@ class SessionContext implements UserContextInterface
      * @param array $data
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function registerLogin(string|int $userId, array $data = []): void
     {
         $item = $this->session->getItem("user.$this->key");
@@ -87,7 +88,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function setSessionData(string $name, mixed $value): void
     {
         if (!$this->isAuthenticated()) {
@@ -114,7 +115,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function getSessionData(string $name): mixed
     {
         if (!$this->isAuthenticated()) {
@@ -142,7 +143,7 @@ class SessionContext implements UserContextInterface
      * @throws InvalidArgumentException
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function registerLogout(): void
     {
         $this->session->deleteItem("user.$this->key");

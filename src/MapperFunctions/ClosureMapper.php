@@ -4,6 +4,7 @@ namespace ByJG\Authenticate\MapperFunctions;
 
 use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 use Closure;
+use ReflectionException;
 use ReflectionFunction;
 
 /**
@@ -19,6 +20,9 @@ class ClosureMapper implements MapperFunctionInterface
         $this->closure = $closure;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function processedValue(mixed $value, mixed $instance, mixed $helper = null): mixed
     {
         $reflection = new ReflectionFunction($this->closure);

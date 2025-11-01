@@ -3,6 +3,7 @@
 namespace ByJG\Authenticate\Definition;
 
 use InvalidArgumentException;
+use Random\RandomException;
 
 class PasswordDefinition
 {
@@ -113,6 +114,9 @@ class PasswordDefinition
         return $result;
     }
 
+    /**
+     * @throws RandomException
+     */
     public function generatePassword(int $extendSize = 0): string
     {
         $charsList = [

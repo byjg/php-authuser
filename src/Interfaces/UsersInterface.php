@@ -113,7 +113,7 @@ interface UsersInterface
      * @param string $propertyName
      * @return UserPropertiesModel|array<array-key, mixed>|null|string String vector with all sites
      */
-    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|\ByJG\Authenticate\Model\UserPropertiesModel|null;
+    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null;
 
     /**
      *
@@ -156,7 +156,7 @@ interface UsersInterface
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
-     * @return string|null Return the TOKEN or null, if can't create it.
+     * @return string|null Return the TOKEN or null, if we can't create it.
      */
     public function createAuthToken(
         string     $login,

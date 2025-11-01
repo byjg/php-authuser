@@ -120,7 +120,7 @@ class UserModel
         if (!empty($this->passwordDefinition) && !empty($password) && strlen($password) != 40) {
             $match = $this->passwordDefinition->matchPassword($password);
             if ($match != PasswordDefinition::SUCCESS) {
-                throw new InvalidArgumentException("Password does not match the password definition [{$match}]");
+                throw new InvalidArgumentException("Password does not match the password definition [$match]");
             }
         }
 

@@ -2,9 +2,11 @@
 
 namespace ByJG\Authenticate;
 
+use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Core\IteratorFilter;
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\DbDriverInterface;
+use ByJG\AnyDataset\Db\Exception\DbDriverNotConnected;
 use ByJG\AnyDataset\Db\IteratorFilterSqlFormatter;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
@@ -25,7 +27,10 @@ use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\Serializer\Exception\InvalidArgumentException;
+use ByJG\XmlUtil\Exception\FileException;
+use ByJG\XmlUtil\Exception\XmlUtilException;
 use Exception;
+use Override;
 use ReflectionException;
 
 class UsersDBDataset extends UsersBase
@@ -55,6 +60,8 @@ class UsersDBDataset extends UsersBase
      *
      * @throws OrmModelInvalidException
      * @throws ReflectionException
+     * @throws ExceptionInvalidArgumentException
+     * @throws ExceptionInvalidArgumentException
      */
     public function __construct(
         DbDriverInterface|DatabaseExecutor $dbDriver,
@@ -80,7 +87,7 @@ class UsersDBDataset extends UsersBase
             $userTable->table(),
             $userTable->getUserid()
         );
-        $seed = $userTable->getGenerateKeyClosure();
+        $seed = $userTable->getGenerateKey();
         if (!empty($seed)) {
             $userMapper->withPrimaryKeySeedFunction($seed);
         }
@@ -126,7 +133,7 @@ class UsersDBDataset extends UsersBase
      * @throws OrmInvalidFieldsException
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function save(UserModel $model): UserModel
     {
         $newUser = false;
@@ -160,6 +167,11 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter|null $filter Filter to find user
      * @return UserModel[]
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getIterator(IteratorFilter|null $filter = null): array
     {
@@ -184,8 +196,14 @@ class UsersDBDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel|null
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws RepositoryReadOnlyException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function getUser(IteratorFilter $filter): UserModel|null
     {
         $result = $this->getIterator($filter);
@@ -207,7 +225,7 @@ class UsersDBDataset extends UsersBase
      * @return bool
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function removeByLoginField(string $login): bool
     {
         $user = $this->getByLoginField($login);
@@ -226,7 +244,7 @@ class UsersDBDataset extends UsersBase
      * @return bool
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $updateTableProperties = DeleteQuery::getInstance()
@@ -250,10 +268,15 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName
      * @param string $value
      * @return array
-     * @throws InvalidArgumentException
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
      * @throws ExceptionInvalidArgumentException
+     * @throws FileException
+     * @throws InvalidArgumentException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
@@ -264,10 +287,15 @@ class UsersDBDataset extends UsersBase
      *
      * @param array $propertiesArray
      * @return array
-     * @throws InvalidArgumentException
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
      * @throws ExceptionInvalidArgumentException
+     * @throws FileException
+     * @throws InvalidArgumentException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $query = Query::getInstance()
@@ -295,7 +323,7 @@ class UsersDBDataset extends UsersBase
      * @throws OrmInvalidFieldsException
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
@@ -314,14 +342,22 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * @throws UpdateConstraintException
-     * @throws RepositoryReadOnlyException
-     * @throws InvalidArgumentException
-     * @throws OrmBeforeInvalidException
+     * @param string|HexUuidLiteral|int $userId
+     * @param string $propertyName
+     * @param string|null $value
+     * @return bool
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
      * @throws ExceptionInvalidArgumentException
+     * @throws FileException
+     * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
+     * @throws RepositoryReadOnlyException
+     * @throws UpdateConstraintException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $query = Query::getInstance()
@@ -351,11 +387,13 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string|null $value Property value with a site
      * @return bool
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
      * @throws ExceptionInvalidArgumentException
      * @throws InvalidArgumentException
      * @throws RepositoryReadOnlyException
      */
-    #[\Override]
+    #[Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
@@ -385,10 +423,12 @@ class UsersDBDataset extends UsersBase
      * @param string $propertyName Property name
      * @param string|null $value Property value with a site
      * @return void
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
      * @throws ExceptionInvalidArgumentException
      * @throws RepositoryReadOnlyException
      */
-    #[\Override]
+    #[Override]
     public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
         $updateable = DeleteQuery::getInstance()
@@ -402,7 +442,14 @@ class UsersDBDataset extends UsersBase
         $this->propertiesRepository->deleteByQuery($updateable);
     }
 
-    #[\Override]
+    /**
+     * @throws XmlUtilException
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    #[Override]
     public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $query = Query::getInstance()
@@ -430,7 +477,12 @@ class UsersDBDataset extends UsersBase
      * Return all property's fields from this user
      *
      * @param UserModel $userRow
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
      * @throws RepositoryReadOnlyException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     protected function setPropertiesInUser(UserModel $userRow): void
     {

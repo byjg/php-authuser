@@ -18,6 +18,7 @@ use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use ByJG\Serializer\Exception\InvalidArgumentException;
 use ByJG\XmlUtil\Exception\FileException;
+use Override;
 
 class UsersAnyDataset extends UsersBase
 {
@@ -61,7 +62,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws FileException
      */
-    #[\Override]
+    #[Override]
     public function save(UserModel $model): UserModel
     {
         $new = true;
@@ -75,8 +76,11 @@ class UsersAnyDataset extends UsersBase
 
         $propertyDefinition = $this->getUserDefinition()->toArray();
         foreach ($propertyDefinition as $property => $map) {
-            $closure = $this->getUserDefinition()->getClosureForUpdate($property);
-            $value = $closure($model->{"get$property"}(), $model);
+            $mapper = $this->getUserDefinition()->getMapperForUpdate($property);
+            if (is_string($mapper)) {
+                $mapper = new $mapper();
+            }
+            $value = $mapper->processedValue($model->{"get$property"}(), $model);
             if ($value !== false) {
                 $this->anyDataSet->addField($map, $value);
             }
@@ -112,9 +116,8 @@ class UsersAnyDataset extends UsersBase
      *
      * @param IteratorFilter $filter Filter to find user
      * @return UserModel|null
-     * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function getUser(IteratorFilter $filter): UserModel|null
     {
         $iterator = $this->anyDataSet->getIterator($filter);
@@ -135,7 +138,7 @@ class UsersAnyDataset extends UsersBase
      * @throws FileException
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function removeByLoginField(string $login): bool
     {
         //anydataset.Row
@@ -165,18 +168,21 @@ class UsersAnyDataset extends UsersBase
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @param string $propertyName
+     * @param string $value
+     * @return array
      */
-    #[\Override]
+    #[Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @param array $propertiesArray
+     * @return array
      */
-    #[\Override]
+    #[Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $filter = new IteratorFilter();
@@ -201,7 +207,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws UserNotFoundException
      */
-    #[\Override]
+    #[Override]
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
@@ -223,7 +229,7 @@ class UsersAnyDataset extends UsersBase
      * @throws UserExistsException
      * @throws FileException
      */
-    #[\Override]
+    #[Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         $user = $this->getById($userId);
@@ -245,7 +251,7 @@ class UsersAnyDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws UserExistsException
      */
-    #[\Override]
+    #[Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
         $user = $this->getById($userId);
@@ -276,10 +282,10 @@ class UsersAnyDataset extends UsersBase
      * @throws InvalidArgumentException
      * @throws UserExistsException
      */
-    #[\Override]
+    #[Override]
     public function removeAllProperties(string $propertyName, string|null $value = null): void
     {
-        $iterator = $this->getIterator(null);
+        $iterator = $this->getIterator();
         foreach ($iterator as $user) {
             //anydataset.Row
             $this->removeProperty($user->get($this->getUserDefinition()->getUserid()), $propertyName, $value);
@@ -326,7 +332,7 @@ class UsersAnyDataset extends UsersBase
      * @return bool
      * @throws InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function removeUserById(string|HexUuidLiteral|int $userid): bool
     {
         $iteratorFilter = new IteratorFilter();

@@ -3,6 +3,7 @@
 namespace Tests;
 
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
@@ -13,6 +14,8 @@ use ByJG\Authenticate\UsersDBDataset;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
+use ByJG\MicroOrm\Interface\UniqueIdGeneratorInterface;
+use ByJG\MicroOrm\Literal\Literal;
 use Exception;
 use ReflectionException;
 
@@ -34,6 +37,21 @@ class MyUserModel extends UserModel
     public function setOtherfield($otherfield)
     {
         $this->otherfield = $otherfield;
+    }
+}
+
+class TestUniqueIdGenerator implements UniqueIdGeneratorInterface
+{
+    private string $prefix;
+
+    public function __construct(string $prefix = 'TEST-')
+    {
+        $this->prefix = $prefix;
+    }
+
+    public function process(DatabaseExecutor $executor, array|object $instance): string|Literal|int
+    {
+        return $this->prefix . uniqid();
     }
 }
 
@@ -215,5 +233,86 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         /** @psalm-suppress UndefinedMethod Check UserModel::__call */
         $this->assertEquals(']*other john*[', $user->getOtherfield());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDefineGenerateKeyWithInterface()
+    {
+        // Create a separate table with varchar userid for testing custom generators
+        $this->db->execute('create table users_custom (
+            userid varchar(50) primary key,
+            name varchar(45),
+            email varchar(200),
+            username varchar(20),
+            password varchar(40),
+            created datetime default (datetime(\'2017-12-04\')),
+            admin char(1));'
+        );
+
+        // Create a new user definition with custom generator
+        $userDefinition = new UserDefinition('users_custom', UserModel::class, UserDefinition::LOGIN_IS_USERNAME);
+        $generator = new TestUniqueIdGenerator('CUSTOM-');
+        $userDefinition->defineGenerateKey($generator);
+
+        // Create dataset with custom definition
+        $dataset = new UsersDBDataset($this->db, $userDefinition, $this->propertyDefinition);
+
+        // Add a user - the custom generator should be used
+        $user = $dataset->addUser('Test User', 'testuser', 'test@example.com', 'password123');
+
+        // Verify the user ID was generated with the custom prefix
+        $this->assertStringStartsWith('CUSTOM-', $user->getUserid());
+        $this->assertEquals('Test User', $user->getName());
+        $this->assertEquals('testuser', $user->getUsername());
+
+        // Cleanup
+        $this->db->execute('drop table users_custom');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDefineGenerateKeyWithString()
+    {
+        // Create a separate table with varchar userid for testing custom generators
+        $this->db->execute('create table users_custom2 (
+            userid varchar(50) primary key,
+            name varchar(45),
+            email varchar(200),
+            username varchar(20),
+            password varchar(40),
+            created datetime default (datetime(\'2017-12-04\')),
+            admin char(1));'
+        );
+
+        // Create a new user definition with generator class string
+        $userDefinition = new UserDefinition('users_custom2', UserModel::class, UserDefinition::LOGIN_IS_USERNAME);
+        $userDefinition->defineGenerateKey(TestUniqueIdGenerator::class);
+
+        // Create dataset with custom definition
+        $dataset = new UsersDBDataset($this->db, $userDefinition, $this->propertyDefinition);
+
+        // Add a user - the custom generator should be instantiated and used
+        $user = $dataset->addUser('Test User 2', 'testuser2', 'test2@example.com', 'password123');
+
+        // Verify the user ID was generated with the default TEST- prefix
+        $this->assertStringStartsWith('TEST-', $user->getUserid());
+        $this->assertEquals('Test User 2', $user->getName());
+
+        // Cleanup
+        $this->db->execute('drop table users_custom2');
+    }
+
+    public function testDefineGenerateKeyClosureThrowsException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with UniqueIdGeneratorInterface instead.');
+
+        $userDefinition = new UserDefinition();
+        $userDefinition->defineGenerateKeyClosure(function ($executor, $instance) {
+            return 'test-id';
+        });
     }
 }
