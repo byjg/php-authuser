@@ -9,7 +9,6 @@ use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Interface\EntityProcessorInterface;
 use ByJG\MicroOrm\Interface\MapperFunctionInterface;
-use ByJG\MicroOrm\Interface\UniqueIdGeneratorInterface;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 use ByJG\MicroOrm\MapperFunctions\StandardMapper;
 use ByJG\Serializer\Serialize;
@@ -26,7 +25,7 @@ class UserDefinition
     protected string $__loginField;
     protected string $__model;
     protected array $__properties = [];
-    protected UniqueIdGeneratorInterface|string|null $__generateKey = null;
+    protected MapperFunctionInterface|string|null $__generateKey = null;
 
     const FIELD_USERID = 'userid';
     const FIELD_NAME = 'name';
@@ -230,15 +229,15 @@ class UserDefinition
      */
     public function defineGenerateKeyClosure(Closure $closure): void
     {
-        throw new InvalidArgumentException('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with UniqueIdGeneratorInterface instead.');
+        throw new InvalidArgumentException('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with MapperFunctionsInterface instead.');
     }
 
-    public function defineGenerateKey(UniqueIdGeneratorInterface|string $generator): void
+    public function defineGenerateKey(MapperFunctionInterface|string $generator): void
     {
         $this->__generateKey = $generator;
     }
 
-    public function getGenerateKey(): UniqueIdGeneratorInterface|string|null
+    public function getGenerateKey(): MapperFunctionInterface|string|null
     {
         return $this->__generateKey;
     }
@@ -246,7 +245,7 @@ class UserDefinition
     /**
      * @deprecated Use getGenerateKey instead
      */
-    public function getGenerateKeyClosure(): UniqueIdGeneratorInterface|string|null
+    public function getGenerateKeyClosure(): MapperFunctionInterface|string|null
     {
         return $this->__generateKey;
     }

@@ -2,7 +2,7 @@
 
 namespace ByJG\Authenticate\MapperFunctions;
 
-use ByJG\AnyDataset\Db\DbFunctionsInterface;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 
 /**
@@ -10,7 +10,7 @@ use ByJG\MicroOrm\Interface\MapperFunctionInterface;
  */
 class PasswordSha1Mapper implements MapperFunctionInterface
 {
-    public function processedValue(mixed $value, mixed $instance, ?DbFunctionsInterface $helper = null): mixed
+    public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
     {
         // Already have a SHA1 password (40 characters)
         if (is_string($value) && strlen($value) === 40) {

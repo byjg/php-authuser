@@ -14,9 +14,9 @@ use ByJG\Authenticate\UsersDBDataset;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
-use ByJG\MicroOrm\Interface\UniqueIdGeneratorInterface;
-use ByJG\MicroOrm\Literal\Literal;
+use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 use Exception;
+use Override;
 use ReflectionException;
 
 class MyUserModel extends UserModel
@@ -40,7 +40,7 @@ class MyUserModel extends UserModel
     }
 }
 
-class TestUniqueIdGenerator implements UniqueIdGeneratorInterface
+class TestUniqueIdGenerator implements MapperFunctionInterface
 {
     private string $prefix;
 
@@ -49,7 +49,8 @@ class TestUniqueIdGenerator implements UniqueIdGeneratorInterface
         $this->prefix = $prefix;
     }
 
-    public function process(DatabaseExecutor $executor, array|object $instance): string|Literal|int
+    #[Override]
+    public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
     {
         return $this->prefix . uniqid();
     }
@@ -67,7 +68,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws UserExistsException
      * @throws ReflectionException
      */
-    #[\Override]
+    #[Override]
     public function __setUp($loginField)
     {
         $this->prefix = "";
@@ -133,7 +134,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws ReflectionException
      * @throws UserExistsException
      */
-    #[\Override]
+    #[Override]
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
@@ -144,7 +145,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws DatabaseException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
      */
-    #[\Override]
+    #[Override]
     public function testAddUser()
     {
         $this->object->save(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', 'no', 'other john'));
@@ -173,7 +174,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     /**
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function testWithUpdateValue()
     {
         // For Update Definitions
@@ -308,7 +309,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     public function testDefineGenerateKeyClosureThrowsException()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with UniqueIdGeneratorInterface instead.');
+        $this->expectExceptionMessage('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with MapperFunctionsInterface instead.');
 
         $userDefinition = new UserDefinition();
         $userDefinition->defineGenerateKeyClosure(function ($executor, $instance) {

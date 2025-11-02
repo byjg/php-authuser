@@ -2,7 +2,7 @@
 
 namespace ByJG\Authenticate\MapperFunctions;
 
-use ByJG\AnyDataset\Db\DbFunctionsInterface;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 
@@ -11,7 +11,7 @@ use ByJG\MicroOrm\Interface\MapperFunctionInterface;
  */
 class UserIdGeneratorMapper implements MapperFunctionInterface
 {
-    public function processedValue(mixed $value, mixed $instance, ?DbFunctionsInterface $helper = null): mixed
+    public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
     {
         // If value is already set, use it
         if (!empty($value)) {

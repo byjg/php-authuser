@@ -489,7 +489,7 @@ class UsersDBDataset extends UsersBase
         $value = $this->propertiesRepository
             ->getMapper()
             ->getFieldMap(UserDefinition::FIELD_USERID)
-            ->getUpdateFunctionValue($userRow->getUserid(), $userRow, $this->propertiesRepository->getExecutorWrite()->getHelper());
+            ->getUpdateFunctionValue($userRow->getUserid(), $userRow, $this->propertiesRepository->getExecutorWrite());
         $query = Query::getInstance()
             ->table($this->getUserPropertiesDefinition()->table())
             ->where("{$this->getUserPropertiesDefinition()->getUserid()} = :id", ['id' => $value]);
