@@ -67,6 +67,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
     }
 
+    /**
+     * @return void
+     */
     public function testAddUser()
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
@@ -80,13 +83,13 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
     }
 
-    public function testAddUserError()
+    public function testAddUserError(): void
     {
         $this->expectException(UserExistsException::class);
         $this->object->addUser('some user with same username', 'user2', 'user2@gmail.com', 'mypassword');
     }
 
-    public function testAddProperty()
+    public function testAddProperty(): void
     {
         // Check state
         $user = $this->object->getById($this->prefix . '2');
@@ -121,7 +124,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     }
 
-    public function testRemoveAllProperties()
+    public function testRemoveAllProperties(): void
     {
         // Add the properties
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
@@ -158,7 +161,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     }
 
-    public function testRemoveByLoginField()
+    public function testRemoveByLoginField(): void
     {
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
@@ -172,7 +175,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertNull($user);
     }
 
-    public function testEditUser()
+    public function testEditUser(): void
     {
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
@@ -189,7 +192,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals('Other name', $user->getName());
     }
 
-    public function testIsValidUser()
+    public function testIsValidUser(): void
     {
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
         $loginFalse = $this->__chooseValue('user3@gmail.com', 'user3');
@@ -203,7 +206,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertNull($user);
     }
 
-    public function testIsAdmin()
+    public function testIsAdmin(): void
     {
         // Check is Admin
         $this->assertFalse($this->object->isAdmin($this->prefix . '3'));
@@ -218,7 +221,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertTrue($this->object->isAdmin($this->prefix . '3'));
     }
 
-    protected function expectedToken($tokenData, $login, $userId)
+    protected function expectedToken($tokenData, $login, $userId): void
     {
         $loginCreated = $this->__chooseValue('user2', 'user2@gmail.com');
 
@@ -249,6 +252,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         );
     }
 
+    /**
+     * @return void
+     */
     public function testCreateAuthToken()
     {
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
@@ -256,7 +262,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->expectedToken('tokenValue', $login, 'user2');
     }
 
-    public function testValidateTokenWithAnotherUser()
+    public function testValidateTokenWithAnotherUser(): void
     {
         $this->expectException(NotAuthenticatedException::class);
         $login = $this->__chooseValue('user2', 'user2@gmail.com');
@@ -275,6 +281,9 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
     }
 
+    /**
+     * @return void
+     */
     public function testSaveAndSave()
     {
         $user = $this->object->getById('user1');
@@ -285,7 +294,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals($user, $user2);
     }
 
-    public function testRemoveUserById()
+    public function testRemoveUserById(): void
     {
         $user = $this->object->getById($this->prefix . '1');
         $this->assertNotNull($user);
@@ -296,7 +305,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertNull($user2);
     }
 
-    public function testGetByUsername()
+    public function testGetByUsername(): void
     {
         $user = $this->object->getByUsername('user2');
 
@@ -307,7 +316,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->assertEquals('c88b5c841897dafe75cdd9f8ba98b32f007d6bc3', $user->getPassword());
     }
 
-    public function testGetByUserProperty()
+    public function testGetByUserProperty(): void
     {
         // Add property to user1
         $user = $this->object->getById($this->prefix . '1');
@@ -340,7 +349,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
     }
 
-    public function testSetProperty()
+    public function testSetProperty(): void
     {
         $this->assertFalse($this->object->hasProperty($this->prefix . '1', 'propertySet'));
         $this->object->setProperty($this->prefix . '1', 'propertySet', 'somevalue');

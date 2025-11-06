@@ -18,41 +18,41 @@ class PasswordDefinitionTest extends TestCase
         PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
     ];
 
-    public function test__construct()
+    public function test__construct(): void
     {
         // Create Empty Password Definition
         $passwordDefinition = new PasswordDefinition();
         $this->assertEquals($this->defaultRules, $passwordDefinition->getRules());
     }
 
-    public function testSetRule()
+    public function testSetRule(): void
     {
         $passwordDefinition = new PasswordDefinition();
         $passwordDefinition->setRule(PasswordDefinition::MINIMUM_CHARS, 10);
         $this->assertEquals(10, $passwordDefinition->getRule(PasswordDefinition::MINIMUM_CHARS));
     }
 
-    public function testSetRuleInvalid()
+    public function testSetRuleInvalid(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $passwordDefinition = new PasswordDefinition();
         $passwordDefinition->setRule('invalid', 10);
     }
 
-    public function testGetRule()
+    public function testGetRule(): void
     {
         $passwordDefinition = new PasswordDefinition();
         $this->assertEquals(8, $passwordDefinition->getRule(PasswordDefinition::MINIMUM_CHARS));
     }
 
-    public function testGetRuleInvalid()
+    public function testGetRuleInvalid(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $passwordDefinition = new PasswordDefinition();
         $passwordDefinition->getRule('invalid');
     }
 
-    public function testMatchPasswordMinimumChars()
+    public function testMatchPasswordMinimumChars(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -68,7 +68,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('12345678'));
     }
 
-    public function testMatchPasswordUppercase()
+    public function testMatchPasswordUppercase(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -85,7 +85,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567BA'));
     }
 
-    public function testMatchPasswordLowercase()
+    public function testMatchPasswordLowercase(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -102,7 +102,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567ba'));
     }
 
-    public function testMatchPasswordSymbols()
+    public function testMatchPasswordSymbols(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -119,7 +119,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('1234567!!'));
     }
 
-    public function testMatchPasswordNumbers()
+    public function testMatchPasswordNumbers(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -136,7 +136,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('abcdef11'));
     }
 
-    public function testMatchPasswordWhitespace()
+    public function testMatchPasswordWhitespace(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -151,7 +151,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::FAIL_WHITESPACE, $passwordDefinition->matchPassword('1234 678'));
     }
 
-    public function testMatchPasswordSequential()
+    public function testMatchPasswordSequential(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -170,7 +170,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('diykdsn132'));
     }
 
-    public function testMatchCharsRepeated()
+    public function testMatchCharsRepeated(): void
     {
         $passwordDefinition = new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 8,
@@ -189,7 +189,7 @@ class PasswordDefinitionTest extends TestCase
         $this->assertEquals(PasswordDefinition::SUCCESS, $passwordDefinition->matchPassword('hay1d11oihsc'));
     }
 
-    public function testGeneratePassword()
+    public function testGeneratePassword(): void
     {
         for ($i = 0; $i < 100; $i++) {
             $passwordDefinition = new PasswordDefinition([
@@ -213,7 +213,7 @@ class PasswordDefinitionTest extends TestCase
         }
     }
 
-    public function testGeneratePassword2()
+    public function testGeneratePassword2(): void
     {
         for ($i = 0; $i < 100; $i++) {
             $passwordDefinition = new PasswordDefinition([
@@ -237,7 +237,7 @@ class PasswordDefinitionTest extends TestCase
         }
     }
 
-    public function testGeneratePasswordEmpty()
+    public function testGeneratePasswordEmpty(): void
     {
         for ($i = 0; $i < 100; $i++) {
             $passwordDefinition = new PasswordDefinition([

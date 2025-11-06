@@ -16,7 +16,8 @@ use PHPUnit\Framework\TestCase;
  */
 class PasswordMd5Mapper implements MapperFunctionInterface
 {
-    public function processedValue(mixed $value, mixed $instance, mixed $helper = null): mixed
+    #[\Override]
+    public function processedValue(mixed $value, mixed $instance, mixed $executor = null): mixed
     {
         // Already have an MD5 hash (32 characters)
         if (is_string($value) && strlen($value) === 32 && ctype_xdigit($value)) {
@@ -41,6 +42,7 @@ class PasswordMd5MapperTest extends TestCase
     protected $userDefinition;
     protected $propertyDefinition;
 
+    #[\Override]
     public function setUp(): void
     {
         $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
@@ -69,6 +71,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->propertyDefinition = new UserPropertiesDefinition();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         $uri = new Uri(self::CONNECTION_STRING);
@@ -80,7 +83,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->propertyDefinition = null;
     }
 
-    public function testPasswordIsHashedWithMd5OnSave()
+    public function testPasswordIsHashedWithMd5OnSave(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -95,7 +98,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertTrue(ctype_xdigit($user->getPassword())); // MD5 is hexadecimal
     }
 
-    public function testPasswordIsNotRehashedIfAlreadyMd5()
+    public function testPasswordIsNotRehashedIfAlreadyMd5(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -111,7 +114,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertEquals($originalHash, $updatedUser->getPassword());
     }
 
-    public function testPasswordIsHashedWhenUpdating()
+    public function testPasswordIsHashedWhenUpdating(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -140,7 +143,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertNull($authenticatedUserOld);
     }
 
-    public function testPasswordRemainsUnchangedWhenUpdatingOtherFields()
+    public function testPasswordRemainsUnchangedWhenUpdatingOtherFields(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -170,7 +173,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertEquals('John Updated', $authenticatedUser->getName());
     }
 
-    public function testUserCanLoginWithMd5HashedPassword()
+    public function testUserCanLoginWithMd5HashedPassword(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -186,7 +189,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertEquals('testuser', $authenticatedUser->getUsername());
     }
 
-    public function testUserCannotLoginWithWrongPassword()
+    public function testUserCannotLoginWithWrongPassword(): void
     {
         $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
 
@@ -199,7 +202,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertNull($authenticatedUser);
     }
 
-    public function testEmptyPasswordReturnsNull()
+    public function testEmptyPasswordReturnsNull(): void
     {
         $mapper = new PasswordMd5Mapper();
 
@@ -207,7 +210,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertNull($mapper->processedValue(null, null));
     }
 
-    public function testExistingMd5HashIsNotRehashed()
+    public function testExistingMd5HashIsNotRehashed(): void
     {
         $mapper = new PasswordMd5Mapper();
         $existingHash = '5f4dcc3b5aa765d61d8327deb882cf99'; // MD5 of 'password'

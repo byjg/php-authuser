@@ -34,7 +34,7 @@ class MyUserModel extends UserModel
         return $this->otherfield;
     }
 
-    public function setOtherfield($otherfield)
+    public function setOtherfield($otherfield): void
     {
         $this->otherfield = $otherfield;
     }
@@ -144,6 +144,8 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
      * @throws UserExistsException
      * @throws DatabaseException
      * @throws \ByJG\Serializer\Exception\InvalidArgumentException
+     *
+     * @return void
      */
     #[Override]
     public function testAddUser()
@@ -173,6 +175,8 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
     /**
      * @throws Exception
+     *
+     * @return void
      */
     #[Override]
     public function testWithUpdateValue()
@@ -239,7 +243,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     /**
      * @throws Exception
      */
-    public function testDefineGenerateKeyWithInterface()
+    public function testDefineGenerateKeyWithInterface(): void
     {
         // Create a separate table with varchar userid for testing custom generators
         $this->db->execute('create table users_custom (
@@ -264,7 +268,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $user = $dataset->addUser('Test User', 'testuser', 'test@example.com', 'password123');
 
         // Verify the user ID was generated with the custom prefix
-        $this->assertStringStartsWith('CUSTOM-', $user->getUserid());
+        $this->assertStringStartsWith('CUSTOM-', (string)$user->getUserid());
         $this->assertEquals('Test User', $user->getName());
         $this->assertEquals('testuser', $user->getUsername());
 
@@ -275,7 +279,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
     /**
      * @throws Exception
      */
-    public function testDefineGenerateKeyWithString()
+    public function testDefineGenerateKeyWithString(): void
     {
         // Create a separate table with varchar userid for testing custom generators
         $this->db->execute('create table users_custom2 (
@@ -299,14 +303,14 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $user = $dataset->addUser('Test User 2', 'testuser2', 'test2@example.com', 'password123');
 
         // Verify the user ID was generated with the default TEST- prefix
-        $this->assertStringStartsWith('TEST-', $user->getUserid());
+        $this->assertStringStartsWith('TEST-', (string)$user->getUserid());
         $this->assertEquals('Test User 2', $user->getName());
 
         // Cleanup
         $this->db->execute('drop table users_custom2');
     }
 
-    public function testDefineGenerateKeyClosureThrowsException()
+    public function testDefineGenerateKeyClosureThrowsException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('defineGenerateKeyClosure is deprecated. Use defineGenerateKey with MapperFunctionsInterface instead.');

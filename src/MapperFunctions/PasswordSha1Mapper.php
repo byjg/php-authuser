@@ -10,6 +10,7 @@ use ByJG\MicroOrm\Interface\MapperFunctionInterface;
  */
 class PasswordSha1Mapper implements MapperFunctionInterface
 {
+    #[\Override]
     public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
     {
         // Already have a SHA1 password (40 characters)

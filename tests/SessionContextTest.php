@@ -26,7 +26,7 @@ class SessionContextTest extends TestCase
         $this->object = null;
     }
     
-    public function testUserContext()
+    public function testUserContext(): void
     {
         $this->assertFalse($this->object->isAuthenticated());
 
@@ -46,13 +46,13 @@ class SessionContextTest extends TestCase
         $this->assertFalse($this->object->isAuthenticated());
     }
 
-    public function testUserContextNotActiveSession()
+    public function testUserContextNotActiveSession(): void
     {
         $this->expectException(\ByJG\Authenticate\Exception\NotAuthenticatedException::class);
         $this->assertEmpty($this->object->getSessionData('property1'));
     }
 
-    public function testUserContextNotActive2Session()
+    public function testUserContextNotActive2Session(): void
     {
         $this->expectException(\ByJG\Authenticate\Exception\NotAuthenticatedException::class);
         $this->object->setSessionData('property1', 'value');

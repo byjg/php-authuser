@@ -9,6 +9,7 @@ use ByJG\MicroOrm\Interface\EntityProcessorInterface;
  */
 class PassThroughEntityProcessor implements EntityProcessorInterface
 {
+    #[\Override]
     public function process(array $instance): array
     {
         return $instance;

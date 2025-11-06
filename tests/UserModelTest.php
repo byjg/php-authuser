@@ -27,7 +27,7 @@ class UserModelTest extends TestCase
         $this->object = null;
     }
 
-    public function testUserModel()
+    public function testUserModel(): void
     {
         $this->object->setUserid("10");
         $this->object->setName('John');
@@ -42,7 +42,7 @@ class UserModelTest extends TestCase
         $this->assertEquals('johnuser', $this->object->getUsername());
     }
 
-    public function testUserModelProperties()
+    public function testUserModelProperties(): void
     {
         $this->object->setUserid("10");
         $this->object->setName('John');
@@ -66,7 +66,7 @@ class UserModelTest extends TestCase
         ], $this->object->getProperties());
     }
 
-    public function testPasswordDefinition()
+    public function testPasswordDefinition(): void
     {
         $this->object->withPasswordDefinition(new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 12,
@@ -84,7 +84,7 @@ class UserModelTest extends TestCase
         $this->assertEmpty($this->object->setPassword('!Ab18Uk*H2oU9NQ'));
     }
 
-    public function testPasswordDefinitionError()
+    public function testPasswordDefinitionError(): void
     {
         $this->expectException(InvalidArgumentException::class);
 

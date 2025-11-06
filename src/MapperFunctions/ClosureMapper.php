@@ -23,16 +23,17 @@ class ClosureMapper implements MapperFunctionInterface
     /**
      * @throws ReflectionException
      */
-    public function processedValue(mixed $value, mixed $instance, mixed $helper = null): mixed
+    #[\Override]
+    public function processedValue(mixed $value, mixed $instance, mixed $executor = null): mixed
     {
         $reflection = new ReflectionFunction($this->closure);
         $paramCount = $reflection->getNumberOfParameters();
 
-        // Call closure with appropriate number of parameters
+        // Call closure with the appropriate number of parameters
         return match($paramCount) {
             1 => ($this->closure)($value),
             2 => ($this->closure)($value, $instance),
-            default => ($this->closure)($value, $instance, $helper)
+            default => ($this->closure)($value, $instance, $executor)
         };
     }
 }

@@ -17,6 +17,14 @@ use InvalidArgumentException;
 
 /**
  * Structure to represent the users
+ *
+ * @method string getUserid()
+ * @method string getName()
+ * @method string getEmail()
+ * @method string getUsername()
+ * @method string getPassword()
+ * @method string getCreated()
+ * @method string getAdmin()
  */
 class UserDefinition
 {

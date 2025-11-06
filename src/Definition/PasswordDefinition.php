@@ -154,8 +154,8 @@ class PasswordDefinition
             }
         }
 
-        $size = $this->rules[self::MINIMUM_CHARS] + $extendSize;
-        $totalChars = array_sum($charsCount);
+        $size = intval($this->rules[self::MINIMUM_CHARS]) + $extendSize;
+        $totalChars = intval(array_sum($charsCount));
         $rulesWithValueGreaterThanZero = array_filter($charsCount, function ($value) {
             return $value > 0;
         });

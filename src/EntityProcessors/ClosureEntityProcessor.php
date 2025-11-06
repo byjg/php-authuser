@@ -17,6 +17,7 @@ class ClosureEntityProcessor implements EntityProcessorInterface
         $this->closure = $closure;
     }
 
+    #[\Override]
     public function process(array $instance): array
     {
         $result = ($this->closure)($instance);

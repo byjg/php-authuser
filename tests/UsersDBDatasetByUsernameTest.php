@@ -77,6 +77,9 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->propertyDefinition = null;
     }
 
+    /**
+     * @return void
+     */
     #[\Override]
     public function testAddUser()
     {
@@ -101,6 +104,9 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('y', $user2->getAdmin());
     }
 
+    /**
+     * @return void
+     */
     #[\Override]
     public function testCreateAuthToken()
     {
@@ -108,6 +114,9 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->expectedToken('tokenValue', $login, 2);
     }
 
+    /**
+     * @return void
+     */
     public function testWithUpdateValue()
     {
         // For Update Definitions
@@ -159,6 +168,9 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
     }
 
+    /**
+     * @return void
+     */
     #[\Override]
     public function testSaveAndSave()
     {

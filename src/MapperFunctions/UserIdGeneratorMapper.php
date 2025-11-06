@@ -11,6 +11,7 @@ use ByJG\MicroOrm\Interface\MapperFunctionInterface;
  */
 class UserIdGeneratorMapper implements MapperFunctionInterface
 {
+    #[\Override]
     public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
     {
         // If value is already set, use it
