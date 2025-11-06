@@ -46,7 +46,62 @@ SHA-1 is used for backward compatibility. For new projects, consider implementin
 To enforce password policies (minimum length, complexity rules, etc.), see [Password Validation](password-validation.md).
 :::
 
-## Workflow
+## JWT Token Authentication (Recommended)
+
+For modern, stateless authentication, use JWT tokens. This is the **recommended approach** for new applications as it provides better security and scalability.
+
+```php
+<?php
+use ByJG\JwtWrapper\JwtKeySecret;
+use ByJG\JwtWrapper\JwtWrapper;
+
+// Create JWT wrapper
+$jwtKey = new JwtKeySecret('your-secret-key');
+$jwtWrapper = new JwtWrapper($jwtKey);
+
+// Create authentication token
+$token = $users->createAuthToken(
+    'johndoe',              // Login
+    'SecurePass123',        // Password
+    $jwtWrapper,
+    3600,                   // Expires in 1 hour (seconds)
+    [],                     // Additional user info to save
+    ['role' => 'admin']     // Additional token data
+);
+
+if ($token !== null) {
+    echo "Token: " . $token;
+}
+```
+
+### Validating JWT Tokens
+
+```php
+<?php
+$result = $users->isValidToken('johndoe', $jwtWrapper, $token);
+
+if ($result !== null) {
+    $user = $result['user'];
+    $tokenData = $result['data'];
+
+    echo "User: " . $user->getName();
+    echo "Role: " . $tokenData['role'];
+}
+```
+
+:::info Token Storage
+When a JWT token is created, a hash of the token is stored in the user's properties as `TOKEN_HASH`. This ensures tokens can be invalidated if needed.
+:::
+
+:::tip Why JWT?
+JWT tokens provide stateless authentication, better scalability, and easier integration with modern frontend frameworks and mobile applications. They're also more secure than traditional PHP sessions.
+:::
+
+## Session-Based Authentication (Legacy)
+
+:::warning Deprecated
+SessionContext relies on traditional PHP sessions and is less secure than JWT tokens. It's maintained for backward compatibility only. **For new projects, use JWT tokens instead.**
+:::
 
 ### Basic Authentication Flow
 
@@ -91,53 +146,6 @@ if ($sessionContext->isAuthenticated()) {
 <?php
 $sessionContext->registerLogout();
 ```
-
-## JWT Token Authentication
-
-For stateless authentication, you can use JWT tokens:
-
-```php
-<?php
-use ByJG\JwtWrapper\JwtKeySecret;
-use ByJG\JwtWrapper\JwtWrapper;
-
-// Create JWT wrapper
-$jwtKey = new JwtKeySecret('your-secret-key');
-$jwtWrapper = new JwtWrapper($jwtKey);
-
-// Create authentication token
-$token = $users->createAuthToken(
-    'johndoe',              // Login
-    'SecurePass123',        // Password
-    $jwtWrapper,
-    3600,                   // Expires in 1 hour (seconds)
-    [],                     // Additional user info to save
-    ['role' => 'admin']     // Additional token data
-);
-
-if ($token !== null) {
-    echo "Token: " . $token;
-}
-```
-
-### Validating JWT Tokens
-
-```php
-<?php
-$result = $users->isValidToken('johndoe', $jwtWrapper, $token);
-
-if ($result !== null) {
-    $user = $result['user'];
-    $tokenData = $result['data'];
-
-    echo "User: " . $user->getName();
-    echo "Role: " . $tokenData['role'];
-}
-```
-
-:::info Token Storage
-When a JWT token is created, a hash of the token is stored in the user's properties as `TOKEN_HASH`. This ensures tokens can be invalidated if needed.
-:::
 
 ## Security Best Practices
 
