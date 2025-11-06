@@ -79,9 +79,15 @@ class UserModelTest extends TestCase
             PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
         ]));
 
-        $this->assertEmpty($this->object->setPassword(null));
-        $this->assertEmpty($this->object->setPassword(''));
-        $this->assertEmpty($this->object->setPassword('!Ab18Uk*H2oU9NQ'));
+        // These passwords should be accepted (null, empty, and valid password)
+        $this->object->setPassword(null);
+        $this->assertNull($this->object->getPassword());
+
+        $this->object->setPassword('');
+        $this->assertEmpty($this->object->getPassword());
+
+        $this->object->setPassword('!Ab18Uk*H2oU9NQ');
+        $this->assertEquals('!Ab18Uk*H2oU9NQ', $this->object->getPassword());
     }
 
     public function testPasswordDefinitionError(): void
