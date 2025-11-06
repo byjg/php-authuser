@@ -110,12 +110,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Dependencies
 
-This library depends on:
-- **byjg/micro-orm** - For database operations
-- **byjg/cache-engine** - For session management
-- **byjg/jwt-wrapper** - For JWT token support
-
-See [Installation](docs/installation.md) for details and dependency graph.
+```mermaid
+flowchart TD
+    byjg/authuser --> byjg/micro-orm
+    byjg/authuser --> byjg/cache-engine
+    byjg/authuser --> byjg/jwt-wrapper
+```
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
