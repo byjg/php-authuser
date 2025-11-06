@@ -289,6 +289,10 @@ Because this project uses PHP Session you need to run the unit test the followin
           └───────────────────┘    └───────────────────┘    └────────────────────┘
 ```
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Dependencies
 
 ```mermaid
@@ -297,10 +301,6 @@ flowchart TD
     byjg/authuser --> byjg/cache-engine
     byjg/authuser --> byjg/jwt-wrapper
 ```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
