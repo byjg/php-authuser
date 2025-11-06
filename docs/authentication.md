@@ -39,7 +39,11 @@ $users->save($user);
 ```
 
 :::warning SHA-1 Deprecation
-SHA-1 is used for backward compatibility. For new projects, consider implementing a custom password hasher using bcrypt or Argon2. See [Custom Mappers](mappers.md) for details.
+SHA-1 is used for backward compatibility. For new projects, consider implementing a custom password hasher using bcrypt or Argon2. See [Mappers](mappers.md#example-bcrypt-password-mapper) for details.
+:::
+
+:::tip Enforce Password Strength
+To enforce password policies (minimum length, complexity rules, etc.), see [Password Validation](password-validation.md).
 :::
 
 ## Workflow

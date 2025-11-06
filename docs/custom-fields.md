@@ -7,6 +7,10 @@ title: Custom Fields
 
 You can extend the `UserModel` to add custom fields that match your database schema.
 
+:::info When to Use This
+This guide is for **adding new fields** beyond the standard user fields. If you just need to **map existing database columns** to the standard fields, see [Database Storage](database-storage.md#custom-database-schema) instead.
+:::
+
 ## Extending UserModel
 
 ### Creating a Custom User Model
