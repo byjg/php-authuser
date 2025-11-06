@@ -3,7 +3,6 @@
 namespace Tests;
 
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
-use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
 use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
@@ -14,47 +13,11 @@ use ByJG\Authenticate\UsersDBDataset;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
-use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 use Exception;
 use Override;
 use ReflectionException;
-
-class MyUserModel extends UserModel
-{
-    protected $otherfield;
-
-    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no", $field = "")
-    {
-        parent::__construct($name, $email, $username, $password, $admin);
-        $this->setOtherfield($field);
-    }
-
-    public function getOtherfield()
-    {
-        return $this->otherfield;
-    }
-
-    public function setOtherfield($otherfield): void
-    {
-        $this->otherfield = $otherfield;
-    }
-}
-
-class TestUniqueIdGenerator implements MapperFunctionInterface
-{
-    private string $prefix;
-
-    public function __construct(string $prefix = 'TEST-')
-    {
-        $this->prefix = $prefix;
-    }
-
-    #[Override]
-    public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed
-    {
-        return $this->prefix . uniqid();
-    }
-}
+use Tests\Fixture\MyUserModel;
+use Tests\Fixture\TestUniqueIdGenerator;
 
 class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 {

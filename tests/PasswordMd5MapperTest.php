@@ -7,32 +7,9 @@ use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Definition\UserPropertiesDefinition;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersDBDataset;
-use ByJG\MicroOrm\Interface\MapperFunctionInterface;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
-
-/**
- * Custom MD5 Password Mapper for testing
- */
-class PasswordMd5Mapper implements MapperFunctionInterface
-{
-    #[\Override]
-    public function processedValue(mixed $value, mixed $instance, mixed $executor = null): mixed
-    {
-        // Already have an MD5 hash (32 characters)
-        if (is_string($value) && strlen($value) === 32 && ctype_xdigit($value)) {
-            return $value;
-        }
-
-        // Leave null
-        if (empty($value)) {
-            return null;
-        }
-
-        // Return the MD5 hash
-        return strtolower(md5($value));
-    }
-}
+use Tests\Fixture\PasswordMd5Mapper;
 
 class PasswordMd5MapperTest extends TestCase
 {
