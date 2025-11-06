@@ -6,110 +6,265 @@
 [![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
-A simple and customizable class for enable user authentication inside your application. It is available on XML files, Relational Databases.
+A simple and customizable library for user authentication in PHP applications. It supports multiple storage backends including databases and XML files.
 
-The main purpose is just to handle all complexity of validate a user, add properties and create access token abstracting the database layer.
-This class can persist into session (or file, memcache, etc) the user data between requests.
+The main purpose is to handle all complexity of user validation, authentication, properties management, and access tokens, abstracting the database layer.
+This class can persist user data into session (or file, memcache, etc.) between requests.
 
-## Creating a Users handling class
+## Documentation
 
-Using the FileSystem (XML) as the user storage:
+- [Getting Started](docs/getting-started.md)
+- [Installation](docs/installation.md)
+- [User Management](docs/user-management.md)
+- [Authentication](docs/authentication.md)
+- [Session Context](docs/session-context.md)
+- [User Properties](docs/user-properties.md)
+- [Database Storage](docs/database-storage.md)
+- [Password Validation](docs/password-validation.md)
+- [JWT Tokens](docs/jwt-tokens.md)
+- [Custom Fields](docs/custom-fields.md)
+- [Mappers](docs/mappers.md)
+- [Examples](docs/examples.md)
 
-```php
-<?php
-$users = new UsersAnyDataset('/tmp/pass.anydata.xml');
+## Quick Start
+
+### Installation
+
+```bash
+composer require byjg/authuser
 ```
 
-Using the Database as the user storage:
+### Using Database Storage
 
 ```php
 <?php
-$users = new ByJG\Authenticate\UsersDBDataset(
-    'connection',   // The connection string. Please refer to the project byjg/anydataset
-    new UserDefinition(),  // The field metadata for store the users
-    new UserPropertiesDefinition()  // The field metadata for store the extra properties
+use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\AnyDataset\Db\Factory;
+
+// Create database connection
+$dbDriver = Factory::getDbInstance('mysql://user:password@localhost/database');
+
+// Initialize user management
+$users = new UsersDBDataset(
+    $dbDriver,
+    new UserDefinition(),              // Field metadata for users table
+    new UserPropertiesDefinition()     // Field metadata for user properties table
 );
 ```
 
-*Note*: See the [Anydataset project](https://github.com/byjg/anydataset#connection-based-on-uri) to see the
-database available and the connection strings as well.
-
-## Check if user was previously authenticated
+### Using XML File Storage
 
 ```php
 <?php
-$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
+use ByJG\Authenticate\UsersAnyDataset;
+use ByJG\AnyDataset\Core\AnyDataset;
 
-// Check if the user is authenticated
-if ($sessionContext->isAuthenticated()) {
+// Create or load AnyDataset
+$anyDataset = new AnyDataset('/tmp/users.xml');
 
-    // Get the userId of the authenticated users
-    $userId = $sessionContext->userInfo();
+// Initialize user management
+$users = new UsersAnyDataset($anyDataset);
+```
 
-    // Get the user and your name
-    $user = $users->getById($userId);
-    echo "Hello: " . $user->getName();
+*Note*: See the [AnyDataset DB project](https://github.com/byjg/anydataset-db) for available databases and connection strings.
+
+## Basic Usage
+
+### Creating and Authenticating Users
+
+```php
+<?php
+use ByJG\Authenticate\SessionContext;
+use ByJG\Cache\Factory;
+
+// Add a new user
+$user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');
+
+// Validate user credentials
+$authenticatedUser = $users->isValidUser('johndoe', 'SecurePass123');
+
+if ($authenticatedUser !== null) {
+    // Create session context
+    $sessionContext = new SessionContext(Factory::createSessionPool());
+
+    // Register the login
+    $sessionContext->registerLogin($authenticatedUser->getUserid());
+
+    echo "Welcome, " . $authenticatedUser->getName();
 }
 ```
 
-## Saving extra info into the user session
-
-You can save data in the session data exists only during the user is logged in. Once the user logged off the
-data stored with the user session will be released.
-
-Store the data for the current user session:
+### Check if User is Authenticated
 
 ```php
 <?php
-$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
-$sessionContext->setSessionData('key', 'value');
+$sessionContext = new SessionContext(Factory::createSessionPool());
+
+// Check if the user is authenticated
+if ($sessionContext->isAuthenticated()) {
+    // Get the userId of the authenticated user
+    $userId = $sessionContext->userInfo();
+
+    // Get the user and display name
+    $user = $users->getById($userId);
+    echo "Hello: " . $user->getName();
+} else {
+    echo "Please log in";
+}
 ```
 
-Getting the data from the current user session:
+## Managing Session Data
+
+You can store temporary data in the user session that exists only while the user is logged in. Once the user logs out, the data is automatically released.
+
+### Store Session Data
 
 ```php
 <?php
-$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createSessionPool());
-$value = $sessionContext->getSessionData('key');
+$sessionContext = new SessionContext(Factory::createSessionPool());
+
+// User must be authenticated
+$sessionContext->setSessionData('shopping_cart', [
+    'item1' => 'Product A',
+    'item2' => 'Product B'
+]);
+
+$sessionContext->setSessionData('last_page', '/products');
 ```
 
-Note: If the user is not logged an error will be throw
+### Retrieve Session Data
 
-## Adding a custom property to the users
+```php
+<?php
+$sessionContext = new SessionContext(Factory::createSessionPool());
+
+$cart = $sessionContext->getSessionData('shopping_cart');
+$lastPage = $sessionContext->getSessionData('last_page');
+```
+
+:::note
+A `NotAuthenticatedException` will be thrown if the user is not authenticated when accessing session data.
+:::
+
+## Managing User Properties
+
+User properties allow you to store custom key-value data associated with users permanently.
+
+### Add Custom Properties
+
+```php
+<?php
+// Add a property to a user
+$users->addProperty($userId, 'phone', '555-1234');
+$users->addProperty($userId, 'department', 'Engineering');
+
+// Users can have multiple values for the same property
+$users->addProperty($userId, 'role', 'developer');
+$users->addProperty($userId, 'role', 'manager');
+```
+
+### Using UserModel
 
 ```php
 <?php
 $user = $users->getById($userId);
-$user->setField('somefield', 'somevalue');
-$users->save();
+
+// Set a property (update or create)
+$user->set('phone', '555-1234');
+
+// Save changes
+$users->save($user);
 ```
 
-## Logout from a session
+## Logout
 
 ```php
 <?php
 $sessionContext->registerLogout();
 ```
 
-## Important note about SessionContext
+## JWT Token Authentication
 
-`SessionContext` object will store the info about the current context.
-As SessionContext uses CachePool interface defined in PSR-6 you can set any storage
-to save your session context.
-
-In our examples we are using a regular PHP Session for store the user context
-(`Factory::createSessionPool()`). But if you are using another store like MemCached
-you have to define a UNIQUE prefix for that session. Note if TWO users have the same
-prefix you probably have an unexpected result for the SessionContext.
-
-Example for memcached:
+For stateless API authentication, you can use JWT tokens:
 
 ```php
 <?php
-$sessionContext = new \ByJG\Authenticate\SessionContext(\ByJG\Cache\Factory::createMemcachedPool(), 'UNIQUEPREFIX');
+use ByJG\JwtWrapper\JwtKeySecret;
+use ByJG\JwtWrapper\JwtWrapper;
+
+// Create JWT wrapper
+$jwtKey = new JwtKeySecret('your-secret-key');
+$jwtWrapper = new JwtWrapper($jwtKey);
+
+// Create authentication token
+$token = $users->createAuthToken(
+    'johndoe',           // Login
+    'SecurePass123',     // Password
+    $jwtWrapper,
+    3600,                // Expires in 1 hour (seconds)
+    [],                  // Additional user info to save
+    ['role' => 'admin']  // Additional token data
+);
+
+// Validate token
+$result = $users->isValidToken('johndoe', $jwtWrapper, $token);
+if ($result !== null) {
+    $user = $result['user'];
+    $tokenData = $result['data'];
+}
 ```
 
-If you do not know to create/manage that unique prefix **prefer to use the regular Session object.**
+See [JWT Tokens](docs/jwt-tokens.md) for detailed information.
+
+## Database Schema
+
+The default database schema uses two tables:
+
+```sql
+CREATE TABLE users (
+    userid INTEGER AUTO_INCREMENT NOT NULL,
+    name VARCHAR(50),
+    email VARCHAR(120),
+    username VARCHAR(15) NOT NULL,
+    password CHAR(40) NOT NULL,
+    created DATETIME,
+    admin ENUM('Y','N'),
+    CONSTRAINT pk_users PRIMARY KEY (userid)
+) ENGINE=InnoDB;
+
+CREATE TABLE users_property (
+    customid INTEGER AUTO_INCREMENT NOT NULL,
+    name VARCHAR(20),
+    value VARCHAR(100),
+    userid INTEGER NOT NULL,
+    CONSTRAINT pk_custom PRIMARY KEY (customid),
+    CONSTRAINT fk_custom_user FOREIGN KEY (userid) REFERENCES users (userid)
+) ENGINE=InnoDB;
+```
+
+You can customize table and column names using `UserDefinition` and `UserPropertiesDefinition`. See [Database Storage](docs/database-storage.md) for details.
+
+## Features
+
+- **Complete User Management** - Create, read, update, and delete users
+- **Flexible Authentication** - Username/email + password or JWT tokens
+- **Session Management** - PSR-6 compatible cache storage
+- **User Properties** - Store custom key-value data per user
+- **Password Validation** - Built-in password strength requirements
+- **Multiple Storage Backends** - Database (MySQL, PostgreSQL, SQLite, etc.) or XML files
+- **Customizable Schema** - Map to existing database tables
+- **Field Mappers** - Transform data during read/write operations
+- **Extensible User Model** - Add custom fields easily
+
+## Running Tests
+
+Because this project uses PHP Session you need to run the unit test the following manner:
+
+```bash
+./vendor/bin/phpunit --stderr
+```
 
 ## Architecture
 
@@ -130,190 +285,22 @@ If you do not know to create/manage that unique prefix **prefer to use the regul
                     │                        │                         │
                     │                        │                         │
           ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐
-          │  UsersAnyDataset  │    │  UsersDBDataset   │    │ xxxxxxxxxxxxxxxxxx │
+          │  UsersAnyDataset  │    │  UsersDBDataset   │    │   Custom Impl.     │
           └───────────────────┘    └───────────────────┘    └────────────────────┘
-```
-
-- UserInterface contain the basic interface for the concrete implementation
-- UsersDBDataset is a concrete implementation to retrieve/save user in a Database
-- UserAnyDataset is a concrete implementation to retrieve/save user in a Xml file
-- UserModel is the basic model get/set for the user
-- UserPropertyModel is the basic model get/set for extra user property
-- UserDefinition will map the model to the database
-
-### Database
-
-The default structure adopted for store the user data in the database through the
-UsersDBDataset class is the follow:
-
-```sql
-create table users
-(
-    userid integer AUTO_INCREMENT not null,
-    name varchar(50),
-    email varchar(120),
-    username varchar(15) not null,
-    password char(40) not null,
-    created datetime,
-    admin enum('Y','N'),
-
-    constraint pk_users primary key (userid)
-)
-ENGINE=InnoDB;
-
-create table users_property
-(
-   customid integer AUTO_INCREMENT not null,
-   name varchar(20),
-   value varchar(100),
-   userid integer not null,
-
-   constraint pk_custom primary key (customid),
-   constraint fk_custom_user foreign key (userid) references users (userid)
-)
-ENGINE=InnoDB;
-```
-
-Using the database structure above you can create the UsersDBDatase as follow:
-
-```php
-<?php
-$users = new ByJG\Authenticate\UsersDBDataset(
-    'connection',
-    new \ByJG\Authenticate\Definition\UserDefinition(),
-    new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
-);
-```
-
-### Custom Database
-
-If you have an existing database with different names but containing all fields above
-you can use the UserDefinition and UserPropertiesDefinition classes for customize this info.
-
-```php
-<?php
-$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
-    'users',    // $table
-    \ByJG\Authenticate\Model\UserModel::class, // Model class
-    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL,
-    [
-        UserDefinition::FIELD_USERID   => 'fieldname of userid',
-        UserDefinition::FIELD_NAME     => 'fieldname of name',
-        UserDefinition::FIELD_EMAIL    => 'fieldname of email',
-        UserDefinition::FIELD_USERNAME => 'fieldname of username',
-        UserDefinition::FIELD_PASSWORD => 'fieldname of password',
-        UserDefinition::FIELD_CREATED  => 'fieldname of created',
-        UserDefinition::FIELD_ADMIN    => 'fieldname of admin'
-    ]
-);
-```
-
-### Adding custom modifiers for read and update
-
-```php
-<?php
-$userDefinition = new \ByJG\Authenticate\Definition\UserDefinition(
-    'users',    // $table
-    \ByJG\Authenticate\Model\User::class,
-    \ByJG\Authenticate\Definition\UserDefinition::LOGIN_IS_EMAIL
-);
-
-// Defines a custom function to be applied BEFORE update/insert the field UserDefinition::FIELD_PASSWORD
-// $value --> the current value to be updated
-// $instance -> The array with all other fields;
-$userDefinition->defineClosureForUpdate(UserDefinition::FIELD_PASSWORD, function ($value, $instance) {
-    return strtoupper(sha1($value));
-});
-
-// Defines a custom function to be applied After the field UserDefinition::FIELD_CREATED is read but before
-// the user get the result
-// $value --> the current value retrieved from database
-// $instance -> The array with all other fields;
-$userDefinition->defineClosureForSelect(UserDefinition::FIELD_CREATED, function ($value, $instance) {
-    return date('Y', $value);
-});
-
-// If you want make the field READONLY just do it:
-$userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
-```
-
-## Extending UserModel
-
-It is possible extending the UserModel table, since you create a new class extending from UserModel to add the new fields.
-
-For example, imagine your table has one field called "otherfield".
-
-You'll have to extend like this:
-
-```php
-<?php
-/**
- * This class is your model
- * This need to support the basic field plus your new fields
- * already set in your definition class
- */
-class MyUserModel extends UserModel
-{
-    protected $otherfield;
-
-    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no", $field = "")
-    {
-        parent::__construct($name, $email, $username, $password, $admin);
-        $this->setOtherfield($field);
-    }
-
-    public function getOtherfield()
-    {
-        return $this->otherfield;
-    }
-
-    public function setOtherfield($otherfield)
-    {
-        $this->otherfield = $otherfield;
-    }
-}
-```
-
-After that you can use your new definition:
-
-```php
-<?php
-$users = new ByJG\Authenticate\UsersDBDataset(
-    'connection',
-    new \ByJG\Authenticate\Definition\UserDefinition(
-        'tablename',
-        MyUserModel::class,
-        UserDefinition::LOGIN_IS_EMAIL
-    ),
-    new \ByJG\Authenticate\Definition\UserPropertiesDefinition()
-);
-```
-
-## Install
-
-Just type:
-
-```bash
-composer require "byjg/authuser"
-```
-
-## Running Tests
-
-Because this project uses PHP Session you need to run the unit test the following manner:
-
-```bash
-./vendor/bin/phpunit --stderr
 ```
 
 ## Dependencies
 
-```mermaid  
-flowchart TD  
+```mermaid
+flowchart TD
     byjg/authuser --> byjg/micro-orm
     byjg/authuser --> byjg/cache-engine
-    byjg/authuser --> byjg/jwt-wrapper  
+    byjg/authuser --> byjg/jwt-wrapper
 ```
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
