@@ -166,7 +166,7 @@ $users->save($user);
 
 ```php
 <?php
-$user = $users->getById($userId);
+$user = $users->get($userId);
 
 // Access custom fields
 echo $user->getName();
@@ -179,7 +179,7 @@ echo $user->getTitle();
 
 ```php
 <?php
-$user = $users->getById($userId);
+$user = $users->get($userId);
 $user->setDepartment('Sales');
 $user->setTitle('Sales Manager');
 $users->save($user);
@@ -357,7 +357,7 @@ $user->setTitle('Marketing Director');
 $savedUser = $users->save($user);
 
 // Retrieve and update
-$user = $users->getById($savedUser->getUserid());
+$user = $users->get($savedUser->getUserid());
 $user->setTitle('VP of Marketing');
 $users->save($user);
 ```

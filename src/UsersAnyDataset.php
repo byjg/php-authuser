@@ -211,7 +211,7 @@ class UsersAnyDataset extends UsersBase
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if ($user !== null) {
             if (!$this->hasProperty($user->getUserid(), $propertyName, $value)) {
                 $user->addProperty(new UserPropertiesModel($propertyName, $value));
@@ -232,7 +232,7 @@ class UsersAnyDataset extends UsersBase
     #[Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if ($user !== null) {
             $user->set($propertyName, $value);
             $this->save($user);
@@ -254,7 +254,7 @@ class UsersAnyDataset extends UsersBase
     #[Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if (!empty($user)) {
             $properties = $user->getProperties();
             foreach ($properties as $key => $property) {

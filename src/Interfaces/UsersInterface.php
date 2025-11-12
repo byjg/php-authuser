@@ -50,31 +50,11 @@ interface UsersInterface
     /**
      * Enter description here...
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|HexUuidLiteral|int $value
+     * @param string|null $field
      * @return UserModel|null
      */
-    public function getById(string|HexUuidLiteral|int $userid): UserModel|null;
-
-    /**
-     * @desc Get the user based on his email.
-     * @param string $email Email to find
-     * @return UserModel|null if user was found; null, otherwise
-     */
-    public function getByEmail(string $email): UserModel|null;
-
-    /**
-     * @desc Get the user based on his username.
-     * @param string $username
-     * @return UserModel|null if user was found; null, otherwise
-     */
-    public function getByUsername(string $username): UserModel|null;
-
-    /**
-     * @desc Get the user based on his login
-     * @param string $login
-     * @return UserModel|null if user was found; null, otherwise
-     */
-    public function getByLoginField(string $login): UserModel|null;
+    public function get(string|HexUuidLiteral|int $value, ?string $field = null): UserModel|null;
 
     /**
      * @desc Remove the user based on his login.

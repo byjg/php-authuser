@@ -96,7 +96,7 @@ abstract class UsersBase implements UsersInterface
     #[Override]
     public function canAddUser(UserModel $model): bool
     {
-        if ($this->getByEmail($model->getEmail()) !== null) {
+        if (!empty($model->getUserid()) && $this->get($model->getUserid()) !== null) {
             throw new UserExistsException('Email already exists');
         }
         $filter = new IteratorFilter();
@@ -119,66 +119,32 @@ abstract class UsersBase implements UsersInterface
     abstract public function getUser(IteratorFilter $filter): UserModel|null;
 
     /**
-     * Get the user based on his email.
-     * Return Row if user was found; null, otherwise
-     *
-     * @param string $email
-     * @return UserModel|null
-     * @throws InvalidArgumentException
-     */
-    #[Override]
-    public function getByEmail(string $email): UserModel|null
-    {
-        $filter = new IteratorFilter();
-        $filter->and($this->getUserDefinition()->getEmail(), Relation::EQUAL, strtolower($email));
-        return $this->getUser($filter);
-    }
-
-    /**
-     * Get the user based on his username.
-     * Return Row if user was found; null, otherwise
-     *
-     * @param string $username
-     * @return UserModel|null
-     * @throws InvalidArgumentException
-     */
-    #[Override]
-    public function getByUsername(string $username): UserModel|null
-    {
-        $filter = new IteratorFilter();
-        $filter->and($this->getUserDefinition()->getUsername(), Relation::EQUAL, $username);
-        return $this->getUser($filter);
-    }
-
-    /**
-     * Get the user based on his login.
-     * Return Row if user was found; null, otherwise
-     *
-     * @param string $login
-     * @return UserModel|null
-     */
-    #[Override]
-    public function getByLoginField(string $login): UserModel|null
-    {
-        $filter = new IteratorFilter();
-        $filter->and($this->getUserDefinition()->loginField(), Relation::EQUAL, strtolower($login));
-
-        return $this->getUser($filter);
-    }
-
-    /**
      * Get the user based on his id.
      * Return Row if user was found; null, otherwise
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|HexUuidLiteral|int $value
+     * @param string|null $field
      * @return UserModel|null
      * @throws InvalidArgumentException
      */
     #[Override]
-    public function getById(string|HexUuidLiteral|int $userid): UserModel|null
+    public function get(string|HexUuidLiteral|int $value, ?string $field = null): UserModel|null
     {
+        if (empty($field)) {
+            $field = $this->getUserDefinition()->getUserid();
+        }
+
+        $validFields = [
+            $this->getUserDefinition()->getUserid(),
+            $this->getUserDefinition()->getUsername(),
+            $this->getUserDefinition()->getEmail()
+        ];
+
+        if (!in_array($field, $validFields)) {
+            throw new \InvalidArgumentException("Invalid field type provided. Should be one of " . implode(", ", $validFields));
+        }
         $filter = new IteratorFilter();
-        $filter->and($this->getUserDefinition()->getUserid(), Relation::EQUAL, $userid);
+        $filter->and($field, Relation::EQUAL, $value);
         return $this->getUser($filter);
     }
 
@@ -236,7 +202,7 @@ abstract class UsersBase implements UsersInterface
         if (is_string($userIdMapper)) {
             $userIdMapper = new $userIdMapper();
         }
-        $user = $this->getById($userIdMapper->processedValue($userId, null));
+        $user = $this->get($userIdMapper->processedValue($userId, null));
 
         if (empty($user)) {
             return false;
@@ -271,7 +237,7 @@ abstract class UsersBase implements UsersInterface
     #[Override]
     public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if ($user !== null) {
             $values = $user->get($propertyName);
 
@@ -382,7 +348,7 @@ abstract class UsersBase implements UsersInterface
     #[Override]
     public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): array|null
     {
-        $user = $this->getByLoginField($login);
+        $user = $this->get($login, $this->getUserDefinition()->loginField());
 
         if (is_null($user)) {
             throw new UserNotFoundException('User not found!');

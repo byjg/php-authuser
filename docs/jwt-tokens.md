@@ -285,7 +285,7 @@ if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         $jwtData = $jwtWrapper->extractData($token);
         $username = $jwtData->data['login'] ?? null;
 
-        $user = $users->getByLoginField($username);
+        $user = $users->get($username, $users->getUserDefinition()->loginField());
         if ($user !== null) {
             $users->removeProperty($user->getUserid(), 'TOKEN_HASH');
         }

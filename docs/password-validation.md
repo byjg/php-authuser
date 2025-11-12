@@ -253,7 +253,7 @@ Repeated patterns include:
 <?php
 // Password change with validation
 try {
-    $user = $users->getById($userId);
+    $user = $users->get($userId);
     $user->withPasswordDefinition($passwordDefinition);
 
     // Verify old password

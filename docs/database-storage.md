@@ -148,7 +148,7 @@ $userDefinition = new UserDefinition(
 ```
 
 :::tip Login Field
-The login field affects methods like `isValidUser()` and `getByLoginField()`. They will use the configured field for authentication.
+The login field affects methods like `isValidUser()`. They will use the configured field for authentication.
 :::
 
 ## Complete Example

@@ -52,7 +52,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
     }
 
-    public function __chooseValue($forUsername, $forEmail)
+    public function __chooseValue($forUsername, $forEmail): string
     {
         $searchForList = [
             $this->userDefinition->getUsername() => $forUsername,
@@ -74,7 +74,10 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     {
         $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
 
-        $user = $this->object->getByLoginField($this->__chooseValue('john', 'johndoe@gmail.com'));
+        $user = $this->object->get(
+            $this->__chooseValue('john', 'johndoe@gmail.com'),
+            $this->object->getUserDefinition()->loginField()
+        );
 
         $this->assertEquals('john', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
@@ -92,17 +95,17 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     public function testAddProperty(): void
     {
         // Check state
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEmpty($user->get('city'));
 
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
 
         // Add another property (cannot change)
         $this->object->addProperty($this->prefix . '2', 'city', 'Belo Horizonte');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $user->get('city'));
 
         // Get Property
@@ -110,12 +113,12 @@ class UsersAnyDatasetByUsernameTest extends TestCase
 
         // Add another property
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals('RJ', $user->get('state'));
 
         // Remove Property
         $this->object->removeProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEmpty($user->get('state'));
 
         // Remove Property Again
@@ -130,32 +133,32 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $this->object->addProperty($this->prefix . '2', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEquals('RJ', $user->get('state'));
 
         // Add another properties
         $this->object->addProperty($this->prefix . '1', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '1', 'state', 'BA');
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEquals('BA', $user->get('state'));
 
         // Remove Properties
         $this->object->removeAllProperties('state');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEmpty($user->get('state'));
 
         // Remove Properties Again
         $this->object->removeAllProperties('city', 'Niteroi');
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $this->assertEmpty($user->get('city'));
         $this->assertEmpty($user->get('state'));
 
@@ -165,13 +168,13 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     {
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertNotNull($user);
 
         $result = $this->object->removeByLoginField($login);
         $this->assertTrue($result);
 
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertNull($user);
     }
 
@@ -180,7 +183,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
         // Getting data
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertEquals('User 1', $user->getName());
 
         // Change and Persist data
@@ -188,7 +191,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->save($user);
 
         // Check if data persists
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $this->assertEquals('Other name', $user->getName());
     }
 
@@ -209,17 +212,17 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     public function testIsAdmin(): void
     {
         // Check is Admin
-        $user3 = $this->object->getById($this->prefix . '3');
+        $user3 = $this->object->get($this->prefix . '3');
         $this->assertFalse($user3->isAdmin());
 
         // Set the Admin Flag
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $user->setAdmin('Y');
         $this->object->save($user);
 
         // Check is Admin
-        $user3 = $this->object->getById($this->prefix . '3');
+        $user3 = $this->object->get($this->prefix . '3');
         $this->assertTrue($user3->isAdmin());
     }
 
@@ -238,7 +241,7 @@ class UsersAnyDatasetByUsernameTest extends TestCase
             ['tokenData'=>$tokenData]
         );
 
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = $tokenData;
@@ -288,28 +291,28 @@ class UsersAnyDatasetByUsernameTest extends TestCase
      */
     public function testSaveAndSave()
     {
-        $user = $this->object->getById('user1');
+        $user = $this->object->get('user1');
         $this->object->save($user);
 
-        $user2 = $this->object->getById('user1');
+        $user2 = $this->object->get('user1');
 
         $this->assertEquals($user, $user2);
     }
 
     public function testRemoveUserById(): void
     {
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $this->assertNotNull($user);
 
         $this->object->removeUserById($this->prefix . '1');
 
-        $user2 = $this->object->getById($this->prefix . '1');
+        $user2 = $this->object->get($this->prefix . '1');
         $this->assertNull($user2);
     }
 
     public function testGetByUsername(): void
     {
-        $user = $this->object->getByUsername('user2');
+        $user = $this->object->get('user2', $this->object->getUserDefinition()->getUsername());
 
         $this->assertEquals($this->prefix . '2', $user->getUserid());
         $this->assertEquals('User 2', $user->getName());
@@ -321,12 +324,12 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     public function testGetByUserProperty(): void
     {
         // Add property to user1
-        $user = $this->object->getById($this->prefix . '1');
+        $user = $this->object->get($this->prefix . '1');
         $user->set('property1', 'somevalue');
         $this->object->save($user);
 
         // Add property to user2
-        $user = $this->object->getById($this->prefix . '2');
+        $user = $this->object->get($this->prefix . '2');
         $user->set('property1', 'value1');
         $user->set('property2', 'value2');
         $this->object->save($user);

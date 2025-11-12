@@ -2,9 +2,9 @@
 
 require "vendor/autoload.php";
 
-use ByJG\Authenticate\UsersAnyDataset;
-use ByJG\Authenticate\SessionContext;
 use ByJG\AnyDataset\Core\AnyDataset;
+use ByJG\Authenticate\SessionContext;
+use ByJG\Authenticate\UsersAnyDataset;
 use ByJG\Cache\Factory;
 
 // Create or load AnyDataset from XML file
@@ -35,7 +35,7 @@ if ($authenticatedUser !== null) {
     $session->setSessionData('login_time', time());
 
     // Get the user info
-    $currentUser = $users->getById($session->userInfo());
+    $currentUser = $users->get($session->userInfo());
     echo "Welcome, " . $currentUser->getName() . "\n";
 }
 
