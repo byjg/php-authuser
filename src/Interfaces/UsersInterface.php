@@ -92,13 +92,6 @@ interface UsersInterface
     public function isValidUser(string $userName, string $password): UserModel|null;
 
     /**
-     *
-     * @param string|int|HexUuidLiteral $userId
-     * @return bool
-     */
-    public function isAdmin(string|HexUuidLiteral|int $userId): bool;
-
-    /**
      * @desc Check if the user have rights to edit specific site.
      * @param string|int|HexUuidLiteral|null $userId
      * @param string $propertyName

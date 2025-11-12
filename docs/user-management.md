@@ -122,7 +122,8 @@ $users->removeByLoginField('johndoe');
 
 ```php
 <?php
-if ($users->isAdmin($userId)) {
+/** @var $user \ByJG\Authenticate\Model\UserModel */
+if ($user->isAdmin()) {
     echo "User is an administrator";
 }
 ```

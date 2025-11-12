@@ -209,7 +209,8 @@ class UsersAnyDatasetByUsernameTest extends TestCase
     public function testIsAdmin(): void
     {
         // Check is Admin
-        $this->assertFalse($this->object->isAdmin($this->prefix . '3'));
+        $user3 = $this->object->getById($this->prefix . '3');
+        $this->assertFalse($user3->isAdmin());
 
         // Set the Admin Flag
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
@@ -218,7 +219,8 @@ class UsersAnyDatasetByUsernameTest extends TestCase
         $this->object->save($user);
 
         // Check is Admin
-        $this->assertTrue($this->object->isAdmin($this->prefix . '3'));
+        $user3 = $this->object->getById($this->prefix . '3');
+        $this->assertTrue($user3->isAdmin());
     }
 
     protected function expectedToken($tokenData, $login, $userId): void

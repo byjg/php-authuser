@@ -232,13 +232,17 @@ abstract class UsersBase implements UsersInterface
     public function hasProperty(string|int|HexUuidLiteral|null $userId, string $propertyName, string|null $value = null): bool
     {
         //anydataset.Row
-        $user = $this->getById($userId);
+        $userIdMapper = $this->getUserDefinition()->getMapperForUpdate(UserDefinition::FIELD_USERID);
+        if (is_string($userIdMapper)) {
+            $userIdMapper = new $userIdMapper();
+        }
+        $user = $this->getById($userIdMapper->processedValue($userId, null));
 
         if (empty($user)) {
             return false;
         }
 
-        if ($this->isAdmin($userId)) {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -262,7 +266,6 @@ abstract class UsersBase implements UsersInterface
      * @param string|int|HexUuidLiteral $userId User ID
      * @param string $propertyName Property name
      * @return array|string|UserPropertiesModel|null
-     * @throws UserNotFoundException
      * @throws InvalidArgumentException
      */
     #[Override]
@@ -272,7 +275,7 @@ abstract class UsersBase implements UsersInterface
         if ($user !== null) {
             $values = $user->get($propertyName);
 
-            if ($this->isAdmin($userId)) {
+            if ($user->isAdmin()) {
                 return array(UserDefinition::FIELD_ADMIN => "admin");
             }
 
@@ -317,26 +320,6 @@ abstract class UsersBase implements UsersInterface
      * */
     #[Override]
     abstract public function removeAllProperties(string $propertyName, string|null $value = null): void;
-
-    /**
-     * @param string|int|HexUuidLiteral $userId
-     * @return bool
-     * @throws UserNotFoundException
-     * @throws InvalidArgumentException
-     */
-    #[Override]
-    public function isAdmin(string|HexUuidLiteral|int $userId): bool
-    {
-        $user = $this->getById($userId);
-
-        if (is_null($user)) {
-            throw new UserNotFoundException("Cannot find the user");
-        }
-
-        return
-            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $user->getAdmin()) === 1
-        ;
-    }
 
     /**
      * Authenticate a user and create a token if it is valid

@@ -224,4 +224,11 @@ class UserModel
         $this->passwordDefinition = $passwordDefinition;
         return $this;
     }
+
+    public function isAdmin(): bool
+    {
+        return
+            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $this->getAdmin()) === 1
+        ;
+    }
 }

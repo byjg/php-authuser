@@ -217,7 +217,7 @@ $loginTime = $sessionContext->getSessionData('login_time');
     <p>Email: <?= htmlspecialchars($user->getEmail()) ?></p>
     <p>Logged in at: <?= date('Y-m-d H:i:s', $loginTime) ?></p>
 
-    <?php if ($users->isAdmin($userId)): ?>
+    <?php if ($user->isAdmin()): ?>
         <p><strong>You are an administrator</strong></p>
         <p><a href="admin.php">Admin Panel</a></p>
     <?php endif; ?>
@@ -364,7 +364,7 @@ try {
             'name' => $user->getName(),
             'email' => $user->getEmail(),
             'username' => $user->getUsername(),
-            'admin' => $users->isAdmin($user->getUserid())
+            'admin' => $user->isAdmin()
         ]);
     } elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         // Update user info
