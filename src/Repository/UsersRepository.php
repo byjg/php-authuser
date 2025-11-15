@@ -63,7 +63,7 @@ class UsersRepository
     /**
      * Get user by field value
      *
-     * @param string $field
+     * @param string $field Property name (e.g., 'username', 'email')
      * @param string|HexUuidLiteral|int $value
      * @return UserModel|null
      * @throws DatabaseException
@@ -74,9 +74,13 @@ class UsersRepository
      */
     public function getByField(string $field, string|HexUuidLiteral|int $value): ?UserModel
     {
+        // Map the property name to the actual database column name
+        $fieldMapping = $this->mapper->getFieldMap($field);
+        $dbColumnName = $fieldMapping ? $fieldMapping->getFieldName() : $field;
+
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$field = :value", ['value' => $value]);
+            ->where("$dbColumnName = :value", ['value' => $value]);
 
         $result = $this->repository->getByQuery($query);
         return count($result) > 0 ? $result[0] : null;
@@ -123,9 +127,9 @@ class UsersRepository
     /**
      * Get the primary key field name from mapper
      *
-     * @return string
+     * @return string|array
      */
-    public function getPrimaryKeyName(): string
+    public function getPrimaryKeyName(): string|array
     {
         return $this->mapper->getPrimaryKey();
     }

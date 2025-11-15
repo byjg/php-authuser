@@ -2,16 +2,26 @@
 
 require "vendor/autoload.php";
 
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\SessionContext;
-use ByJG\Authenticate\UsersDBDataset;
 use ByJG\Cache\Factory;
 
 // Create database connection (using SQLite for this example)
 $dbDriver = DbFactory::getDbInstance('sqlite:///tmp/users.db');
+$db = DatabaseExecutor::using($dbDriver);
 
-// Initialize user management
-$users = new UsersDBDataset($dbDriver);
+// Initialize repositories
+$usersRepository = new UsersRepository($db, UserModel::class);
+$propertiesRepository = new UserPropertiesRepository($db, UserPropertiesModel::class);
+
+// Initialize user service
+$users = new UsersService($usersRepository, $propertiesRepository, UsersService::LOGIN_IS_USERNAME);
 
 // Add a new user
 $user = $users->addUser('Some User Full Name', 'someuser', 'someuser@someemail.com', '12345');
@@ -35,7 +45,7 @@ if ($authenticatedUser !== null) {
     $session->setSessionData('login_time', time());
 
     // Get the user info
-    $currentUser = $users->get($session->userInfo());
+    $currentUser = $users->getById($session->userInfo());
     echo "Welcome, " . $currentUser->getName() . "\n";
 }
 

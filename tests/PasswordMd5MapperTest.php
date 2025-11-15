@@ -2,22 +2,23 @@
 
 namespace Tests;
 
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
-use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
-use ByJG\Authenticate\Model\UserModel;
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Service\UsersService;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixture\PasswordMd5Mapper;
+use Tests\Fixture\UserModelMd5;
 
 class PasswordMd5MapperTest extends TestCase
 {
     const CONNECTION_STRING = 'sqlite:///tmp/teste_md5.db';
 
     protected $db;
-    protected $userDefinition;
-    protected $propertyDefinition;
+    protected $service;
 
     #[\Override]
     public function setUp(): void
@@ -40,12 +41,15 @@ class PasswordMd5MapperTest extends TestCase
             value varchar(45));'
         );
 
-        // Create user definition with custom MD5 password mapper
-        $this->userDefinition = new UserDefinition('users', UserModel::class, UserDefinition::LOGIN_IS_USERNAME);
-        $this->userDefinition->defineMapperForUpdate(UserDefinition::FIELD_PASSWORD, PasswordMd5Mapper::class);
-        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
-
-        $this->propertyDefinition = new UserPropertiesDefinition();
+        // Create repositories and service with custom MD5 password mapper via UserModelMd5
+        $executor = DatabaseExecutor::using($this->db);
+        $usersRepository = new UsersRepository($executor, UserModelMd5::class);
+        $propertiesRepository = new UserPropertiesRepository($executor, UserPropertiesModel::class);
+        $this->service = new UsersService(
+            $usersRepository,
+            $propertiesRepository,
+            UsersService::LOGIN_IS_USERNAME
+        );
     }
 
     #[\Override]
@@ -56,17 +60,14 @@ class PasswordMd5MapperTest extends TestCase
             unlink($uri->getPath());
         }
         $this->db = null;
-        $this->userDefinition = null;
-        $this->propertyDefinition = null;
+        $this->service = null;
     }
 
     public function testPasswordIsHashedWithMd5OnSave(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Add a user with a plain text password
         $plainPassword = 'mySecretPassword123';
-        $user = $dataset->addUser('John Doe', 'johndoe', 'john@example.com', $plainPassword);
+        $user = $this->service->addUser('John Doe', 'johndoe', 'john@example.com', $plainPassword);
 
         // Verify the password was hashed with MD5
         $expectedHash = md5($plainPassword);
@@ -77,15 +78,13 @@ class PasswordMd5MapperTest extends TestCase
 
     public function testPasswordIsNotRehashedIfAlreadyMd5(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Create a user
-        $user = $dataset->addUser('Jane Doe', 'janedoe', 'jane@example.com', 'password123');
+        $user = $this->service->addUser('Jane Doe', 'janedoe', 'jane@example.com', 'password123');
         $originalHash = $user->getPassword();
 
         // Update the user without changing password
         $user->setName('Jane Smith');
-        $updatedUser = $dataset->save($user);
+        $updatedUser = $this->service->save($user);
 
         // Password hash should remain the same
         $this->assertEquals($originalHash, $updatedUser->getPassword());
@@ -93,16 +92,14 @@ class PasswordMd5MapperTest extends TestCase
 
     public function testPasswordIsHashedWhenUpdating(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Create a user
-        $user = $dataset->addUser('Jane Doe', 'janedoe', 'jane@example.com', 'oldPassword');
+        $user = $this->service->addUser('Jane Doe', 'janedoe', 'jane@example.com', 'oldPassword');
         $oldHash = $user->getPassword();
 
         // Update the password with a new plain text password
         $newPlainPassword = 'newPassword123';
         $user->setPassword($newPlainPassword);
-        $updatedUser = $dataset->save($user);
+        $updatedUser = $this->service->save($user);
 
         // Verify the new password was hashed with MD5
         $expectedNewHash = md5($newPlainPassword);
@@ -112,28 +109,26 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertNotEquals($oldHash, $updatedUser->getPassword());
 
         // Verify user can login with new password
-        $authenticatedUser = $dataset->isValidUser('janedoe', $newPlainPassword);
+        $authenticatedUser = $this->service->isValidUser('janedoe', $newPlainPassword);
         $this->assertNotNull($authenticatedUser);
 
         // Verify user cannot login with old password
-        $authenticatedUserOld = $dataset->isValidUser('janedoe', 'oldPassword');
+        $authenticatedUserOld = $this->service->isValidUser('janedoe', 'oldPassword');
         $this->assertNull($authenticatedUserOld);
     }
 
     public function testPasswordRemainsUnchangedWhenUpdatingOtherFields(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Create a user
         $originalPassword = 'myPassword123';
-        $user = $dataset->addUser('John Smith', 'johnsmith', 'john@example.com', $originalPassword);
+        $user = $this->service->addUser('John Smith', 'johnsmith', 'john@example.com', $originalPassword);
         $originalHash = $user->getPassword();
 
         // Update other fields WITHOUT touching the password
         $user->setName('John Updated');
         $user->setEmail('johnupdated@example.com');
         $user->setAdmin('y');
-        $updatedUser = $dataset->save($user);
+        $updatedUser = $this->service->save($user);
 
         // Verify the password hash remained exactly the same
         $this->assertEquals($originalHash, $updatedUser->getPassword());
@@ -145,21 +140,19 @@ class PasswordMd5MapperTest extends TestCase
         $this->assertEquals('y', $updatedUser->getAdmin());
 
         // Verify user can still login with original password
-        $authenticatedUser = $dataset->isValidUser('johnsmith', $originalPassword);
+        $authenticatedUser = $this->service->isValidUser('johnsmith', $originalPassword);
         $this->assertNotNull($authenticatedUser);
         $this->assertEquals('John Updated', $authenticatedUser->getName());
     }
 
     public function testUserCanLoginWithMd5HashedPassword(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Add a user
         $plainPassword = 'testPassword456';
-        $dataset->addUser('Test User', 'testuser', 'test@example.com', $plainPassword);
+        $this->service->addUser('Test User', 'testuser', 'test@example.com', $plainPassword);
 
         // Verify user can login with the plain text password
-        $authenticatedUser = $dataset->isValidUser('testuser', $plainPassword);
+        $authenticatedUser = $this->service->isValidUser('testuser', $plainPassword);
 
         $this->assertNotNull($authenticatedUser);
         $this->assertEquals('Test User', $authenticatedUser->getName());
@@ -168,13 +161,11 @@ class PasswordMd5MapperTest extends TestCase
 
     public function testUserCannotLoginWithWrongPassword(): void
     {
-        $dataset = new UsersDBDataset($this->db, $this->userDefinition, $this->propertyDefinition);
-
         // Add a user
-        $dataset->addUser('Test User', 'testuser', 'test@example.com', 'correctPassword');
+        $this->service->addUser('Test User', 'testuser', 'test@example.com', 'correctPassword');
 
         // Try to login with wrong password
-        $authenticatedUser = $dataset->isValidUser('testuser', 'wrongPassword');
+        $authenticatedUser = $this->service->isValidUser('testuser', 'wrongPassword');
 
         $this->assertNull($authenticatedUser);
     }

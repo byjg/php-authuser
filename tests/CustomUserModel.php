@@ -1,19 +1,18 @@
 <?php
 
-namespace Tests\Fixture;
+namespace Tests;
 
 use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 
 #[TableAttribute(tableName: 'mytable')]
-class MyUserModel extends UserModel
+class CustomUserModel extends UserModel
 {
     #[FieldAttribute(fieldName: 'myuserid', primaryKey: true)]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|\ByJG\MicroOrm\Literal\HexUuidLiteral|null $userid = null;
 
     #[FieldAttribute(fieldName: 'myname')]
     protected ?string $name = null;
@@ -32,23 +31,4 @@ class MyUserModel extends UserModel
 
     #[FieldAttribute(fieldName: 'myadmin')]
     protected ?string $admin = null;
-
-    #[FieldAttribute(fieldName: 'myotherfield')]
-    protected $otherfield;
-
-    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no", $field = "")
-    {
-        parent::__construct($name, $email, $username, $password, $admin);
-        $this->setOtherfield($field);
-    }
-
-    public function getOtherfield()
-    {
-        return $this->otherfield;
-    }
-
-    public function setOtherfield($otherfield): void
-    {
-        $this->otherfield = $otherfield;
-    }
 }

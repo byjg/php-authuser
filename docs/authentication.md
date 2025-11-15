@@ -22,7 +22,7 @@ if ($user !== null) {
 ```
 
 :::tip Login Field
-The `isValidUser()` method uses the login field defined in your `UserDefinition`. This can be either the email or username field.
+The `isValidUser()` method uses the login field configured in your `UsersService` constructor. This can be either `UsersService::LOGIN_IS_EMAIL` or `UsersService::LOGIN_IS_USERNAME`.
 :::
 
 ## Password Hashing
@@ -52,12 +52,11 @@ For modern, stateless authentication, use JWT tokens. This is the **recommended 
 
 ```php
 <?php
-use ByJG\JwtWrapper\JwtKeySecret;
+use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 
 // Create JWT wrapper
-$jwtKey = new JwtKeySecret('your-secret-key');
-$jwtWrapper = new JwtWrapper($jwtKey);
+$jwtWrapper = new JwtWrapper('your-server.com', new JwtHashHmacSecret('your-secret-key'));
 
 // Create authentication token
 $token = $users->createAuthToken(
@@ -133,7 +132,7 @@ $sessionContext = new SessionContext(Factory::createSessionPool());
 
 if ($sessionContext->isAuthenticated()) {
     $userId = $sessionContext->userInfo();
-    $user = $users->get($userId);
+    $user = $users->getById($userId);
     echo "Hello, " . $user->getName();
 } else {
     echo "Please log in";

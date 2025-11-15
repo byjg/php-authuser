@@ -6,7 +6,6 @@ use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
-use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -40,6 +39,26 @@ class UsersService implements UsersServiceInterface
         $this->propertiesRepository = $propertiesRepository;
         $this->loginField = $loginField;
         $this->passwordDefinition = $passwordDefinition;
+    }
+
+    /**
+     * Get the users repository
+     *
+     * @return UsersRepository
+     */
+    public function getUsersRepository(): UsersRepository
+    {
+        return $this->usersRepository;
+    }
+
+    /**
+     * Get the properties repository
+     *
+     * @return UserPropertiesRepository
+     */
+    public function getPropertiesRepository(): UserPropertiesRepository
+    {
+        return $this->propertiesRepository;
     }
 
     /**
@@ -82,11 +101,11 @@ class UsersService implements UsersServiceInterface
             'name' => $name,
             'email' => $email,
             'username' => $userName,
-            'password' => $password
         ]);
         if ($this->passwordDefinition !== null) {
             $model->withPasswordDefinition($this->passwordDefinition);
         }
+        $model->setPassword($password);
 
         return $this->save($model);
     }
@@ -208,9 +227,9 @@ class UsersService implements UsersServiceInterface
             return null;
         }
 
-        // Hash the password for comparison
-        $passwordMapper = new PasswordSha1Mapper();
-        $hashedPassword = $passwordMapper->processedValue($password, null);
+        // Hash the password for comparison using the model's configured password mapper
+        $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap('password');
+        $hashedPassword = $passwordFieldMapping->getUpdateFunctionValue($password, null);
 
         if ($user->getPassword() === $hashedPassword) {
             return $user;
@@ -351,6 +370,11 @@ class UsersService implements UsersServiceInterface
         $userTable = $this->usersRepository->getTableName();
         $propTable = $this->propertiesRepository->getTableName();
         $userPk = $this->usersRepository->getPrimaryKeyName();
+
+        // Handle composite keys - use first key if array
+        if (is_array($userPk)) {
+            $userPk = $userPk[0];
+        }
 
         $propUserIdField = $this->propertiesRepository->getMapper()->getFieldMap('userid')->getFieldName();
         $propNameField = $this->propertiesRepository->getMapper()->getFieldMap('name')->getFieldName();

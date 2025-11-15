@@ -5,7 +5,7 @@ title: Database Storage
 
 # Database Storage
 
-The library supports storing users in relational databases through the `UsersDBDataset` class.
+The library uses a repository pattern to store users in relational databases through `UsersRepository` and `UserPropertiesRepository`.
 
 ## Database Setup
 
@@ -29,12 +29,12 @@ CREATE TABLE users
 
 CREATE TABLE users_property
 (
-    customid INTEGER AUTO_INCREMENT NOT NULL,
+    id INTEGER AUTO_INCREMENT NOT NULL,
     name VARCHAR(20),
     value VARCHAR(100),
     userid INTEGER NOT NULL,
 
-    CONSTRAINT pk_custom PRIMARY KEY (customid),
+    CONSTRAINT pk_custom PRIMARY KEY (id),
     CONSTRAINT fk_custom_user FOREIGN KEY (userid) REFERENCES users (userid)
 ) ENGINE=InnoDB;
 ```
@@ -45,20 +45,24 @@ CREATE TABLE users_property
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Service\UsersService;
 
 // Create database connection
 $dbDriver = Factory::getDbInstance('mysql://user:password@localhost/database');
+$db = DatabaseExecutor::using($dbDriver);
 
-// Initialize with default configuration
-$users = new UsersDBDataset(
-    $dbDriver,
-    new UserDefinition(),
-    new UserPropertiesDefinition()
-);
+// Initialize repositories with default models
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+
+// Create service
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 ```
 
 ### Supported Databases
@@ -73,52 +77,75 @@ The library uses [byjg/anydataset-db](https://github.com/byjg/anydataset-db) for
 
 ## Custom Database Schema
 
-If you have an existing database with different table or column names, use custom definitions.
+If you have an existing database with different table or column names, create a custom UserModel class with different attribute mappings.
 
 ### Custom Table and Column Names
 
 ```php
 <?php
-use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
+use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 
-$userDefinition = new UserDefinition(
-    'my_users_table',              // Table name
-    UserModel::class,              // Model class
-    UserDefinition::LOGIN_IS_EMAIL, // Login field
-    [
-        // Map model properties to database columns
-        UserDefinition::FIELD_USERID   => 'user_id',
-        UserDefinition::FIELD_NAME     => 'full_name',
-        UserDefinition::FIELD_EMAIL    => 'email_address',
-        UserDefinition::FIELD_USERNAME => 'user_name',
-        UserDefinition::FIELD_PASSWORD => 'password_hash',
-        UserDefinition::FIELD_CREATED  => 'date_created',
-        UserDefinition::FIELD_ADMIN    => 'is_admin'
-    ]
-);
+#[TableAttribute(tableName: 'my_users_table')]
+class CustomUserModel extends UserModel
+{
+    #[FieldAttribute(fieldName: 'user_id', primaryKey: true)]
+    protected string|int|HexUuidLiteral|null $userid = null;
 
-$users = new UsersDBDataset($dbDriver, $userDefinition);
+    #[FieldAttribute(fieldName: 'full_name')]
+    protected ?string $name = null;
+
+    #[FieldAttribute(fieldName: 'email_address')]
+    protected ?string $email = null;
+
+    #[FieldAttribute(fieldName: 'user_name')]
+    protected ?string $username = null;
+
+    #[FieldAttribute(fieldName: 'password_hash', updateFunction: PasswordSha1Mapper::class)]
+    protected ?string $password = null;
+
+    #[FieldAttribute(fieldName: 'date_created', updateFunction: ReadOnlyMapper::class)]
+    protected ?string $created = null;
+
+    #[FieldAttribute(fieldName: 'is_admin')]
+    protected ?string $admin = null;
+}
+
+// Use custom model
+$usersRepo = new UsersRepository($db, CustomUserModel::class);
 ```
 
 ### Custom Properties Table
 
 ```php
 <?php
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
+use ByJG\MicroOrm\Literal\HexUuidLiteral;
 
-$propertiesDefinition = new UserPropertiesDefinition(
-    'custom_properties',           // Table name
-    'prop_id',                     // ID field
-    'prop_name',                   // Name field
-    'prop_value',                  // Value field
-    'user_id'                      // Foreign key to users table
-);
+#[TableAttribute(tableName: 'custom_properties')]
+class CustomPropertiesModel extends UserPropertiesModel
+{
+    #[FieldAttribute(fieldName: 'prop_id', primaryKey: true)]
+    protected ?string $id = null;
 
-$users = new UsersDBDataset(
-    $dbDriver,
-    $userDefinition,
-    $propertiesDefinition
-);
+    #[FieldAttribute(fieldName: 'prop_name')]
+    protected ?string $name = null;
+
+    #[FieldAttribute(fieldName: 'prop_value')]
+    protected ?string $value = null;
+
+    #[FieldAttribute(fieldName: 'user_id')]
+    protected string|int|HexUuidLiteral|null $userid = null;
+}
+
+// Use custom model
+$propsRepo = new UserPropertiesRepository($db, CustomPropertiesModel::class);
 ```
 
 ## Login Field Configuration
@@ -129,73 +156,42 @@ You can configure whether users log in with their email or username:
 
 ```php
 <?php
-$userDefinition = new UserDefinition(
-    'users',
-    UserModel::class,
-    UserDefinition::LOGIN_IS_EMAIL  // Users log in with email
-);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
 ```
 
 ### Login with Username
 
 ```php
 <?php
-$userDefinition = new UserDefinition(
-    'users',
-    UserModel::class,
-    UserDefinition::LOGIN_IS_USERNAME  // Users log in with username
-);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 ```
 
 :::tip Login Field
-The login field affects methods like `isValidUser()`. They will use the configured field for authentication.
+The login field affects methods like `isValidUser()` and `getByLogin()`. They will use the configured field for authentication.
 :::
 
 ## Complete Example
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
-use ByJG\Authenticate\Model\UserModel;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Service\UsersService;
 
 // Database connection
 $dbDriver = Factory::getDbInstance('mysql://root:password@localhost/myapp');
+$db = DatabaseExecutor::using($dbDriver);
 
-// Custom user definition
-$userDefinition = new UserDefinition(
-    'app_users',
-    UserModel::class,
-    UserDefinition::LOGIN_IS_EMAIL,
-    [
-        UserDefinition::FIELD_USERID   => 'id',
-        UserDefinition::FIELD_NAME     => 'fullname',
-        UserDefinition::FIELD_EMAIL    => 'email',
-        UserDefinition::FIELD_USERNAME => 'username',
-        UserDefinition::FIELD_PASSWORD => 'pwd',
-        UserDefinition::FIELD_CREATED  => 'created_at',
-        UserDefinition::FIELD_ADMIN    => 'is_admin'
-    ]
-);
-
-// Custom properties definition
-$propertiesDefinition = new UserPropertiesDefinition(
-    'app_user_meta',
-    'id',
-    'meta_key',
-    'meta_value',
-    'user_id'
-);
-
-// Initialize
-$users = new UsersDBDataset($dbDriver, $userDefinition, $propertiesDefinition);
+// Initialize with custom models
+$usersRepo = new UsersRepository($db, CustomUserModel::class);
+$propsRepo = new UserPropertiesRepository($db, CustomPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
 
 // Use it
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'password123');
 ```
-
 
 ## Architecture
 
@@ -204,26 +200,30 @@ $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'password123'
                                    │  SessionContext   │
                                    └───────────────────┘
                                              │
-┌────────────────────────┐                                       ┌────────────────────────┐
-│     UserDefinition     │─ ─ ┐              │               ─ ─ ┤       UserModel        │
-└────────────────────────┘         ┌───────────────────┐    │    └────────────────────────┘
-┌────────────────────────┐    └────│  UsersInterface   │────┐    ┌────────────────────────┐
-│ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
-└────────────────────────┘                   ▲                   └────────────────────────┘
                                              │
-                                 ┌───────────┴───────────┐
-                                 │                       │
-                       ┌───────────────────┐    ┌────────────────────┐
-                       │  UsersDBDataset   │    │   Custom Impl.     │
-                       └───────────────────┘    └────────────────────┘
+                                   ┌───────────────────┐
+                                   │  UsersService     │ (Business Logic)
+                                   └───────────────────┘
+                                             │
+                        ┌────────────────────┴────────────────────┐
+                        │                                         │
+                ┌───────────────────┐                  ┌──────────────────────┐
+                │ UsersRepository   │                  │ PropertiesRepository │
+                └───────────────────┘                  └──────────────────────┘
+                        │                                         │
+                ┌───────┴───────┐                      ┌──────────┴──────────┐
+                │               │                      │                     │
+        ┌───────────────┐  ┌────────┐         ┌───────────────┐    ┌──────────────┐
+        │  UserModel    │  │ Mapper │         │ PropsModel    │    │   Mapper     │
+        └───────────────┘  └────────┘         └───────────────┘    └──────────────┘
 ```
 
-- **UserInterface**: Base interface for all implementations
-- **UsersDBDataset**: Database implementation
-- **UserModel**: The user data model
-- **UserPropertyModel**: The user property data model
-- **UserDefinition**: Maps model to database schema
-- **UserPropertiesDefinition**: Maps properties to database schema
+- **UsersService**: High-level business logic for user operations
+- **UsersRepository**: Data access layer for user records
+- **UserPropertiesRepository**: Data access layer for user properties
+- **UserModel**: User entity with table/field mapping via attributes
+- **UserPropertiesModel**: Properties entity with table/field mapping
+- **Mapper**: Field transformation functions (e.g., PasswordSha1Mapper, ReadOnlyMapper)
 
 ## Next Steps
 

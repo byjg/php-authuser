@@ -5,19 +5,28 @@ title: Getting Started
 
 # Getting Started
 
-Auth User PHP is a simple and customizable library for user authentication in PHP applications. It provides an abstraction layer for managing users, authentication, and user properties, supporting multiple storage backends including databases and XML files.
+Auth User PHP is a simple and customizable library for user authentication in PHP applications. It provides a clean repository and service layer architecture for managing users, authentication, and user properties with database storage.
 
 ## Quick Example
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\Authenticate\SessionContext;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\SessionContext;
 use ByJG\Cache\Factory;
 
-// Initialize
-$users = new UsersDBDataset(DbFactory::getDbInstance('mysql://user:pass@host/db'));
+// Initialize repositories and service
+$dbDriver = DbFactory::getDbInstance('mysql://user:pass@host/db');
+$db = DatabaseExecutor::using($dbDriver);
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 
 // Create and authenticate user
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');

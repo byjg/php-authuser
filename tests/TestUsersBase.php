@@ -2,10 +2,9 @@
 
 namespace Tests;
 
-use ByJG\Authenticate\Definition\UserDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
-use ByJG\Authenticate\UsersBase;
+use ByJG\Authenticate\Service\UsersService;
 use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 use PHPUnit\Framework\TestCase;
@@ -13,20 +12,11 @@ use PHPUnit\Framework\TestCase;
 abstract class TestUsersBase extends TestCase
 {
     /**
-     * @var UsersBase|null
+     * @var UsersService|null
      */
-    protected UsersBase|null $object = null;
+    protected UsersService|null $object = null;
 
-    /**
-     * @var UserDefinition
-     */
-    protected $userDefinition;
-
-    /**
-     * @var \ByJG\Authenticate\Definition\UserPropertiesDefinition
-     */
-    protected $propertyDefinition;
-
+    protected string $loginField;
 
     protected $prefix = "";
 
@@ -35,16 +25,16 @@ abstract class TestUsersBase extends TestCase
     public function __chooseValue($forUsername, $forEmail): string
     {
         $searchForList = [
-            $this->userDefinition->getUsername() => $forUsername,
-            $this->userDefinition->getEmail() => $forEmail,
+            'email' => $forEmail,
+            'username' => $forUsername,
         ];
-        return $searchForList[$this->userDefinition->loginField()];
+        return $searchForList[$this->loginField];
     }
 
     #[\Override]
     public function setUp(): void
     {
-        $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
+        $this->__setUp(UsersService::LOGIN_IS_USERNAME);
     }
 
     /**
@@ -61,17 +51,17 @@ abstract class TestUsersBase extends TestCase
     public function testAddProperty(): void
     {
         // Check state
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEmpty($user->get('city'));
 
         // Add one property
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
 
         // Add another property (cannot change)
         $this->object->addProperty($this->prefix . '2', 'city', 'Belo Horizonte');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Belo Horizonte'], $user->get('city'));
 
         // Get Property
@@ -79,12 +69,12 @@ abstract class TestUsersBase extends TestCase
 
         // Add another property
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals('RJ', $user->get('state'));
 
         // Remove Property
         $this->object->removeProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEmpty($user->get('state'));
 
         // Remove Property Again
@@ -99,32 +89,32 @@ abstract class TestUsersBase extends TestCase
         $this->object->addProperty($this->prefix . '2', 'city', 'Rio de Janeiro');
         $this->object->addProperty($this->prefix . '2', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '2', 'state', 'RJ');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEquals('RJ', $user->get('state'));
 
         // Add another properties
         $this->object->addProperty($this->prefix . '1', 'city', 'Niteroi');
         $this->object->addProperty($this->prefix . '1', 'state', 'BA');
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEquals('BA', $user->get('state'));
 
         // Remove Properties
         $this->object->removeAllProperties('state');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals(['Rio de Janeiro', 'Niteroi'], $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $this->assertEquals('Niteroi', $user->get('city'));
         $this->assertEmpty($user->get('state'));
 
         // Remove Properties Again
         $this->object->removeAllProperties('city', 'Niteroi');
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $this->assertEquals('Rio de Janeiro', $user->get('city'));
         $this->assertEmpty($user->get('state'));
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $this->assertEmpty($user->get('city'));
         $this->assertEmpty($user->get('state'));
 
@@ -134,13 +124,13 @@ abstract class TestUsersBase extends TestCase
     {
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
         $this->assertNotNull($user);
 
-        $result = $this->object->removeByLoginField($login);
+        $result = $this->object->removeByLogin($login);
         $this->assertTrue($result);
 
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
         $this->assertNull($user);
     }
 
@@ -149,7 +139,7 @@ abstract class TestUsersBase extends TestCase
         $login = $this->__chooseValue('user1', 'user1@gmail.com');
 
         // Getting data
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
         $this->assertEquals('User 1', $user->getName());
 
         // Change and Persist data
@@ -157,7 +147,7 @@ abstract class TestUsersBase extends TestCase
         $this->object->save($user);
 
         // Check if data persists
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $this->assertEquals('Other name', $user->getName());
     }
 
@@ -178,17 +168,17 @@ abstract class TestUsersBase extends TestCase
     public function testIsAdmin(): void
     {
         // Check is Admin
-        $user3 = $this->object->get($this->prefix . '3');
+        $user3 = $this->object->getById($this->prefix . '3');
         $this->assertFalse($user3->isAdmin());
 
         // Set the Admin Flag
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
         $user->setAdmin('Y');
         $this->object->save($user);
 
         // Check is Admin
-        $user3 = $this->object->get($this->prefix . '3');
+        $user3 = $this->object->getById($this->prefix . '3');
         $this->assertTrue($user3->isAdmin());
     }
 
@@ -207,7 +197,7 @@ abstract class TestUsersBase extends TestCase
             ['tokenData'=>$tokenData]
         );
 
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = $tokenData;
@@ -254,18 +244,18 @@ abstract class TestUsersBase extends TestCase
 
     public function testRemoveUserById(): void
     {
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $this->assertNotNull($user);
 
-        $this->object->removeUserById($this->prefix . '1');
+        $this->object->removeById($this->prefix . '1');
 
-        $user2 = $this->object->get($this->prefix . '1');
+        $user2 = $this->object->getById($this->prefix . '1');
         $this->assertNull($user2);
     }
 
     public function testGetByUsername(): void
     {
-        $user = $this->object->get('user2', $this->object->getUserDefinition()->getUsername());
+        $user = $this->object->getByUsername('user2');
 
         $this->assertEquals($this->prefix . '2', $user->getUserid());
         $this->assertEquals('User 2', $user->getName());
@@ -277,12 +267,12 @@ abstract class TestUsersBase extends TestCase
     public function testGetByUserProperty(): void
     {
         // Add property to user1
-        $user = $this->object->get($this->prefix . '1');
+        $user = $this->object->getById($this->prefix . '1');
         $user->set('property1', 'somevalue');
         $this->object->save($user);
 
         // Add property to user2
-        $user = $this->object->get($this->prefix . '2');
+        $user = $this->object->getById($this->prefix . '2');
         $user->set('property1', 'value1');
         $user->set('property2', 'value2');
         $this->object->save($user);
@@ -314,5 +304,188 @@ abstract class TestUsersBase extends TestCase
         $this->assertTrue($this->object->hasProperty($this->prefix . '1', 'propertySet'));
         $this->assertTrue($this->object->hasProperty($this->prefix . '1', 'propertySet', 'somevalue'));
         $this->assertEquals('somevalue', $this->object->getProperty($this->prefix . '1', 'propertySet'));
+    }
+
+    public function testPasswordDefinitionValidOnSave(): void
+    {
+        // Create a password definition requiring uppercase, lowercase, and numbers
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 8,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 1,
+        ]);
+
+        // Create a user model with valid password
+        $user = new \ByJG\Authenticate\Model\UserModel();
+        $user->setName('Test User');
+        $user->setUsername('testuser_pwd');
+        $user->setEmail('testpwd@example.com');
+        $user->withPasswordDefinition($passwordDef);
+        $user->setPassword('ValidPass8642'); // Valid: uppercase, lowercase, numbers, no sequential, 12 chars
+
+        // Should save successfully
+        $savedUser = $this->object->save($user);
+        $this->assertNotNull($savedUser->getUserid());
+        $this->assertEquals('Test User', $savedUser->getName());
+
+        // Verify user was saved
+        $retrievedUser = $this->object->getByUsername('testuser_pwd');
+        $this->assertNotNull($retrievedUser);
+        $this->assertEquals('testpwd@example.com', $retrievedUser->getEmail());
+    }
+
+    public function testPasswordDefinitionInvalidOnSave(): void
+    {
+        // Create a password definition requiring uppercase, lowercase, and numbers
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 8,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 1,
+        ]);
+
+        // Create a user model with invalid password (no uppercase)
+        $user = new \ByJG\Authenticate\Model\UserModel();
+        $user->setName('Test User');
+        $user->setUsername('testuser_invalid');
+        $user->setEmail('invalid@example.com');
+        $user->withPasswordDefinition($passwordDef);
+
+        // Should throw exception because password doesn't match definition
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password does not match the password definition');
+        $user->setPassword('weakpass123'); // Invalid: no uppercase
+    }
+
+    public function testPasswordDefinitionValidOnUpdate(): void
+    {
+        // Get existing user
+        $user = $this->object->getById($this->prefix . '1');
+        $this->assertNotNull($user);
+
+        // Create a password definition
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 10,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 2,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_SYMBOLS => 1,
+        ]);
+
+        // Update password with valid value
+        $user->withPasswordDefinition($passwordDef);
+        $user->setPassword('StrongPass84!'); // Valid: uppercase, lowercase, 2 numbers, symbol, no sequential, 13 chars
+
+        // Should update successfully
+        $savedUser = $this->object->save($user);
+        $this->assertNotNull($savedUser);
+
+        // Verify password was updated (by checking authentication works with login field)
+        $login = $this->__chooseValue($user->getUsername(), $user->getEmail());
+        $validUser = $this->object->isValidUser($login, 'StrongPass84!');
+        $this->assertNotNull($validUser);
+        $this->assertEquals($user->getUserid(), $validUser->getUserid());
+    }
+
+    public function testPasswordDefinitionInvalidOnUpdate(): void
+    {
+        // Get existing user
+        $user = $this->object->getById($this->prefix . '2');
+        $this->assertNotNull($user);
+
+        // Create a strict password definition
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 12,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 2,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 2,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 2,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_SYMBOLS => 1,
+        ]);
+
+        $user->withPasswordDefinition($passwordDef);
+
+        // Should throw exception because password doesn't have 2 uppercase letters
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password does not match the password definition');
+        $user->setPassword('weak1!'); // Invalid: too short, not enough uppercase/lowercase/numbers
+    }
+
+    public function testPasswordDefinitionMultipleFailures(): void
+    {
+        // Create a strict password definition
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 12,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_SYMBOLS => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::ALLOW_WHITESPACE => 0,
+        ]);
+
+        $user = new \ByJG\Authenticate\Model\UserModel();
+        $user->setName('Test User');
+        $user->setUsername('testuser_multi');
+        $user->setEmail('multi@example.com');
+        $user->withPasswordDefinition($passwordDef);
+
+        // Test multiple failure scenarios
+        try {
+            $user->setPassword('short'); // Fails: too short, no uppercase, no numbers, no symbols
+            $this->fail('Expected InvalidArgumentException was not thrown');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertStringContainsString('Password does not match the password definition', $e->getMessage());
+        }
+
+        try {
+            $user->setPassword('with space 123A!'); // Fails: has whitespace
+            $this->fail('Expected InvalidArgumentException was not thrown');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertStringContainsString('Password does not match the password definition', $e->getMessage());
+        }
+    }
+
+    public function testPasswordDefinitionViaServiceAddUser(): void
+    {
+        // Create a new service instance with password definition
+        $passwordDef = new \ByJG\Authenticate\Definition\PasswordDefinition([
+            \ByJG\Authenticate\Definition\PasswordDefinition::MINIMUM_CHARS => 10,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_UPPERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_LOWERCASE => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_NUMBERS => 1,
+            \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_SYMBOLS => 1,
+        ]);
+
+        // Get the repositories from existing service
+        $usersRepo = $this->object->getUsersRepository();
+        $propsRepo = $this->object->getPropertiesRepository();
+
+        // Create new service with password definition
+        $usersWithPwdDef = new \ByJG\Authenticate\Service\UsersService(
+            $usersRepo,
+            $propsRepo,
+            \ByJG\Authenticate\Service\UsersService::LOGIN_IS_USERNAME,
+            $passwordDef
+        );
+
+        // Valid password should work
+        $user = $usersWithPwdDef->addUser(
+            'Valid User',
+            'validuser',
+            'valid@example.com',
+            'StrongPass8!' // Valid: 12 chars, uppercase, lowercase, number, symbol, no sequential
+        );
+        $this->assertNotNull($user->getUserid());
+        $this->assertEquals('Valid User', $user->getName());
+
+        // Invalid password should fail
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password does not match the password definition');
+        $usersWithPwdDef->addUser(
+            'Invalid User',
+            'invaliduser',
+            'invalid@example.com',
+            'weak' // Invalid: too short, no uppercase, no numbers, no symbols
+        );
     }
 }

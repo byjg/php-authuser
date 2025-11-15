@@ -20,12 +20,20 @@ This guide is for **adding new fields** beyond the standard user fields. If you 
 namespace App\Model;
 
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
 
 class CustomUserModel extends UserModel
 {
+    #[FieldAttribute(fieldName: 'phone')]
     protected ?string $phone = null;
+
+    #[FieldAttribute(fieldName: 'department')]
     protected ?string $department = null;
+
+    #[FieldAttribute(fieldName: 'title')]
     protected ?string $title = null;
+
+    #[FieldAttribute(fieldName: 'profile_picture')]
     protected ?string $profilePicture = null;
 
     public function __construct(
@@ -108,46 +116,30 @@ CREATE TABLE users
 ) ENGINE=InnoDB;
 ```
 
-## Configuring UserDefinition
-
-Map the custom fields in your `UserDefinition`:
-
-```php
-<?php
-use ByJG\Authenticate\Definition\UserDefinition;
-use App\Model\CustomUserModel;
-
-$userDefinition = new UserDefinition(
-    'users',                      // Table name
-    CustomUserModel::class,       // Your custom model class
-    UserDefinition::LOGIN_IS_EMAIL,
-    [
-        // Standard fields
-        UserDefinition::FIELD_USERID   => 'userid',
-        UserDefinition::FIELD_NAME     => 'name',
-        UserDefinition::FIELD_EMAIL    => 'email',
-        UserDefinition::FIELD_USERNAME => 'username',
-        UserDefinition::FIELD_PASSWORD => 'password',
-        UserDefinition::FIELD_CREATED  => 'created',
-        UserDefinition::FIELD_ADMIN    => 'admin',
-        // Custom fields
-        'phone'                        => 'phone',
-        'department'                   => 'department',
-        'title'                        => 'title',
-        'profilePicture'               => 'profile_picture'
-    ]
-);
-```
-
 ## Using the Custom Model
 
-### Creating Users
+### Initializing the Service
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
+use ByJG\AnyDataset\Db\Factory;
+use App\Model\CustomUserModel;
 
-$users = new UsersDBDataset($dbDriver, $userDefinition);
+// Database connection
+$dbDriver = Factory::getDbInstance('mysql://user:password@localhost/database');
+$db = DatabaseExecutor::using($dbDriver);
+
+// Initialize repositories with custom model
+$usersRepo = new UsersRepository($db, CustomUserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+
+// Create service
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
 
 // Using the model directly
 $user = new CustomUserModel();
@@ -166,7 +158,7 @@ $users->save($user);
 
 ```php
 <?php
-$user = $users->get($userId);
+$user = $users->getById($userId);
 
 // Access custom fields
 echo $user->getName();
@@ -179,7 +171,7 @@ echo $user->getTitle();
 
 ```php
 <?php
-$user = $users->get($userId);
+$user = $users->getById($userId);
 $user->setDepartment('Sales');
 $user->setTitle('Sales Manager');
 $users->save($user);
@@ -187,15 +179,23 @@ $users->save($user);
 
 ## Read-Only Fields
 
-You can mark fields as read-only to prevent updates:
+You can mark fields as read-only to prevent updates using the `ReadOnlyMapper`:
 
 ```php
 <?php
-// Make 'created' field read-only
-$userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
+use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
 
-// Make custom field read-only
-$userDefinition->markPropertyAsReadOnly('phone');
+class CustomUserModel extends UserModel
+{
+    // Read-only field - can be set on creation but not updated
+    #[FieldAttribute(fieldName: 'created', updateFunction: ReadOnlyMapper::class)]
+    protected ?string $created = null;
+
+    // Read-only custom field
+    #[FieldAttribute(fieldName: 'phone', updateFunction: ReadOnlyMapper::class)]
+    protected ?string $phone = null;
+}
 ```
 
 Read-only fields:
@@ -203,51 +203,9 @@ Read-only fields:
 - Cannot be updated after creation
 - Are ignored during updates
 
-## Auto-Generated Fields
-
-### Auto-Increment IDs
-
-For auto-increment IDs, the database handles generation automatically. No configuration needed.
-
-### UUID Fields
-
-For UUID primary keys:
-
-```php
-<?php
-use ByJG\Authenticate\MapperFunctions\UserIdGeneratorMapper;
-
-$userDefinition->defineGenerateKey(UserIdGeneratorMapper::class);
-```
-
-### Custom ID Generation
-
-Create a custom mapper for custom ID generation:
-
-```php
-<?php
-use ByJG\MicroOrm\Interface\MapperFunctionInterface;
-
-class CustomIdMapper implements MapperFunctionInterface
-{
-    public function processedValue(mixed $value, mixed $instance): mixed
-    {
-        if (empty($value)) {
-            return 'USER_' . uniqid() . '_' . time();
-        }
-        return $value;
-    }
-}
-
-// Use it
-$userDefinition->defineGenerateKey(CustomIdMapper::class);
-```
-
 ## Field Transformation
 
 You can transform fields during read/write operations using mappers. See [Mappers](mappers.md) for details.
-
-## Complex Data Types
 
 ### JSON Fields
 
@@ -255,53 +213,35 @@ For storing JSON data in custom fields:
 
 ```php
 <?php
-use ByJG\MicroOrm\Interface\MapperFunctionInterface;
+use ByJG\MicroOrm\FieldMapping\FieldHandler;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
 
-class JsonMapper implements MapperFunctionInterface
+class CustomUserModel extends UserModel
 {
-    public function processedValue(mixed $value, mixed $instance): mixed
-    {
-        if (is_array($value)) {
-            return json_encode($value);
-        }
-        return $value;
-    }
+    #[FieldAttribute(
+        fieldName: 'metadata',
+        updateFunction: [FieldHandler::class, 'toJson'],
+        selectFunction: [FieldHandler::class, 'fromJson']
+    )]
+    protected ?array $metadata = null;
 }
-
-class JsonDecodeMapper implements MapperFunctionInterface
-{
-    public function processedValue(mixed $value, mixed $instance): mixed
-    {
-        if (is_string($value)) {
-            return json_decode($value, true);
-        }
-        return $value;
-    }
-}
-
-// Configure mappers
-$userDefinition->defineMapperForUpdate('metadata', JsonMapper::class);
-$userDefinition->defineMapperForSelect('metadata', JsonDecodeMapper::class);
 ```
 
 ### Date/Time Fields
 
 ```php
 <?php
-use ByJG\MicroOrm\Interface\MapperFunctionInterface;
+use ByJG\MicroOrm\FieldMapping\FieldHandler;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
 
-class DateTimeMapper implements MapperFunctionInterface
+class CustomUserModel extends UserModel
 {
-    public function processedValue(mixed $value, mixed $instance): mixed
-    {
-        if ($value instanceof \DateTime) {
-            return $value->format('Y-m-d H:i:s');
-        }
-        return $value;
-    }
+    #[FieldAttribute(
+        fieldName: 'created',
+        selectFunction: [FieldHandler::class, 'toDate']
+    )]
+    protected ?\DateTime $created = null;
 }
-
-$userDefinition->defineMapperForUpdate('created', DateTimeMapper::class);
 ```
 
 ## Complete Example
@@ -310,39 +250,24 @@ $userDefinition->defineMapperForUpdate('created', DateTimeMapper::class);
 <?php
 namespace App;
 
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\Authenticate\Definition\UserDefinition;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use App\Model\CustomUserModel;
 
 // Database connection
 $dbDriver = Factory::getDbInstance('mysql://user:password@localhost/database');
+$db = DatabaseExecutor::using($dbDriver);
 
-// Define custom user table
-$userDefinition = new UserDefinition(
-    'users',
-    CustomUserModel::class,
-    UserDefinition::LOGIN_IS_EMAIL,
-    [
-        UserDefinition::FIELD_USERID   => 'userid',
-        UserDefinition::FIELD_NAME     => 'name',
-        UserDefinition::FIELD_EMAIL    => 'email',
-        UserDefinition::FIELD_USERNAME => 'username',
-        UserDefinition::FIELD_PASSWORD => 'password',
-        UserDefinition::FIELD_CREATED  => 'created',
-        UserDefinition::FIELD_ADMIN    => 'admin',
-        'phone'                        => 'phone',
-        'department'                   => 'department',
-        'title'                        => 'title',
-        'profilePicture'               => 'profile_picture'
-    ]
-);
+// Initialize repositories with custom model
+$usersRepo = new UsersRepository($db, CustomUserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
 
-// Make created field read-only
-$userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
-
-// Initialize user management
-$users = new UsersDBDataset($dbDriver, $userDefinition);
+// Initialize user service
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
 
 // Create a user
 $user = new CustomUserModel();
@@ -357,7 +282,7 @@ $user->setTitle('Marketing Director');
 $savedUser = $users->save($user);
 
 // Retrieve and update
-$user = $users->get($savedUser->getUserid());
+$user = $users->getById($savedUser->getUserid());
 $user->setTitle('VP of Marketing');
 $users->save($user);
 ```

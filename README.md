@@ -6,7 +6,7 @@
 [![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
-A simple and customizable library for user authentication in PHP applications. It supports multiple storage backends including databases and XML files.
+A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
 
 The main purpose is to handle all complexity of user validation, authentication, properties management, and access tokens, abstracting the database layer.
 This class can persist user data into session (or file, memcache, etc.) between requests.
@@ -40,13 +40,22 @@ See [Installation Guide](docs/installation.md) for detailed setup instructions a
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\Authenticate\SessionContext;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\SessionContext;
 use ByJG\Cache\Factory;
 
-// Initialize with database
-$users = new UsersDBDataset(DbFactory::getDbInstance('mysql://user:pass@host/db'));
+// Initialize repositories and service
+$dbDriver = DbFactory::getDbInstance('mysql://user:pass@host/db');
+$db = DatabaseExecutor::using($dbDriver);
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 
 // Create and authenticate a user
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');
@@ -68,7 +77,7 @@ See [Getting Started](docs/getting-started.md) for a complete introduction and [
 - **Session Management** - PSR-6 compatible cache storage. See [Session Context](docs/session-context.md)
 - **User Properties** - Store custom key-value metadata. See [User Properties](docs/user-properties.md)
 - **Password Validation** - Built-in strength requirements. See [Password Validation](docs/password-validation.md)
-- **Multiple Storage** - Database (MySQL, PostgreSQL, SQLite, etc.) or XML files. See [Database Storage](docs/database-storage.md)
+- **Database Storage** - Supports MySQL, PostgreSQL, SQLite, and more. See [Database Storage](docs/database-storage.md)
 - **Custom Schema** - Map to existing database tables. See [Database Storage](docs/database-storage.md)
 - **Field Mappers** - Transform data during read/write. See [Mappers](docs/mappers.md)
 - **Extensible Model** - Add custom fields easily. See [Custom Fields](docs/custom-fields.md)
@@ -88,18 +97,22 @@ Because this project uses PHP Session you need to run the unit test the followin
                                    │  SessionContext   │
                                    └───────────────────┘
                                              │
-┌────────────────────────┐                                       ┌────────────────────────┐
-│     UserDefinition     │─ ─ ┐              │               ─ ─ ┤       UserModel        │
-└────────────────────────┘         ┌───────────────────┐    │    └────────────────────────┘
-┌────────────────────────┐    └────│  UsersInterface   │────┐    ┌────────────────────────┐
-│ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
-└────────────────────────┘                   ▲                   └────────────────────────┘
                                              │
-                                 ┌───────────┴───────────┐
-                                 │                       │
-                       ┌───────────────────┐    ┌────────────────────┐
-                       │  UsersDBDataset   │    │   Custom Impl.     │
-                       └───────────────────┘    └────────────────────┘
+                                   ┌───────────────────┐
+                                   │  UsersService     │ (Business Logic)
+                                   └───────────────────┘
+                                             │
+                        ┌────────────────────┴────────────────────┐
+                        │                                         │
+                ┌───────────────────┐                  ┌──────────────────────┐
+                │ UsersRepository   │                  │ PropertiesRepository │
+                └───────────────────┘                  └──────────────────────┘
+                        │                                         │
+                ┌───────┴───────┐                      ┌──────────┴──────────┐
+                │               │                      │                     │
+        ┌───────────────┐  ┌────────┐         ┌───────────────┐    ┌──────────────┐
+        │  UserModel    │  │ Mapper │         │ PropsModel    │    │   Mapper     │
+        └───────────────┘  └────────┘         └───────────────┘    └──────────────┘
 ```
 
 ## License

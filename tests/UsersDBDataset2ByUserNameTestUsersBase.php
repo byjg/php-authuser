@@ -2,12 +2,12 @@
 
 namespace Tests;
 
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
-use ByJG\Authenticate\Definition\UserDefinition;
-use ByJG\Authenticate\Definition\UserPropertiesDefinition;
-use ByJG\Authenticate\Model\UserModel;
-use ByJG\Authenticate\UsersDBDataset;
-use ByJG\MicroOrm\Exception\OrmModelInvalidException;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Util\Uri;
 
 class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
 {
@@ -15,55 +15,37 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
 
     protected $db;
 
-    /**
-     * @throws \ReflectionException
-     * @throws OrmModelInvalidException
-     */
     #[\Override]
     public function __setUp($loginField)
     {
         $this->prefix = "";
+        $this->loginField = $loginField;
 
         $this->db = Factory::getDbRelationalInstance(self::CONNECTION_STRING);
         $this->db->execute('create table mytable (
-            myuserid integer primary key  autoincrement, 
-            myname varchar(45), 
-            myemail varchar(200), 
-            myusername varchar(20), 
-            mypassword varchar(40), 
+            myuserid integer primary key  autoincrement,
+            myname varchar(45),
+            myemail varchar(200),
+            myusername varchar(20),
+            mypassword varchar(40),
             mycreated datetime default (datetime(\'2017-12-04\')),
             myadmin char(1));'
         );
 
         $this->db->execute('create table theirproperty (
-            theirid integer primary key  autoincrement, 
-            theiruserid integer, 
-            theirname varchar(45), 
+            theirid integer primary key  autoincrement,
+            theiruserid integer,
+            theirname varchar(45),
             theirvalue varchar(45));'
         );
 
-        $this->userDefinition = new UserDefinition(
-            'mytable',
-            UserModel::class,
-            $loginField,
-            [
-                UserDefinition::FIELD_USERID => 'myuserid',
-                UserDefinition::FIELD_NAME => 'myname',
-                UserDefinition::FIELD_EMAIL => 'myemail',
-                UserDefinition::FIELD_USERNAME => 'myusername',
-                UserDefinition::FIELD_PASSWORD => 'mypassword',
-                UserDefinition::FIELD_CREATED => 'mycreated',
-                UserDefinition::FIELD_ADMIN => 'myadmin'
-            ]
-        );
-        $this->userDefinition->markPropertyAsReadOnly(UserDefinition::FIELD_CREATED);
-
-        $this->propertyDefinition = new UserPropertiesDefinition('theirproperty', 'theirid', 'theirname', 'theirvalue', 'theiruserid');
-
-        $this->object = new UsersDBDataset(
-            $this->db,
-            $this->userDefinition,
-            $this->propertyDefinition
+        $executor = DatabaseExecutor::using($this->db);
+        $usersRepository = new UsersRepository($executor, CustomUserModel::class);
+        $propertiesRepository = new UserPropertiesRepository($executor, CustomUserPropertiesModel::class);
+        $this->object = new UsersService(
+            $usersRepository,
+            $propertiesRepository,
+            $loginField
         );
 
         $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
@@ -74,17 +56,15 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
     #[\Override]
     public function setUp(): void
     {
-        $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
+        $this->__setUp(UsersService::LOGIN_IS_USERNAME);
     }
 
     #[\Override]
     public function tearDown(): void
     {
-        $uri = new \ByJG\Util\Uri(self::CONNECTION_STRING);
+        $uri = new Uri(self::CONNECTION_STRING);
         unlink($uri->getPath());
         $this->object = null;
-        $this->userDefinition = null;
-        $this->propertyDefinition = null;
     }
 
     /**
@@ -97,7 +77,7 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
 
         $login = $this->__chooseValue('john', 'johndoe@gmail.com');
 
-        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user = $this->object->getByLogin($login);
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -110,7 +90,7 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
         $user->setAdmin('y');
         $this->object->save($user);
 
-        $user2 = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $user2 = $this->object->getByLogin($login);
         $this->assertEquals('y', $user2->getAdmin());
     }
 
@@ -130,10 +110,10 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
     #[\Override]
     public function testSaveAndSave()
     {
-        $user = $this->object->get("1");
+        $user = $this->object->getById("1");
         $this->object->save($user);
 
-        $user2 = $this->object->get("1");
+        $user2 = $this->object->getById("1");
 
         $this->assertEquals($user, $user2);
     }

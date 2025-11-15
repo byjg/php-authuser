@@ -16,16 +16,26 @@ This page contains complete, working examples for common use cases.
 // config.php
 require_once 'vendor/autoload.php';
 
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\SessionContext;
 use ByJG\Cache\Factory;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 
 // Database connection
 $dbDriver = DbFactory::getDbInstance('mysql://user:password@localhost/myapp');
+$db = DatabaseExecutor::using($dbDriver);
 
-// Initialize user management
-$users = new UsersDBDataset($dbDriver);
+// Initialize repositories
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+
+// Initialize user service
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 
 // Initialize session
 $sessionContext = new SessionContext(Factory::createSessionPool());
@@ -203,7 +213,7 @@ if (!$sessionContext->isAuthenticated()) {
 
 // Get current user
 $userId = $sessionContext->userInfo();
-$user = $users->get($userId);
+$user = $users->getById($userId);
 $loginTime = $sessionContext->getSessionData('login_time');
 ?>
 <!DOCTYPE html>
@@ -253,18 +263,27 @@ exit;
 // api-config.php
 require_once 'vendor/autoload.php';
 
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
-use ByJG\JwtWrapper\JwtKeySecret;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
+use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 
 // Database
 $dbDriver = DbFactory::getDbInstance('mysql://user:password@localhost/api_db');
-$users = new UsersDBDataset($dbDriver);
+$db = DatabaseExecutor::using($dbDriver);
+
+// Initialize repositories and service
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 
 // JWT
-$jwtKey = new JwtKeySecret(getenv('JWT_SECRET') ?: 'your-secret-key');
-$jwtWrapper = new JwtWrapper($jwtKey);
+$jwtWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret(getenv('JWT_SECRET') ?: 'your-secret-key'));
 
 // Helper function
 function jsonResponse($data, $statusCode = 200)
@@ -396,11 +415,20 @@ try {
 // multi-tenant-example.php
 require_once 'vendor/autoload.php';
 
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
 
 $dbDriver = DbFactory::getDbInstance('mysql://user:password@localhost/multitenant_db');
-$users = new UsersDBDataset($dbDriver);
+$db = DatabaseExecutor::using($dbDriver);
+
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
 
 // Add user to organization
 function addUserToOrganization($users, $userId, $orgId, $role = 'member')
@@ -454,13 +482,13 @@ if (hasOrganizationAccess($users, $userId, $orgId)) {
 // permission-system-example.php
 require_once 'vendor/autoload.php';
 
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\Authenticate\Service\UsersService;
 
 class PermissionManager
 {
-    private $users;
+    private UsersService $users;
 
-    public function __construct(UsersDBDataset $users)
+    public function __construct(UsersService $users)
     {
         $this->users = $users;
     }

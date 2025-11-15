@@ -41,64 +41,56 @@ $savedUser = $users->save($userModel);
 
 ## Retrieving Users
 
-To retrieve users you can use the `get($value, ?string $field = null)` method. 
-When the `$field` argument is omitted it defaults to the primary key
-defined in your `UserDefinition`. Passing any other column automatically builds the right filter and throws an
-`\InvalidArgumentException` if the field is not one of the allowed values (`userid`, `username`, or `email`).
-
-```php
-<?php
-$user = $users->get('john@example.com', $users->getUserDefinition()->getEmail());
-```
-
-The following examples show the common calls:
+The `UsersService` provides several methods to retrieve users:
 
 ### Get User by ID
 
 ```php
 <?php
-$user = $users->get($userId);
-# OR
-$user = $users->get($userId, $users->getUserDefinition()->getUserid());
+$user = $users->getById($userId);
 ```
 
 ### Get User by Email
 
 ```php
 <?php
-$user = $users->get('john@example.com', $users->getUserDefinition()->getEmail());
+$user = $users->getByEmail('john@example.com');
 ```
 
 ### Get User by Username
 
 ```php
 <?php
-$user = $users->get('johndoe', $users->getUserDefinition()->getUsername());
+$user = $users->getByUsername('johndoe');
 ```
 
 ### Get User by Login Field
 
-The login field is determined by the `UserDefinition::loginField()` (either email or username):
+The login field is determined by the `UsersService` constructor (either email or username):
 
 ```php
 <?php
-$user = $users->get('johndoe', $users->getUserDefinition()->loginField());
+$user = $users->getByLogin('johndoe');
 ```
 
-### Using Custom Filters
+### Using Custom Queries
 
-For advanced queries, use `IteratorFilter`:
+For advanced queries, use the repository directly:
 
 ```php
 <?php
-use ByJG\AnyDataset\Core\IteratorFilter;
-use ByJG\AnyDataset\Core\Enum\Relation;
+use ByJG\MicroOrm\Query;
 
-$filter = new IteratorFilter();
-$filter->and('email', Relation::EQUAL, 'john@example.com');
-$filter->and('admin', Relation::EQUAL, 'yes');
+// Get users repository
+$usersRepo = $users->getUsersRepository();
 
-$user = $users->getUser($filter);
+// Build custom query
+$query = Query::getInstance()
+    ->table('users')
+    ->where('email = :email', ['email' => 'john@example.com'])
+    ->where('admin = :admin', ['admin' => 'yes']);
+
+$results = $usersRepo->getRepository()->getByQuery($query);
 ```
 
 ## Updating Users
@@ -106,7 +98,7 @@ $user = $users->getUser($filter);
 ```php
 <?php
 // Get the user
-$user = $users->get($userId);
+$user = $users->getById($userId);
 
 // Update fields
 $user->setName('Jane Doe');
@@ -122,14 +114,14 @@ $users->save($user);
 
 ```php
 <?php
-$users->removeUserById($userId);
+$users->removeById($userId);
 ```
 
 ### Delete by Login
 
 ```php
 <?php
-$users->removeByLoginField('johndoe');
+$users->removeByLogin('johndoe');
 ```
 
 ## Checking Admin Status
