@@ -2,13 +2,23 @@
 
 namespace ByJG\Authenticate\Model;
 
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
 
+#[TableAttribute(tableName: 'users_property')]
 class UserPropertiesModel
 {
+    #[FieldAttribute]
     protected string|int|HexUuidLiteral|null $userid = null;
+
+    #[FieldAttribute(primaryKey: true)]
     protected ?string $id = null;
+
+    #[FieldAttribute]
     protected ?string $name = null;
+
+    #[FieldAttribute]
     protected ?string $value = null;
 
     /**

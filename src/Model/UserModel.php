@@ -3,17 +3,35 @@
 namespace ByJG\Authenticate\Model;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
+use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 use InvalidArgumentException;
 
+#[TableAttribute(tableName: 'users')]
 class UserModel
 {
+    #[FieldAttribute(primaryKey: true)]
     protected string|int|HexUuidLiteral|null $userid = null;
+
+    #[FieldAttribute]
     protected ?string $name = null;
+
+    #[FieldAttribute]
     protected ?string $email = null;
+
+    #[FieldAttribute]
     protected ?string $username = null;
+
+    #[FieldAttribute(updateFunction: PasswordSha1Mapper::class)]
     protected ?string $password = null;
+
+    #[FieldAttribute(updateFunction: ReadOnlyMapper::class)]
     protected ?string $created = null;
+
+    #[FieldAttribute]
     protected ?string $admin = null;
 
     protected ?PasswordDefinition $passwordDefinition = null;
