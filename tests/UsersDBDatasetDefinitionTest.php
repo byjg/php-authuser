@@ -19,7 +19,7 @@ use ReflectionException;
 use Tests\Fixture\MyUserModel;
 use Tests\Fixture\TestUniqueIdGenerator;
 
-class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
+class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
 {
     protected $db;
 
@@ -117,7 +117,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
 
         $login = $this->__chooseValue('john', 'johndoe@gmail.com');
 
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -132,7 +132,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
         $user->setAdmin('y');
         $this->object->save($user);
 
-        $user2 = $this->object->getByLoginField($login);
+        $user2 = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertEquals('y', $user2->getAdmin());
     }
 
@@ -190,9 +190,9 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTest
             new MyUserModel('User 4', 'user4@gmail.com', 'user4', 'pwd4', 'no', 'other john')
         );
 
-        $login = $this->__chooseValue(']user4[', '-user4@gmail.com-');
+        $login = $this->__chooseValue('user4', 'user4@gmail.com');
 
-        $user = $newObject->getByLoginField($login);
+        $user = $newObject->get($login, $newObject->getUserDefinition()->loginField());
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('([User 4])', $user->getName());
         $this->assertEquals(')]user4[(', $user->getUsername());

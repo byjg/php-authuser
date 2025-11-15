@@ -4,7 +4,7 @@ namespace Tests;
 
 use ByJG\Authenticate\Definition\UserDefinition;
 
-class UsersDBDataset2ByEmailTest extends UsersDBDatasetByUsernameTest
+class UsersDBDataset2ByEmailTest extends UsersDBDataset2ByUserNameTestUsersBase
 {
     #[\Override]
     public function setUp(): void

@@ -203,7 +203,7 @@ if (!$sessionContext->isAuthenticated()) {
 
 // Get current user
 $userId = $sessionContext->userInfo();
-$user = $users->getById($userId);
+$user = $users->get($userId);
 $loginTime = $sessionContext->getSessionData('login_time');
 ?>
 <!DOCTYPE html>

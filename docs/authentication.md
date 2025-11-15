@@ -133,7 +133,7 @@ $sessionContext = new SessionContext(Factory::createSessionPool());
 
 if ($sessionContext->isAuthenticated()) {
     $userId = $sessionContext->userInfo();
-    $user = $users->getById($userId);
+    $user = $users->get($userId);
     echo "Hello, " . $user->getName();
 } else {
     echo "Please log in";

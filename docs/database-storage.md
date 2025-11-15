@@ -148,7 +148,7 @@ $userDefinition = new UserDefinition(
 ```
 
 :::tip Login Field
-The login field affects methods like `isValidUser()` and `getByLoginField()`. They will use the configured field for authentication.
+The login field affects methods like `isValidUser()`. They will use the configured field for authentication.
 :::
 
 ## Complete Example
@@ -196,27 +196,6 @@ $users = new UsersDBDataset($dbDriver, $userDefinition, $propertiesDefinition);
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'password123');
 ```
 
-## XML/File Storage
-
-For simple applications or development, you can use XML file storage:
-
-```php
-<?php
-use ByJG\Authenticate\UsersAnyDataset;
-use ByJG\AnyDataset\Core\AnyDataset;
-
-// Create or load an AnyDataset
-$anyDataset = new AnyDataset('/path/to/users.xml');
-
-$users = new UsersAnyDataset($anyDataset);
-
-// Use it the same way as UsersDBDataset
-$user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'password123');
-```
-
-:::warning Production Use
-XML file storage is suitable for development and small applications. For production applications with multiple users, use database storage.
-:::
 
 ## Architecture
 
@@ -232,18 +211,15 @@ XML file storage is suitable for development and small applications. For product
 │ UserPropertyDefinition │─ ─ ┘    └───────────────────┘     ─ ─ ┤   UserPropertyModel    │
 └────────────────────────┘                   ▲                   └────────────────────────┘
                                              │
-                    ┌────────────────────────┼─────────────────────────┐
-                    │                        │                         │
-                    │                        │                         │
-                    │                        │                         │
-          ┌───────────────────┐    ┌───────────────────┐    ┌────────────────────┐
-          │  UsersAnyDataset  │    │  UsersDBDataset   │    │   Custom Impl.     │
-          └───────────────────┘    └───────────────────┘    └────────────────────┘
+                                 ┌───────────┴───────────┐
+                                 │                       │
+                       ┌───────────────────┐    ┌────────────────────┐
+                       │  UsersDBDataset   │    │   Custom Impl.     │
+                       └───────────────────┘    └────────────────────┘
 ```
 
 - **UserInterface**: Base interface for all implementations
 - **UsersDBDataset**: Database implementation
-- **UsersAnyDataset**: XML file implementation
 - **UserModel**: The user data model
 - **UserPropertyModel**: The user property data model
 - **UserDefinition**: Maps model to database schema

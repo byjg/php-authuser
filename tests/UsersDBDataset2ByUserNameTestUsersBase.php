@@ -9,8 +9,10 @@ use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersDBDataset;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 
-class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
+class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
 {
+    const CONNECTION_STRING='sqlite:///tmp/teste.db';
+
     protected $db;
 
     /**
@@ -73,5 +75,66 @@ class UsersDBDataset2ByUserNameTest extends UsersDBDatasetByUsernameTest
     public function setUp(): void
     {
         $this->__setUp(UserDefinition::LOGIN_IS_USERNAME);
+    }
+
+    #[\Override]
+    public function tearDown(): void
+    {
+        $uri = new \ByJG\Util\Uri(self::CONNECTION_STRING);
+        unlink($uri->getPath());
+        $this->object = null;
+        $this->userDefinition = null;
+        $this->propertyDefinition = null;
+    }
+
+    /**
+     * @return void
+     */
+    #[\Override]
+    public function testAddUser()
+    {
+        $this->object->addUser('John Doe', 'john', 'johndoe@gmail.com', 'mypassword');
+
+        $login = $this->__chooseValue('john', 'johndoe@gmail.com');
+
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $this->assertEquals('4', $user->getUserid());
+        $this->assertEquals('John Doe', $user->getName());
+        $this->assertEquals('john', $user->getUsername());
+        $this->assertEquals('johndoe@gmail.com', $user->getEmail());
+        $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
+        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
+
+        // Setting as Admin
+        $user->setAdmin('y');
+        $this->object->save($user);
+
+        $user2 = $this->object->get($login, $this->object->getUserDefinition()->loginField());
+        $this->assertEquals('y', $user2->getAdmin());
+    }
+
+    /**
+     * @return void
+     */
+    #[\Override]
+    public function testCreateAuthToken()
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $this->expectedToken('tokenValue', $login, 2);
+    }
+
+    /**
+     * @return void
+     */
+    #[\Override]
+    public function testSaveAndSave()
+    {
+        $user = $this->object->get("1");
+        $this->object->save($user);
+
+        $user2 = $this->object->get("1");
+
+        $this->assertEquals($user, $user2);
     }
 }

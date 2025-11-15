@@ -10,7 +10,7 @@ use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\UsersDBDataset;
 use ByJG\Util\Uri;
 
-class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
+class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
 {
 
     const CONNECTION_STRING='sqlite:///tmp/teste.db';
@@ -87,7 +87,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
         $login = $this->__chooseValue('john', 'johndoe@gmail.com');
 
-        $user = $this->object->getByLoginField($login);
+        $user = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
@@ -100,7 +100,7 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
         $user->setAdmin('y');
         $this->object->save($user);
 
-        $user2 = $this->object->getByLoginField($login);
+        $user2 = $this->object->get($login, $this->object->getUserDefinition()->loginField());
         $this->assertEquals('y', $user2->getAdmin());
     }
 
@@ -157,9 +157,9 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
 
         $newObject->addUser('User 4', 'user4', 'user4@gmail.com', 'pwd4');
 
-        $login = $this->__chooseValue(']user4[', '-user4@gmail.com-');
+        $login = $this->__chooseValue('user4', 'user4@gmail.com');
 
-        $user = $newObject->getByLoginField($login);
+        $user = $newObject->get($login, $newObject->getUserDefinition()->loginField());
         $this->assertEquals('4', $user->getUserid());
         $this->assertEquals('([User 4])', $user->getName());
         $this->assertEquals(')]user4[(', $user->getUsername());
@@ -174,10 +174,10 @@ class UsersDBDatasetByUsernameTest extends UsersAnyDatasetByUsernameTest
     #[\Override]
     public function testSaveAndSave()
     {
-        $user = $this->object->getById("1");
+        $user = $this->object->get("1");
         $this->object->save($user);
 
-        $user2 = $this->object->getById("1");
+        $user2 = $this->object->get("1");
 
         $this->assertEquals($user, $user2);
     }

@@ -169,7 +169,7 @@ if (!$sessionContext->isAuthenticated()) {
 }
 
 $userId = $sessionContext->userInfo();
-$user = $users->getById($userId);
+$user = $users->get($userId);
 $loginTime = $sessionContext->getSessionData('login_time');
 
 echo "Welcome, " . $user->getName();

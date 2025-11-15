@@ -41,34 +41,48 @@ $savedUser = $users->save($userModel);
 
 ## Retrieving Users
 
+To retrieve users you can use the `get($value, ?string $field = null)` method. 
+When the `$field` argument is omitted it defaults to the primary key
+defined in your `UserDefinition`. Passing any other column automatically builds the right filter and throws an
+`\InvalidArgumentException` if the field is not one of the allowed values (`userid`, `username`, or `email`).
+
+```php
+<?php
+$user = $users->get('john@example.com', $users->getUserDefinition()->getEmail());
+```
+
+The following examples show the common calls:
+
 ### Get User by ID
 
 ```php
 <?php
-$user = $users->getById($userId);
+$user = $users->get($userId);
+# OR
+$user = $users->get($userId, $users->getUserDefinition()->getUserid());
 ```
 
 ### Get User by Email
 
 ```php
 <?php
-$user = $users->getByEmail('john@example.com');
+$user = $users->get('john@example.com', $users->getUserDefinition()->getEmail());
 ```
 
 ### Get User by Username
 
 ```php
 <?php
-$user = $users->getByUsername('johndoe');
+$user = $users->get('johndoe', $users->getUserDefinition()->getUsername());
 ```
 
 ### Get User by Login Field
 
-The login field is determined by the `UserDefinition` (either email or username):
+The login field is determined by the `UserDefinition::loginField()` (either email or username):
 
 ```php
 <?php
-$user = $users->getByLoginField('johndoe');
+$user = $users->get('johndoe', $users->getUserDefinition()->loginField());
 ```
 
 ### Using Custom Filters
@@ -92,7 +106,7 @@ $user = $users->getUser($filter);
 ```php
 <?php
 // Get the user
-$user = $users->getById($userId);
+$user = $users->get($userId);
 
 // Update fields
 $user->setName('Jane Doe');
@@ -119,6 +133,10 @@ $users->removeByLoginField('johndoe');
 ```
 
 ## Checking Admin Status
+
+The admin flag is now interpreted entirely inside `UserModel`. Use `$user->isAdmin()` to read the computed boolean value,
+and `$user->setAdmin(true)` (or one of the accepted string values) to change it. This replaces the old `$users->isAdmin()`
+method that lived in `UsersInterface`.
 
 ```php
 <?php

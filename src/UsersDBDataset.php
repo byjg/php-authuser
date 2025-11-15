@@ -123,7 +123,7 @@ class UsersDBDataset extends UsersBase
     }
 
     /**
-     * Save the current UsersAnyDataset
+     * Save the current user
      *
      * @param UserModel $model
      * @return UserModel
@@ -152,7 +152,7 @@ class UsersDBDataset extends UsersBase
         }
 
         if ($newUser) {
-            $model = $this->getById($model->getUserid());
+            $model = $this->get($model->getUserid());
         }
 
         if ($model === null) {
@@ -160,6 +160,29 @@ class UsersDBDataset extends UsersBase
         }
 
         return $model;
+    }
+
+    #[\Override]
+    public function get(string|HexUuidLiteral|int $value, ?string $field = null): ?UserModel
+    {
+        if (empty($field)) {
+            $field = $this->getUserDefinition()->getUserid();
+        }
+
+        $function = match ($field) {
+            $this->getUserDefinition()->getEmail() => $this->getUserDefinition()->getMapperForUpdate(UserDefinition::FIELD_EMAIL),
+            $this->getUserDefinition()->getUsername() => $this->getUserDefinition()->getMapperForUpdate(UserDefinition::FIELD_USERNAME),
+            default => $this->getUserDefinition()->getMapperForUpdate(UserDefinition::FIELD_USERID),
+        };
+
+        if (!empty($function)) {
+            if (is_string($function)) {
+                $function = new $function();
+            }
+            $value = $function->processedValue($value, null);
+        }
+
+        return parent::get($value, $field);
     }
 
     /**
@@ -228,7 +251,7 @@ class UsersDBDataset extends UsersBase
     #[Override]
     public function removeByLoginField(string $login): bool
     {
-        $user = $this->getByLoginField($login);
+        $user = $this->get($login, $this->getUserDefinition()->loginField());
 
         if ($user !== null) {
             return $this->removeUserById($user->getUserid());
@@ -327,7 +350,7 @@ class UsersDBDataset extends UsersBase
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value): bool
     {
         //anydataset.Row
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if (empty($user)) {
             return false;
         }
@@ -396,7 +419,7 @@ class UsersDBDataset extends UsersBase
     #[Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, string|null $value = null): bool
     {
-        $user = $this->getById($userId);
+        $user = $this->get($userId);
         if ($user !== null) {
 
             $updateable = DeleteQuery::getInstance()

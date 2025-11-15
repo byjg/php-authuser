@@ -49,7 +49,7 @@ You can also manage properties directly through the `UserModel`:
 <?php
 use ByJG\Authenticate\Model\UserPropertiesModel;
 
-$user = $users->getById($userId);
+$user = $users->get($userId);
 
 // Set a property value
 $user->set('phone', '555-1234');
@@ -88,7 +88,7 @@ Returns `null` if the property doesn't exist.
 
 ```php
 <?php
-$user = $users->getById($userId);
+$user = $users->get($userId);
 
 // Get property value(s)
 $phone = $user->get('phone');

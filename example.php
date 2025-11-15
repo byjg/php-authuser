@@ -2,16 +2,16 @@
 
 require "vendor/autoload.php";
 
-use ByJG\Authenticate\UsersAnyDataset;
+use ByJG\AnyDataset\Db\Factory as DbFactory;
 use ByJG\Authenticate\SessionContext;
-use ByJG\AnyDataset\Core\AnyDataset;
+use ByJG\Authenticate\UsersDBDataset;
 use ByJG\Cache\Factory;
 
-// Create or load AnyDataset from XML file
-$anyDataset = new AnyDataset('/tmp/users.xml');
+// Create database connection (using SQLite for this example)
+$dbDriver = DbFactory::getDbInstance('sqlite:///tmp/users.db');
 
 // Initialize user management
-$users = new UsersAnyDataset($anyDataset);
+$users = new UsersDBDataset($dbDriver);
 
 // Add a new user
 $user = $users->addUser('Some User Full Name', 'someuser', 'someuser@someemail.com', '12345');
@@ -35,7 +35,7 @@ if ($authenticatedUser !== null) {
     $session->setSessionData('login_time', time());
 
     // Get the user info
-    $currentUser = $users->getById($session->userInfo());
+    $currentUser = $users->get($session->userInfo());
     echo "Welcome, " . $currentUser->getName() . "\n";
 }
 
