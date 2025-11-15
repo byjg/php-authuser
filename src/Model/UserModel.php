@@ -7,12 +7,17 @@ use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
-use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
+use ByJG\MicroOrm\Trait\CreatedAt;
+use ByJG\MicroOrm\Trait\DeletedAt;
+use ByJG\MicroOrm\Trait\UpdatedAt;
 use InvalidArgumentException;
 
 #[TableAttribute(tableName: 'users')]
 class UserModel
 {
+    use CreatedAt;
+    use UpdatedAt;
+    use DeletedAt;
     #[FieldAttribute(primaryKey: true)]
     protected string|int|HexUuidLiteral|null $userid = null;
 
@@ -27,9 +32,6 @@ class UserModel
 
     #[FieldAttribute(updateFunction: PasswordSha1Mapper::class)]
     protected ?string $password = null;
-
-    #[FieldAttribute(updateFunction: ReadOnlyMapper::class)]
-    protected ?string $created = null;
 
     #[FieldAttribute]
     protected ?string $role = null;
@@ -148,22 +150,6 @@ class UserModel
     /**
      * @return string|null
      */
-    public function getCreated(): ?string
-    {
-        return $this->created;
-    }
-
-    /**
-     * @param string|null $created
-     */
-    public function setCreated(?string $created): void
-    {
-        $this->created = $created;
-    }
-
-    /**
-     * @return string|null
-     */
     public function getRole(): ?string
     {
         return $this->role;
@@ -251,13 +237,7 @@ class UserModel
     public function withPasswordDefinition(PasswordDefinition $passwordDefinition): static
     {
         $this->passwordDefinition = $passwordDefinition;
+        $this->setPassword($this->password);
         return $this;
-    }
-
-    public function isAdmin(): bool
-    {
-        return
-            preg_match('/^(yes|YES|[yY]|true|TRUE|[tT]|1|[sS])$/', $this->getAdmin()) === 1
-        ;
     }
 }

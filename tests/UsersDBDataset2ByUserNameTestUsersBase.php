@@ -28,7 +28,9 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
             myemail varchar(200),
             myusername varchar(20),
             mypassword varchar(40),
-            mycreated datetime default (datetime(\'2017-12-04\')),
+            mycreated_at datetime default (datetime(\'2017-12-04\')),
+            myupdated_at datetime,
+            mydeleted_at datetime,
             myrole varchar(20));'
         );
 
@@ -84,7 +86,8 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
         $this->assertEquals('', $user->getRole());
-        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
+        $this->assertNotNull($user->getCreatedAt());
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $user->getCreatedAt());
 
         // Setting role
         $user->setRole('admin');
@@ -115,6 +118,14 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
 
         $user2 = $this->object->getById("1");
 
-        $this->assertEquals($user, $user2);
+        // Compare all fields except updated_at which changes on each save
+        $this->assertEquals($user->getUserid(), $user2->getUserid());
+        $this->assertEquals($user->getName(), $user2->getName());
+        $this->assertEquals($user->getEmail(), $user2->getEmail());
+        $this->assertEquals($user->getUsername(), $user2->getUsername());
+        $this->assertEquals($user->getPassword(), $user2->getPassword());
+        $this->assertEquals($user->getRole(), $user2->getRole());
+        $this->assertEquals($user->getCreatedAt(), $user2->getCreatedAt());
+        // updated_at is expected to be different due to the save operation
     }
 }

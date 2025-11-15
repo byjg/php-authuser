@@ -450,4 +450,9 @@ class UsersService implements UsersServiceInterface
             'data' => $data->data
         ];
     }
+
+    public function getUsersEntity(array $fields): UserModel
+    {
+        return $this->getUsersRepository()->getMapper()->getEntity($fields);
+    }
 }

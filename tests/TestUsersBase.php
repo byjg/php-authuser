@@ -217,13 +217,18 @@ abstract class TestUsersBase extends TestCase
         $dataFromToken->login = $loginCreated;
         $dataFromToken->userid = $userId;
 
-        $this->assertEquals(
-            [
-                'user' => $user,
-                'data' => $dataFromToken
-            ],
-            $this->object->isValidToken($loginCreated, $jwtWrapper, $token)
-        );
+        $tokenResult = $this->object->isValidToken($loginCreated, $jwtWrapper, $token);
+
+        // Compare data object
+        $this->assertEquals($dataFromToken, $tokenResult['data']);
+
+        // Compare user fields (excluding timestamps which may differ)
+        $this->assertEquals($user->getUserid(), $tokenResult['user']->getUserid());
+        $this->assertEquals($user->getName(), $tokenResult['user']->getName());
+        $this->assertEquals($user->getEmail(), $tokenResult['user']->getEmail());
+        $this->assertEquals($user->getUsername(), $tokenResult['user']->getUsername());
+        $this->assertEquals($user->getPassword(), $tokenResult['user']->getPassword());
+        $this->assertEquals($user->getRole(), $tokenResult['user']->getRole());
     }
 
     /**
@@ -334,8 +339,8 @@ abstract class TestUsersBase extends TestCase
         $user->setName('Test User');
         $user->setUsername('testuser_pwd');
         $user->setEmail('testpwd@example.com');
-        $user->withPasswordDefinition($passwordDef);
         $user->setPassword('ValidPass8642'); // Valid: uppercase, lowercase, numbers, no sequential, 12 chars
+        $user->withPasswordDefinition($passwordDef);
 
         // Should save successfully
         $savedUser = $this->object->save($user);
@@ -387,8 +392,8 @@ abstract class TestUsersBase extends TestCase
         ]);
 
         // Update password with valid value
-        $user->withPasswordDefinition($passwordDef);
         $user->setPassword('StrongPass84!'); // Valid: uppercase, lowercase, 2 numbers, symbol, no sequential, 13 chars
+        $user->withPasswordDefinition($passwordDef);
 
         // Should update successfully
         $savedUser = $this->object->save($user);
@@ -399,6 +404,7 @@ abstract class TestUsersBase extends TestCase
         $validUser = $this->object->isValidUser($login, 'StrongPass84!');
         $this->assertNotNull($validUser);
         $this->assertEquals($user->getUserid(), $validUser->getUserid());
+        $this->assertEquals($user->getPassword(), $validUser->getPassword());
     }
 
     public function testPasswordDefinitionInvalidOnUpdate(): void
@@ -500,5 +506,51 @@ abstract class TestUsersBase extends TestCase
             'invalid@example.com',
             'weak' // Invalid: too short, no uppercase, no numbers, no symbols
         );
+    }
+
+    public function testPasswordHashRemainsUnchangedOnSave(): void
+    {
+        // Create a user with a password
+        $originalPassword = 'mySecretPassword';
+        $user = $this->object->addUser('Test User', 'testuser', 'test@example.com', $originalPassword);
+
+        // Store the original password hash
+        $originalHash = $user->getPassword();
+        $this->assertEquals($originalHash, sha1($originalPassword));
+
+        // Verify the user can authenticate with the original password
+        $login = $this->__chooseValue('testuser', 'test@example.com');
+        $authenticatedUser = $this->object->isValidUser($login, $originalPassword);
+        $this->assertNotNull($authenticatedUser);
+        $this->assertEquals($user->getUserid(), $authenticatedUser->getUserid());
+
+        // Get the user from database
+        $retrievedUser = $this->object->getById($user->getUserid());
+        $this->assertEquals($originalHash, $retrievedUser->getPassword());
+
+        // Update other fields WITHOUT touching password
+        $retrievedUser->setName('Updated Name');
+        $retrievedUser->setEmail('updated@example.com');
+        $retrievedUser->setRole('moderator');
+
+        // Save the user
+        $updatedUser = $this->object->save($retrievedUser);
+
+        // Verify the password hash remained exactly the same
+        $this->assertEquals($originalHash, $updatedUser->getPassword());
+        $this->assertEquals('Updated Name', $updatedUser->getName());
+        $this->assertEquals('updated@example.com', $updatedUser->getEmail());
+        $this->assertEquals('moderator', $updatedUser->getRole());
+
+        // Verify user can still authenticate with original password
+        $login = $this->__chooseValue('testuser', 'updated@example.com');
+        $authenticatedUser = $this->object->isValidUser($login, $originalPassword);
+        $this->assertNotNull($authenticatedUser);
+        $this->assertEquals($user->getUserid(), $authenticatedUser->getUserid());
+
+        // Get user again from database to confirm persistence
+        $finalUser = $this->object->getById($user->getUserid());
+        $this->assertEquals($originalHash, $finalUser->getPassword());
+        $this->assertEquals('Updated Name', $finalUser->getName());
     }
 }

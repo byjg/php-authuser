@@ -104,7 +104,9 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
     role VARCHAR(20),
     -- Custom fields
     phone VARCHAR(20),
@@ -189,8 +191,8 @@ use ByJG\MicroOrm\Attributes\FieldAttribute;
 class CustomUserModel extends UserModel
 {
     // Read-only field - can be set on creation but not updated
-    #[FieldAttribute(fieldName: 'created', updateFunction: ReadOnlyMapper::class)]
-    protected ?string $created = null;
+    #[FieldAttribute(fieldName: 'created_at', updateFunction: ReadOnlyMapper::class, insertFunction: NowUtcMapper::class)]
+    protected ?string $createdAt = null;
 
     // Read-only custom field
     #[FieldAttribute(fieldName: 'phone', updateFunction: ReadOnlyMapper::class)]
@@ -237,10 +239,10 @@ use ByJG\MicroOrm\Attributes\FieldAttribute;
 class CustomUserModel extends UserModel
 {
     #[FieldAttribute(
-        fieldName: 'created',
+        fieldName: 'created_at',
         selectFunction: [FieldHandler::class, 'toDate']
     )]
-    protected ?\DateTime $created = null;
+    protected ?\DateTime $createdAt = null;
 }
 ```
 

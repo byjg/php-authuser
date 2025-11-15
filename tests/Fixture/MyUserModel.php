@@ -7,6 +7,7 @@ use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\MapperFunctions\NowUtcMapper;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 
 #[TableAttribute(tableName: 'mytable')]
@@ -27,8 +28,14 @@ class MyUserModel extends UserModel
     #[FieldAttribute(fieldName: 'mypassword', updateFunction: PasswordSha1Mapper::class)]
     protected ?string $password = null;
 
-    #[FieldAttribute(fieldName: 'mycreated', updateFunction: ReadOnlyMapper::class)]
-    protected ?string $created = null;
+    #[FieldAttribute(fieldName: 'mycreated_at', updateFunction: ReadOnlyMapper::class, insertFunction: NowUtcMapper::class)]
+    protected ?string $createdAt = null;
+
+    #[FieldAttribute(fieldName: 'myupdated_at', updateFunction: NowUtcMapper::class)]
+    protected ?string $updatedAt = null;
+
+    #[FieldAttribute(fieldName: 'mydeleted_at', syncWithDb: false)]
+    protected ?string $deletedAt = null;
 
     #[FieldAttribute(fieldName: 'myrole')]
     protected ?string $role = null;

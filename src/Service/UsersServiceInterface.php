@@ -192,4 +192,6 @@ interface UsersServiceInterface
      * @return array|null
      */
     public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): ?array;
+
+    public function getUsersEntity(array $fields): UserModel;
 }

@@ -44,7 +44,9 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
             myusername varchar(20),
             mypassword varchar(40),
             myotherfield varchar(40),
-            mycreated datetime default (datetime(\'2017-12-04\')),
+            mycreated_at datetime default (datetime(\'2017-12-04\')),
+            myupdated_at datetime,
+            mydeleted_at datetime,
             myrole varchar(20));'
         );
 
@@ -119,7 +121,8 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
         $this->assertEquals('', $user->getRole());
         /** @psalm-suppress UndefinedMethod Check UserModel::__call */
         $this->assertEquals('other john', $user->getOtherfield());
-        $this->assertEquals('2017-12-04 00:00:00', $user->getCreated()); // Database default value
+        $this->assertNotNull($user->getCreatedAt());
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $user->getCreatedAt());
 
         // Setting role
         $user->setRole('admin');

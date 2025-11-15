@@ -21,7 +21,9 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
     role VARCHAR(20),
 
     CONSTRAINT pk_users PRIMARY KEY (userid)
@@ -108,11 +110,17 @@ class CustomUserModel extends UserModel
     #[FieldAttribute(fieldName: 'password_hash', updateFunction: PasswordSha1Mapper::class)]
     protected ?string $password = null;
 
-    #[FieldAttribute(fieldName: 'date_created', updateFunction: ReadOnlyMapper::class)]
-    protected ?string $created = null;
+    #[FieldAttribute(fieldName: 'date_created', updateFunction: ReadOnlyMapper::class, insertFunction: NowUtcMapper::class)]
+    protected ?string $createdAt = null;
 
-    #[FieldAttribute(fieldName: 'is_admin')]
-    protected ?string $admin = null;
+    #[FieldAttribute(fieldName: 'date_updated', updateFunction: NowUtcMapper::class)]
+    protected ?string $updatedAt = null;
+
+    #[FieldAttribute(fieldName: 'date_deleted', syncWithDb: false)]
+    protected ?string $deletedAt = null;
+
+    #[FieldAttribute(fieldName: 'user_role')]
+    protected ?string $role = null;
 }
 
 // Use custom model

@@ -261,8 +261,8 @@ class CreatedTimestampProcessor implements EntityProcessorInterface
     public function process(mixed $instance): void
     {
         if ($instance instanceof UserModel) {
-            if (empty($instance->getCreated())) {
-                $instance->setCreated(date('Y-m-d H:i:s'));
+            if (empty($instance->getCreatedAt())) {
+                $instance->setCreatedAt(date('Y-m-d H:i:s'));
             }
         }
     }
@@ -392,8 +392,8 @@ class DefaultsProcessor implements EntityProcessorInterface
     public function process(mixed $instance): void
     {
         if ($instance instanceof UserModel) {
-            if (empty($instance->getCreated())) {
-                $instance->setCreated(date('Y-m-d H:i:s'));
+            if (empty($instance->getCreatedAt())) {
+                $instance->setCreatedAt(date('Y-m-d H:i:s'));
             }
             if (empty($instance->getRole())) {
                 $instance->setRole('user');

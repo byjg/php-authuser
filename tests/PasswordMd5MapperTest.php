@@ -30,7 +30,9 @@ class PasswordMd5MapperTest extends TestCase
             email varchar(200),
             username varchar(20),
             password varchar(40),
-            created datetime default (datetime(\'2017-12-04\')),
+            created_at datetime default (datetime(\'2017-12-04\')),
+            updated_at datetime,
+            deleted_at datetime,
             role varchar(20));'
         );
 
