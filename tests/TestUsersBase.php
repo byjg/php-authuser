@@ -167,19 +167,32 @@ abstract class TestUsersBase extends TestCase
 
     public function testIsAdmin(): void
     {
-        // Check is Admin
+        // Check user has no role initially
         $user3 = $this->object->getById($this->prefix . '3');
-        $this->assertFalse($user3->isAdmin());
+        $this->assertFalse($user3->hasRole('admin'));
+        $this->assertEmpty($user3->getRole());
 
-        // Set the Admin Flag
+        // Set a role
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
         $user = $this->object->getByLogin($login);
-        $user->setAdmin('Y');
+        $user->setRole('admin');
         $this->object->save($user);
 
-        // Check is Admin
+        // Check user has the role
         $user3 = $this->object->getById($this->prefix . '3');
-        $this->assertTrue($user3->isAdmin());
+        $this->assertTrue($user3->hasRole('admin'));
+        $this->assertTrue($user3->hasRole('ADMIN')); // Case insensitive
+        $this->assertFalse($user3->hasRole('user'));
+        $this->assertEquals('admin', $user3->getRole());
+
+        // Test different roles
+        $user->setRole('moderator');
+        $this->object->save($user);
+
+        $user3 = $this->object->getById($this->prefix . '3');
+        $this->assertFalse($user3->hasRole('admin'));
+        $this->assertTrue($user3->hasRole('moderator'));
+        $this->assertEquals('moderator', $user3->getRole());
     }
 
     protected function expectedToken($tokenData, $login, $userId): void

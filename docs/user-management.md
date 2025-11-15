@@ -34,7 +34,7 @@ $userModel->setName('John Doe');
 $userModel->setUsername('johndoe');
 $userModel->setEmail('john@example.com');
 $userModel->setPassword('SecurePass123');
-$userModel->setAdmin('no');
+$userModel->setRole('user');
 
 $savedUser = $users->save($userModel);
 ```
@@ -124,25 +124,30 @@ $users->removeById($userId);
 $users->removeByLogin('johndoe');
 ```
 
-## Checking Admin Status
+## Checking User Roles
 
-The admin flag is now interpreted entirely inside `UserModel`. Use `$user->isAdmin()` to read the computed boolean value,
-and `$user->setAdmin(true)` (or one of the accepted string values) to change it. This replaces the old `$users->isAdmin()`
-method that lived in `UsersInterface`.
+Users can have assigned roles stored in the `role` field. Use `$user->hasRole()` to check if a user has a specific role:
 
 ```php
 <?php
 /** @var $user \ByJG\Authenticate\Model\UserModel */
-if ($user->isAdmin()) {
+if ($user->hasRole('admin')) {
     echo "User is an administrator";
 }
+
+if ($user->hasRole('moderator')) {
+    echo "User is a moderator";
+}
+
+// Set a role
+$user->setRole('admin');
+$users->save($user);
+
+// Get current role
+$role = $user->getRole();
 ```
 
-The admin field accepts the following values as `true`:
-- `yes`, `YES`, `y`, `Y`
-- `true`, `TRUE`, `t`, `T`
-- `1`
-- `s`, `S` (from Portuguese "sim")
+The `hasRole()` method performs case-insensitive comparison, so `hasRole('admin')` and `hasRole('ADMIN')` are equivalent.
 
 ## UserModel Properties
 
@@ -156,7 +161,7 @@ The `UserModel` class provides the following properties:
 | username   | string\|null        | User's username                |
 | password   | string\|null        | User's password (hashed)       |
 | created    | string\|null        | Creation timestamp             |
-| admin      | string\|null        | Admin flag (yes/no)            |
+| role       | string\|null        | User's role (admin, moderator, user, etc.) |
 
 ## Next Steps
 

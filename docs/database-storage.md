@@ -22,7 +22,7 @@ CREATE TABLE users
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
     created DATETIME,
-    admin ENUM('Y','N'),
+    role VARCHAR(20),
 
     CONSTRAINT pk_users PRIMARY KEY (userid)
 ) ENGINE=InnoDB;

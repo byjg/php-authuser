@@ -29,6 +29,6 @@ class CustomUserModel extends UserModel
     #[FieldAttribute(fieldName: 'mycreated', updateFunction: ReadOnlyMapper::class)]
     protected ?string $created = null;
 
-    #[FieldAttribute(fieldName: 'myadmin')]
-    protected ?string $admin = null;
+    #[FieldAttribute(fieldName: 'myrole')]
+    protected ?string $role = null;
 }

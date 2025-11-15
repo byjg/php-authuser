@@ -29,5 +29,5 @@ class UserModelMd5 extends UserModel
     protected ?string $created = null;
 
     #[FieldAttribute]
-    protected ?string $admin = null;
+    protected ?string $role = null;
 }

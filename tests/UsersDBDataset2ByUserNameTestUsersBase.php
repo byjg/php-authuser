@@ -29,7 +29,7 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
             myusername varchar(20),
             mypassword varchar(40),
             mycreated datetime default (datetime(\'2017-12-04\')),
-            myadmin char(1));'
+            myrole varchar(20));'
         );
 
         $this->db->execute('create table theirproperty (
@@ -83,15 +83,15 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
-        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('', $user->getRole());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
 
-        // Setting as Admin
-        $user->setAdmin('y');
+        // Setting role
+        $user->setRole('admin');
         $this->object->save($user);
 
         $user2 = $this->object->getByLogin($login);
-        $this->assertEquals('y', $user2->getAdmin());
+        $this->assertEquals('admin', $user2->getRole());
     }
 
     /**

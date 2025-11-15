@@ -105,7 +105,7 @@ CREATE TABLE users
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
     created DATETIME,
-    admin ENUM('Y','N'),
+    role VARCHAR(20),
     -- Custom fields
     phone VARCHAR(20),
     department VARCHAR(50),

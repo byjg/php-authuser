@@ -31,7 +31,7 @@ class PasswordMd5MapperTest extends TestCase
             username varchar(20),
             password varchar(40),
             created datetime default (datetime(\'2017-12-04\')),
-            admin char(1));'
+            role varchar(20));'
         );
 
         $this->db->execute('create table users_property (
@@ -127,7 +127,7 @@ class PasswordMd5MapperTest extends TestCase
         // Update other fields WITHOUT touching the password
         $user->setName('John Updated');
         $user->setEmail('johnupdated@example.com');
-        $user->setAdmin('y');
+        $user->setRole('admin');
         $updatedUser = $this->service->save($user);
 
         // Verify the password hash remained exactly the same
@@ -137,7 +137,7 @@ class PasswordMd5MapperTest extends TestCase
         // Verify other fields were updated
         $this->assertEquals('John Updated', $updatedUser->getName());
         $this->assertEquals('johnupdated@example.com', $updatedUser->getEmail());
-        $this->assertEquals('y', $updatedUser->getAdmin());
+        $this->assertEquals('admin', $updatedUser->getRole());
 
         // Verify user can still login with original password
         $authenticatedUser = $this->service->isValidUser('johnsmith', $originalPassword);

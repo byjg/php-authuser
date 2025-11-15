@@ -395,8 +395,8 @@ class DefaultsProcessor implements EntityProcessorInterface
             if (empty($instance->getCreated())) {
                 $instance->setCreated(date('Y-m-d H:i:s'));
             }
-            if (empty($instance->getAdmin())) {
-                $instance->setAdmin('no');
+            if (empty($instance->getRole())) {
+                $instance->setRole('user');
             }
         }
     }

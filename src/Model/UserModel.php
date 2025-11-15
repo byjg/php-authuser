@@ -32,7 +32,7 @@ class UserModel
     protected ?string $created = null;
 
     #[FieldAttribute]
-    protected ?string $admin = null;
+    protected ?string $role = null;
 
     protected ?PasswordDefinition $passwordDefinition = null;
 
@@ -45,15 +45,15 @@ class UserModel
      * @param string $email
      * @param string $username
      * @param string $password
-     * @param string $admin
+     * @param string $role
      */
-    public function __construct(string $name = "", string $email = "", string $username = "", string $password = "", string $admin = "no")
+    public function __construct(string $name = "", string $email = "", string $username = "", string $password = "", string $role = "")
     {
         $this->name = $name;
         $this->email = $email;
         $this->username = $username;
         $this->setPassword($password);
-        $this->admin = $admin;
+        $this->role = $role;
     }
 
 
@@ -164,17 +164,28 @@ class UserModel
     /**
      * @return string|null
      */
-    public function getAdmin(): ?string
+    public function getRole(): ?string
     {
-        return $this->admin;
+        return $this->role;
     }
 
     /**
-     * @param string|null $admin
+     * @param string|null $role
      */
-    public function setAdmin(?string $admin): void
+    public function setRole(?string $role): void
     {
-        $this->admin = $admin;
+        $this->role = $role;
+    }
+
+    /**
+     * Check if user has a specific role
+     *
+     * @param string $role Role name to check
+     * @return bool
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role !== null && $this->role !== '' && strcasecmp($this->role, $role) === 0;
     }
 
     public function set(string $name, string|null $value): void

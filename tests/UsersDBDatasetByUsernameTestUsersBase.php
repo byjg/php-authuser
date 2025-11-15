@@ -32,7 +32,7 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
             username varchar(20),
             password varchar(40),
             created datetime default (datetime(\'2017-12-04\')),
-            admin char(1));'
+            role varchar(20));'
         );
 
         $this->db->execute('create table users_property (
@@ -56,7 +56,7 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->assertEquals('User 1', $user->getName());
         $this->assertEquals('user1', $user->getUsername());
         $this->assertEquals('a63d4b132a9a1d3430f9ae507825f572449e0d17', $user->getPassword());
-        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('', $user->getRole());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
 
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
@@ -93,15 +93,15 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
-        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('', $user->getRole());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated());
 
-        // Setting as Admin
-        $user->setAdmin('y');
+        // Setting role
+        $user->setRole('admin');
         $this->object->save($user);
 
         $user2 = $this->object->getByLogin($login);
-        $this->assertEquals('y', $user2->getAdmin());
+        $this->assertEquals('admin', $user2->getRole());
     }
 
     /**

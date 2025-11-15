@@ -249,10 +249,6 @@ class UsersService implements UsersServiceInterface
             return false;
         }
 
-        if ($user->isAdmin()) {
-            return true;
-        }
-
         $values = $user->get($propertyName);
 
         if ($values === null) {

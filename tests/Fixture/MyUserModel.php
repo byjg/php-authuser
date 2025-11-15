@@ -30,15 +30,15 @@ class MyUserModel extends UserModel
     #[FieldAttribute(fieldName: 'mycreated', updateFunction: ReadOnlyMapper::class)]
     protected ?string $created = null;
 
-    #[FieldAttribute(fieldName: 'myadmin')]
-    protected ?string $admin = null;
+    #[FieldAttribute(fieldName: 'myrole')]
+    protected ?string $role = null;
 
     #[FieldAttribute(fieldName: 'myotherfield')]
     protected $otherfield;
 
-    public function __construct($name = "", $email = "", $username = "", $password = "", $admin = "no", $field = "")
+    public function __construct($name = "", $email = "", $username = "", $password = "", $role = "", $field = "")
     {
-        parent::__construct($name, $email, $username, $password, $admin);
+        parent::__construct($name, $email, $username, $password, $role);
         $this->setOtherfield($field);
     }
 

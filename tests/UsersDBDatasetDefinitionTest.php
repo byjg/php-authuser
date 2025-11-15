@@ -45,7 +45,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
             mypassword varchar(40),
             myotherfield varchar(40),
             mycreated datetime default (datetime(\'2017-12-04\')),
-            myadmin char(1));'
+            myrole varchar(20));'
         );
 
         $this->db->execute('create table theirproperty (
@@ -65,13 +65,13 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
         );
 
         $this->object->save(
-            new MyUserModel('User 1', 'user1@gmail.com', 'user1', 'pwd1', 'no', 'other 1')
+            new MyUserModel('User 1', 'user1@gmail.com', 'user1', 'pwd1', '', 'other 1')
         );
         $this->object->save(
-            new MyUserModel('User 2', 'user2@gmail.com', 'user2', 'pwd2', 'no', 'other 2')
+            new MyUserModel('User 2', 'user2@gmail.com', 'user2', 'pwd2', '', 'other 2')
         );
         $this->object->save(
-            new MyUserModel('User 3', 'user3@gmail.com', 'user3', 'pwd3', 'no', 'other 3')
+            new MyUserModel('User 3', 'user3@gmail.com', 'user3', 'pwd3', '', 'other 3')
         );
     }
 
@@ -106,7 +106,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
     #[Override]
     public function testAddUser()
     {
-        $this->object->save(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', 'no', 'other john'));
+        $this->object->save(new MyUserModel('John Doe', 'johndoe@gmail.com', 'john', 'mypassword', '', 'other john'));
 
         $login = $this->__chooseValue('john', 'johndoe@gmail.com');
 
@@ -116,17 +116,17 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
         $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
-        $this->assertEquals('no', $user->getAdmin());
+        $this->assertEquals('', $user->getRole());
         /** @psalm-suppress UndefinedMethod Check UserModel::__call */
         $this->assertEquals('other john', $user->getOtherfield());
         $this->assertEquals('2017-12-04 00:00:00', $user->getCreated()); // Database default value
 
-        // Setting as Admin
-        $user->setAdmin('y');
+        // Setting role
+        $user->setRole('admin');
         $this->object->save($user);
 
         $user2 = $this->object->getByLogin($login);
-        $this->assertEquals('y', $user2->getAdmin());
+        $this->assertEquals('admin', $user2->getRole());
     }
 
     // TODO: These tests are currently disabled because the new architecture uses
