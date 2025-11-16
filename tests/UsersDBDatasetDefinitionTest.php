@@ -5,6 +5,7 @@ namespace Tests;
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
@@ -87,7 +88,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
     #[Override]
     public function setUp(): void
     {
-        $this->__setUp(UsersService::LOGIN_IS_USERNAME);
+        $this->__setUp(LoginField::Username);
     }
 
     #[\Override]

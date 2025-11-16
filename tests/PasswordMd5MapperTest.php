@@ -4,6 +4,7 @@ namespace Tests;
 
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
@@ -50,7 +51,7 @@ class PasswordMd5MapperTest extends TestCase
         $this->service = new UsersService(
             $usersRepository,
             $propertiesRepository,
-            UsersService::LOGIN_IS_USERNAME
+            LoginField::Username
         );
     }
 

@@ -4,6 +4,7 @@ namespace Tests;
 
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -69,7 +70,7 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
     #[\Override]
     public function setUp(): void
     {
-        $this->__setUp(UsersService::LOGIN_IS_USERNAME);
+        $this->__setUp(LoginField::Username);
     }
 
     #[\Override]

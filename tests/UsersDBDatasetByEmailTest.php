@@ -2,13 +2,13 @@
 
 namespace Tests;
 
-use ByJG\Authenticate\Service\UsersService;
+use ByJG\Authenticate\Enum\LoginField;
 
 class UsersDBDatasetByEmailTest extends UsersDBDatasetByUsernameTestUsersBase
 {
     #[\Override]
     public function setUp(): void
     {
-        $this->__setUp(UsersService::LOGIN_IS_EMAIL);
+        $this->__setUp(LoginField::Email);
     }
 }

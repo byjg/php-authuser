@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Service\UsersService;
@@ -16,7 +17,7 @@ abstract class TestUsersBase extends TestCase
      */
     protected UsersService|null $object = null;
 
-    protected string $loginField;
+    protected LoginField $loginField;
 
     protected $prefix = "";
 
@@ -24,17 +25,16 @@ abstract class TestUsersBase extends TestCase
 
     public function __chooseValue($forUsername, $forEmail): string
     {
-        $searchForList = [
-            'email' => $forEmail,
-            'username' => $forUsername,
-        ];
-        return $searchForList[$this->loginField];
+        return match ($this->loginField) {
+            LoginField::Email => $forEmail,
+            LoginField::Username => $forUsername,
+        };
     }
 
     #[\Override]
     public function setUp(): void
     {
-        $this->__setUp(UsersService::LOGIN_IS_USERNAME);
+        $this->__setUp(LoginField::Username);
     }
 
     /**
@@ -483,7 +483,7 @@ abstract class TestUsersBase extends TestCase
         $usersWithPwdDef = new \ByJG\Authenticate\Service\UsersService(
             $usersRepo,
             $propsRepo,
-            \ByJG\Authenticate\Service\UsersService::LOGIN_IS_USERNAME,
+            LoginField::Username,
             $passwordDef
         );
 
