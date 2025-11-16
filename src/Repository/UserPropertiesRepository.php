@@ -79,14 +79,10 @@ class UserPropertiesRepository
     public function getByUserId(string|Literal|int $userid): array
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
-        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
-        if (is_string($userIdUpdateFunction)) {
-            $userIdUpdateFunction = new $userIdUpdateFunction();
-        }
         $userIdField = $userIdMapping->getFieldName();
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)]);
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)]);
 
         return $this->repository->getByQuery($query);
     }
@@ -106,10 +102,6 @@ class UserPropertiesRepository
     public function getByUserIdAndName(string|Literal|int $userid, string $propertyName): array
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
-        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
-        if (is_string($userIdUpdateFunction)) {
-            $userIdUpdateFunction = new $userIdUpdateFunction();
-        }
         $nameMapping = $this->mapper->getFieldMap(UserPropertyField::Name->value);
 
         $userIdField = $userIdMapping->getFieldName();
@@ -117,7 +109,7 @@ class UserPropertiesRepository
 
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)])
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         return $this->repository->getByQuery($query);
@@ -136,14 +128,11 @@ class UserPropertiesRepository
     public function deleteByUserId(string|Literal|int $userid): void
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
-        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
-        if (is_string($userIdUpdateFunction)) {
-            $userIdUpdateFunction = new $userIdUpdateFunction();
-        }        $userIdField = $userIdMapping->getFieldName();
+        $userIdField = $userIdMapping->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)]);
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)]);
 
         $this->repository->deleteByQuery($deleteQuery);
     }
@@ -163,16 +152,12 @@ class UserPropertiesRepository
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $userIdField = $userIdMapping->getFieldName();
-        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
-        if (is_string($userIdUpdateFunction)) {
-            $userIdUpdateFunction = new $userIdUpdateFunction();
-        }
         $nameField = $this->mapper->getFieldMap(UserPropertyField::Name->value)->getFieldName();
         $valueField = $this->mapper->getFieldMap(UserPropertyField::Value->value)->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)])
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         if ($value !== null) {
