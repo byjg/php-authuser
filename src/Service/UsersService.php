@@ -522,7 +522,7 @@ class UsersService implements UsersServiceInterface
         return new UserToken(
             user: $user,
             token: $token,
-            data: $tokenUserFields
+            data: $updateTokenInfo
         );
     }
 
