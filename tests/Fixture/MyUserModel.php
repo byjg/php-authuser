@@ -6,7 +6,7 @@ use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\MapperFunctions\NowUtcMapper;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 
@@ -14,7 +14,7 @@ use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 class MyUserModel extends UserModel
 {
     #[FieldAttribute(fieldName: 'myuserid', primaryKey: true)]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 
     #[FieldAttribute(fieldName: 'myname')]
     protected ?string $name = null;

@@ -12,7 +12,7 @@ use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 class UserModelMd5 extends UserModel
 {
     #[FieldAttribute(primaryKey: true)]
-    protected string|int|\ByJG\MicroOrm\Literal\HexUuidLiteral|null $userid = null;
+    protected string|int|\ByJG\MicroOrm\Literal\Literal|null $userid = null;
 
     #[FieldAttribute]
     protected ?string $name = null;

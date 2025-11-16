@@ -10,7 +10,7 @@ use ByJG\MicroOrm\Attributes\TableAttribute;
 class MyUserPropertiesModel extends UserPropertiesModel
 {
     #[FieldAttribute(fieldName: 'theiruserid')]
-    protected string|int|\ByJG\MicroOrm\Literal\HexUuidLiteral|null $userid = null;
+    protected string|int|\ByJG\MicroOrm\Literal\Literal|null $userid = null;
 
     #[FieldAttribute(fieldName: 'theirid', primaryKey: true)]
     protected ?string $id = null;

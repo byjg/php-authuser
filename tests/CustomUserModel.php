@@ -13,7 +13,7 @@ use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 class CustomUserModel extends UserModel
 {
     #[FieldAttribute(fieldName: 'myuserid', primaryKey: true)]
-    protected string|int|\ByJG\MicroOrm\Literal\HexUuidLiteral|null $userid = null;
+    protected string|int|\ByJG\MicroOrm\Literal\Literal|null $userid = null;
 
     #[FieldAttribute(fieldName: 'myname')]
     protected ?string $name = null;

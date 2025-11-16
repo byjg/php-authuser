@@ -12,7 +12,7 @@ use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
 use ByJG\MicroOrm\Exception\UpdateConstraintException;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
@@ -66,7 +66,7 @@ class UsersRepository
     /**
      * Get user by ID
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return UserModel|null
      * @throws DatabaseException
      * @throws DbDriverNotConnected
@@ -76,7 +76,7 @@ class UsersRepository
      * @throws XmlUtilException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function getById(string|HexUuidLiteral|int $userid): ?UserModel
+    public function getById(string|Literal|int $userid): ?UserModel
     {
         return $this->repository->get($userid);
     }
@@ -85,7 +85,7 @@ class UsersRepository
      * Get user by field value
      *
      * @param string $field Property name (e.g., 'username', 'email')
-     * @param string|HexUuidLiteral|int $value
+     * @param string|Literal|int $value
      * @return UserModel|null
      * @throws DatabaseException
      * @throws DbDriverNotConnected
@@ -93,7 +93,7 @@ class UsersRepository
      * @throws XmlUtilException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function getByField(string $field, string|HexUuidLiteral|int $value): ?UserModel
+    public function getByField(string $field, string|Literal|int $value): ?UserModel
     {
         // Map the property name to the actual database column name
         $fieldMapping = $this->mapper->getFieldMap($field);
@@ -126,11 +126,11 @@ class UsersRepository
     /**
      * Delete user by ID
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return void
      * @throws \Exception
      */
-    public function deleteById(string|HexUuidLiteral|int $userid): void
+    public function deleteById(string|Literal|int $userid): void
     {
         $this->repository->delete($userid);
     }

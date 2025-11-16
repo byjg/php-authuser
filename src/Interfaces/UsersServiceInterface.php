@@ -5,7 +5,7 @@ namespace ByJG\Authenticate\Interfaces;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\JwtWrapper\JwtWrapper;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 
 /**
  * Interface for Users Service
@@ -34,10 +34,10 @@ interface UsersServiceInterface
     /**
      * Get user by ID
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return UserModel|null
      */
-    public function getById(string|HexUuidLiteral|int $userid): ?UserModel;
+    public function getById(string|Literal|int $userid): ?UserModel;
 
     /**
      * Get user by email
@@ -74,10 +74,10 @@ interface UsersServiceInterface
     /**
      * Remove user by ID
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return bool
      */
-    public function removeById(string|HexUuidLiteral|int $userid): bool;
+    public function removeById(string|Literal|int $userid): bool;
 
     /**
      * Validate if user and password are correct
@@ -91,51 +91,51 @@ interface UsersServiceInterface
     /**
      * Check if user has a property
      *
-     * @param string|int|HexUuidLiteral $userId
+     * @param string|int|Literal $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool
      */
-    public function hasProperty(string|int|HexUuidLiteral $userId, string $propertyName, ?string $value = null): bool;
+    public function hasProperty(string|int|Literal $userId, string $propertyName, ?string $value = null): bool;
 
     /**
      * Get property value(s) for a user
      *
-     * @param string|HexUuidLiteral|int $userId
+     * @param string|Literal|int $userId
      * @param string $propertyName
      * @return array|string|UserPropertiesModel|null
      */
-    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null;
+    public function getProperty(string|Literal|int $userId, string $propertyName): array|string|UserPropertiesModel|null;
 
     /**
      * Add a property to a user
      *
-     * @param string|HexUuidLiteral|int $userId
+     * @param string|Literal|int $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool
      */
-    public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool;
+    public function addProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool;
 
     /**
      * Set a property (replaces existing)
      *
-     * @param string|HexUuidLiteral|int $userId
+     * @param string|Literal|int $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool
      */
-    public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool;
+    public function setProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool;
 
     /**
      * Remove a property from a user
      *
-     * @param string|HexUuidLiteral|int $userId
+     * @param string|Literal|int $userId
      * @param string $propertyName
      * @param string|null $value
      * @return bool
      */
-    public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value = null): bool;
+    public function removeProperty(string|Literal|int $userId, string $propertyName, ?string $value = null): bool;
 
     /**
      * Remove a property from all users

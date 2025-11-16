@@ -4,13 +4,13 @@ namespace ByJG\Authenticate\Model;
 
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 
 #[TableAttribute(tableName: 'users_property')]
 class UserPropertiesModel
 {
     #[FieldAttribute]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 
     #[FieldAttribute(primaryKey: true)]
     protected ?string $id = null;
@@ -34,17 +34,17 @@ class UserPropertiesModel
     }
 
     /**
-     * @return string|int|HexUuidLiteral|null
+     * @return string|int|Literal|null
      */
-    public function getUserid(): string|int|HexUuidLiteral|null
+    public function getUserid(): string|int|Literal|null
     {
         return $this->userid;
     }
 
     /**
-     * @param string|int|HexUuidLiteral|null $userid
+     * @param string|int|Literal|null $userid
      */
-    public function setUserid(string|int|HexUuidLiteral|null $userid): void
+    public function setUserid(string|int|Literal|null $userid): void
     {
         $this->userid = $userid;
     }

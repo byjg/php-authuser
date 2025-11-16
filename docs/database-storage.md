@@ -90,13 +90,13 @@ use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 
 #[TableAttribute(tableName: 'my_users_table')]
 class CustomUserModel extends UserModel
 {
     #[FieldAttribute(fieldName: 'user_id', primaryKey: true)]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 
     #[FieldAttribute(fieldName: 'full_name')]
     protected ?string $name = null;
@@ -134,7 +134,7 @@ $usersRepo = new UsersRepository($db, CustomUserModel::class);
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 
 #[TableAttribute(tableName: 'custom_properties')]
 class CustomPropertiesModel extends UserPropertiesModel
@@ -149,7 +149,7 @@ class CustomPropertiesModel extends UserPropertiesModel
     protected ?string $value = null;
 
     #[FieldAttribute(fieldName: 'user_id')]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 }
 
 // Use custom model

@@ -16,7 +16,7 @@ use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\JwtWrapper\JwtWrapper;
 use ByJG\JwtWrapper\JwtWrapperException;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Query;
 use Exception;
 use InvalidArgumentException;
@@ -161,7 +161,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function getById(string|HexUuidLiteral|int $userid): ?UserModel
+    public function getById(string|Literal|int $userid): ?UserModel
     {
         $user = $this->usersRepository->getById($userid);
         if ($user !== null) {
@@ -238,7 +238,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function removeById(string|HexUuidLiteral|int $userid): bool
+    public function removeById(string|Literal|int $userid): bool
     {
         try {
             // Delete properties first
@@ -278,7 +278,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function hasProperty(string|int|HexUuidLiteral $userId, string $propertyName, ?string $value = null): bool
+    public function hasProperty(string|int|Literal $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
 
@@ -303,7 +303,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
+    public function getProperty(string|Literal|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
 
@@ -327,7 +327,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool
+    public function addProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool
     {
         $user = $this->getById($userId);
         if (empty($user)) {
@@ -351,7 +351,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool
+    public function setProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
 
@@ -375,7 +375,7 @@ class UsersService implements UsersServiceInterface
      * @inheritDoc
      */
     #[\Override]
-    public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value = null): bool
+    public function removeProperty(string|Literal|int $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
         if ($user !== null) {

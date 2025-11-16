@@ -6,7 +6,7 @@ use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Trait\CreatedAt;
 use ByJG\MicroOrm\Trait\DeletedAt;
 use ByJG\MicroOrm\Trait\UpdatedAt;
@@ -19,7 +19,7 @@ class UserModel
     use UpdatedAt;
     use DeletedAt;
     #[FieldAttribute(primaryKey: true)]
-    protected string|int|HexUuidLiteral|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 
     #[FieldAttribute]
     protected ?string $name = null;
@@ -60,17 +60,17 @@ class UserModel
 
 
     /**
-     * @return string|int|HexUuidLiteral|null
+     * @return string|int|Literal|null
      */
-    public function getUserid(): string|int|HexUuidLiteral|null
+    public function getUserid(): string|int|Literal|null
     {
         return $this->userid;
     }
 
     /**
-     * @param string|int|HexUuidLiteral|null $userid
+     * @param string|int|Literal|null $userid
      */
-    public function setUserid(string|int|HexUuidLiteral|null $userid): void
+    public function setUserid(string|int|Literal|null $userid): void
     {
         $this->userid = $userid;
     }

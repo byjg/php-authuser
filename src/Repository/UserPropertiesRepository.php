@@ -11,7 +11,7 @@ use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
@@ -54,7 +54,7 @@ class UserPropertiesRepository
     /**
      * Get properties by user ID
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return UserPropertiesModel[]
      * @throws DatabaseException
      * @throws DbDriverNotConnected
@@ -62,7 +62,7 @@ class UserPropertiesRepository
      * @throws XmlUtilException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function getByUserId(string|HexUuidLiteral|int $userid): array
+    public function getByUserId(string|Literal|int $userid): array
     {
         $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
         $query = Query::getInstance()
@@ -75,7 +75,7 @@ class UserPropertiesRepository
     /**
      * Get specific property by user ID and name
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @param string $propertyName
      * @return UserPropertiesModel[]
      * @throws DatabaseException
@@ -84,7 +84,7 @@ class UserPropertiesRepository
      * @throws XmlUtilException
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function getByUserIdAndName(string|HexUuidLiteral|int $userid, string $propertyName): array
+    public function getByUserIdAndName(string|Literal|int $userid, string $propertyName): array
     {
         $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
         $nameField = $this->mapper->getFieldMap('name')->getFieldName();
@@ -100,13 +100,13 @@ class UserPropertiesRepository
     /**
      * Delete all properties for a user
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @return void
      * @throws DatabaseException
      * @throws DbDriverNotConnected
      * @throws RepositoryReadOnlyException
      */
-    public function deleteByUserId(string|HexUuidLiteral|int $userid): void
+    public function deleteByUserId(string|Literal|int $userid): void
     {
         $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
 
@@ -120,7 +120,7 @@ class UserPropertiesRepository
     /**
      * Delete specific property by user ID and name
      *
-     * @param string|HexUuidLiteral|int $userid
+     * @param string|Literal|int $userid
      * @param string $propertyName
      * @param string|null $value
      * @return void
@@ -128,7 +128,7 @@ class UserPropertiesRepository
      * @throws DbDriverNotConnected
      * @throws RepositoryReadOnlyException
      */
-    public function deleteByUserIdAndName(string|HexUuidLiteral|int $userid, string $propertyName, ?string $value = null): void
+    public function deleteByUserIdAndName(string|Literal|int $userid, string $propertyName, ?string $value = null): void
     {
         $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
         $nameField = $this->mapper->getFieldMap('name')->getFieldName();
