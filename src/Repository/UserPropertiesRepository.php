@@ -5,18 +5,21 @@ namespace ByJG\Authenticate\Repository;
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Exception\DbDriverNotConnected;
+use ByJG\Authenticate\Enum\UserProperty;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\DeleteQuery;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
 use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
+use ByJG\MicroOrm\Exception\UpdateConstraintException;
 use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
 use ByJG\MicroOrm\Repository;
 use ByJG\XmlUtil\Exception\FileException;
 use ByJG\XmlUtil\Exception\XmlUtilException;
+use Psr\SimpleCache\InvalidArgumentException;
 use ReflectionException;
 
 /**
@@ -28,8 +31,11 @@ class UserPropertiesRepository
     protected Mapper $mapper;
 
     /**
+     * @param DatabaseExecutor $executor
+     * @param string $propertiesClass
      * @throws OrmModelInvalidException
      * @throws ReflectionException
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      */
     public function __construct(DatabaseExecutor $executor, string $propertiesClass)
     {
@@ -42,8 +48,16 @@ class UserPropertiesRepository
      *
      * @param UserPropertiesModel $model
      * @return UserPropertiesModel
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws InvalidArgumentException
      * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
+     * @throws RepositoryReadOnlyException
+     * @throws XmlUtilException
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
+     * @throws UpdateConstraintException
      */
     public function save(UserPropertiesModel $model): UserPropertiesModel
     {
@@ -60,14 +74,19 @@ class UserPropertiesRepository
      * @throws DbDriverNotConnected
      * @throws FileException
      * @throws XmlUtilException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function getByUserId(string|Literal|int $userid): array
     {
-        $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
+        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
+        if (is_string($userIdUpdateFunction)) {
+            $userIdUpdateFunction = new $userIdUpdateFunction();
+        }
+        $userIdField = $userIdMapping->getFieldName();
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$useridField = :userid", ['userid' => $userid]);
+            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)]);
 
         return $this->repository->getByQuery($query);
     }
@@ -82,16 +101,23 @@ class UserPropertiesRepository
      * @throws DbDriverNotConnected
      * @throws FileException
      * @throws XmlUtilException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function getByUserIdAndName(string|Literal|int $userid, string $propertyName): array
     {
-        $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
-        $nameField = $this->mapper->getFieldMap('name')->getFieldName();
+        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
+        if (is_string($userIdUpdateFunction)) {
+            $userIdUpdateFunction = new $userIdUpdateFunction();
+        }
+        $nameMapping = $this->mapper->getFieldMap(UserProperty::Name->value);
+
+        $userIdField = $userIdMapping->getFieldName();
+        $nameField = $nameMapping->getFieldName();
 
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$useridField = :userid", ['userid' => $userid])
+            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         return $this->repository->getByQuery($query);
@@ -105,14 +131,19 @@ class UserPropertiesRepository
      * @throws DatabaseException
      * @throws DbDriverNotConnected
      * @throws RepositoryReadOnlyException
+     * @throws \ByJG\MicroOrm\Exception\InvalidArgumentException
      */
     public function deleteByUserId(string|Literal|int $userid): void
     {
-        $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
+        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
+        if (is_string($userIdUpdateFunction)) {
+            $userIdUpdateFunction = new $userIdUpdateFunction();
+        }        $userIdField = $userIdMapping->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$useridField = :userid", ['userid' => $userid]);
+            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)]);
 
         $this->repository->deleteByQuery($deleteQuery);
     }
@@ -130,13 +161,18 @@ class UserPropertiesRepository
      */
     public function deleteByUserIdAndName(string|Literal|int $userid, string $propertyName, ?string $value = null): void
     {
-        $useridField = $this->mapper->getFieldMap('userid')->getFieldName();
-        $nameField = $this->mapper->getFieldMap('name')->getFieldName();
-        $valueField = $this->mapper->getFieldMap('value')->getFieldName();
+        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdField = $userIdMapping->getFieldName();
+        $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
+        if (is_string($userIdUpdateFunction)) {
+            $userIdUpdateFunction = new $userIdUpdateFunction();
+        }
+        $nameField = $this->mapper->getFieldMap(UserProperty::Name->value)->getFieldName();
+        $valueField = $this->mapper->getFieldMap(UserProperty::Value->value)->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$useridField = :userid", ['userid' => $userid])
+            ->where("$userIdField = :userid", ['userid' => $userIdUpdateFunction->processedValue($userid, null)])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         if ($value !== null) {
@@ -158,8 +194,8 @@ class UserPropertiesRepository
      */
     public function deleteByName(string $propertyName, ?string $value = null): void
     {
-        $nameField = $this->mapper->getFieldMap('name')->getFieldName();
-        $valueField = $this->mapper->getFieldMap('value')->getFieldName();
+        $nameField = $this->mapper->getFieldMap(UserProperty::Name->value)->getFieldName();
+        $valueField = $this->mapper->getFieldMap(UserProperty::Value->value)->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
