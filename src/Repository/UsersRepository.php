@@ -6,9 +6,12 @@ use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Exception\DbDriverNotConnected;
 use ByJG\Authenticate\Model\UserModel;
+use ByJG\MicroOrm\Exception\InvalidArgumentException;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
 use ByJG\MicroOrm\Exception\OrmInvalidFieldsException;
 use ByJG\MicroOrm\Exception\OrmModelInvalidException;
+use ByJG\MicroOrm\Exception\RepositoryReadOnlyException;
+use ByJG\MicroOrm\Exception\UpdateConstraintException;
 use ByJG\MicroOrm\Literal\HexUuidLiteral;
 use ByJG\MicroOrm\Mapper;
 use ByJG\MicroOrm\Query;
@@ -26,8 +29,11 @@ class UsersRepository
     protected Mapper $mapper;
 
     /**
+     * @param DatabaseExecutor $executor
+     * @param string $usersClass
      * @throws OrmModelInvalidException
      * @throws ReflectionException
+     * @throws InvalidArgumentException
      */
     public function __construct(DatabaseExecutor $executor, string $usersClass)
     {
@@ -40,8 +46,16 @@ class UsersRepository
      *
      * @param UserModel $model
      * @return UserModel
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws InvalidArgumentException
      * @throws OrmBeforeInvalidException
      * @throws OrmInvalidFieldsException
+     * @throws XmlUtilException
+     * @throws RepositoryReadOnlyException
+     * @throws UpdateConstraintException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function save(UserModel $model): UserModel
     {
@@ -54,6 +68,13 @@ class UsersRepository
      *
      * @param string|HexUuidLiteral|int $userid
      * @return UserModel|null
+     * @throws DatabaseException
+     * @throws DbDriverNotConnected
+     * @throws FileException
+     * @throws InvalidArgumentException
+     * @throws OrmInvalidFieldsException
+     * @throws XmlUtilException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getById(string|HexUuidLiteral|int $userid): ?UserModel
     {

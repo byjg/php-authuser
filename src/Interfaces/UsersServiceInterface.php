@@ -1,6 +1,6 @@
 <?php
 
-namespace ByJG\Authenticate\Service;
+namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;

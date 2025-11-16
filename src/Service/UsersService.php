@@ -6,6 +6,7 @@ use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\Interfaces\UsersServiceInterface;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
