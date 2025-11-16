@@ -3,12 +3,12 @@
 namespace ByJG\Authenticate\MapperFunctions;
 
 use ByJG\AnyDataset\Db\DatabaseExecutor;
-use ByJG\Authenticate\Interfaces\PasswordUpdaterInterface;
+use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 
 /**
  * Mapper function to hash passwords using SHA1
  */
-class PasswordSha1Mapper implements PasswordUpdaterInterface
+class PasswordSha1Mapper implements PasswordMapperInterface
 {
     #[\Override]
     public function processedValue(mixed $value, mixed $instance, ?DatabaseExecutor $executor = null): mixed

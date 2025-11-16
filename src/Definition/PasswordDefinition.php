@@ -2,6 +2,7 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 use InvalidArgumentException;
 use Random\RandomException;
 
@@ -17,6 +18,8 @@ class PasswordDefinition
     const ALLOW_REPEATED = "allow_repeated";
 
     protected array $rules = [];
+
+    protected PasswordMapperInterface|string|null $passwordMapper = null;
 
     public function __construct($rules = null)
     {
@@ -193,5 +196,16 @@ class PasswordDefinition
         }
 
         return $password;
+    }
+
+    public function getPasswordMapper(): PasswordMapperInterface|string|null
+    {
+        return $this->passwordMapper;
+    }
+
+    // This is used internally;
+    public function setPasswordMapper(PasswordMapperInterface|string|null $passwordMapper): void
+    {
+        $this->passwordMapper = $passwordMapper;
     }
 }

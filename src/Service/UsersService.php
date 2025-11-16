@@ -9,6 +9,7 @@ use ByJG\Authenticate\Enum\UserProperty;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 use ByJG\Authenticate\Interfaces\UsersServiceInterface;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
@@ -53,6 +54,16 @@ class UsersService implements UsersServiceInterface
 
         if (!$userCheck) {
             throw new InvalidArgumentException('Invalid user repository field mappings');
+        }
+
+        // Validate password mapper implements PasswordMapperInterface (handles both string class name and instance)
+        $passwordUpdateFunction = $userMapper->getFieldMap(User::Password->value)->getUpdateFunction();
+        if (!is_subclass_of($passwordUpdateFunction, PasswordMapperInterface::class, true)) {
+            throw new InvalidArgumentException('Password update function must implement PasswordMapperInterface');
+        }
+
+        if ($this->passwordDefinition !== null) {
+            $this->passwordDefinition->setPasswordMapper($passwordUpdateFunction);
         }
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();

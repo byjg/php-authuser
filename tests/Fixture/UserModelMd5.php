@@ -5,6 +5,7 @@ namespace Tests\Fixture;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
+use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\MapperFunctions\NowUtcMapper;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 
@@ -12,7 +13,7 @@ use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 class UserModelMd5 extends UserModel
 {
     #[FieldAttribute(primaryKey: true)]
-    protected string|int|\ByJG\MicroOrm\Literal\Literal|null $userid = null;
+    protected string|int|Literal|null $userid = null;
 
     #[FieldAttribute]
     protected ?string $name = null;
