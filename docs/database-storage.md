@@ -24,12 +24,16 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created_at DATETIME,
-    updated_at DATETIME,
+    created_at DATETIME DEFAULT (now()),
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME,
     role VARCHAR(20),
 
-    CONSTRAINT pk_users PRIMARY KEY (userid)
+    CONSTRAINT pk_users PRIMARY KEY (userid),
+    CONSTRAINT ix_username UNIQUE (username),
+    CONSTRAINT ix_users_2 UNIQUE (email),
+    INDEX ix_users_email (email ASC, password ASC),
+    INDEX ix_users_username (username ASC, password ASC)
 ) ENGINE=InnoDB;
 
 CREATE TABLE users_property
@@ -57,11 +61,24 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created_at DATETIME,
-    updated_at DATETIME,
+    created_at DATETIME DEFAULT (datetime('now')),
+    updated_at DATETIME DEFAULT (datetime('now')),
     deleted_at DATETIME,
-    role VARCHAR(20)
+    role VARCHAR(20),
+
+    CONSTRAINT ix_username UNIQUE (username),
+    CONSTRAINT ix_users_2 UNIQUE (email)
 );
+
+CREATE INDEX ix_users_email ON users (email ASC, password ASC);
+CREATE INDEX ix_users_username ON users (username ASC, password ASC);
+
+CREATE TRIGGER update_users_updated_at
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE userid = NEW.userid;
+END;
 
 CREATE TABLE users_property
 (
@@ -87,13 +104,31 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
     deleted_at TIMESTAMP,
     role VARCHAR(20),
 
-    CONSTRAINT pk_users PRIMARY KEY (userid)
+    CONSTRAINT pk_users PRIMARY KEY (userid),
+    CONSTRAINT ix_username UNIQUE (username),
+    CONSTRAINT ix_users_2 UNIQUE (email)
 );
+
+CREATE INDEX ix_users_email ON users (email ASC, password ASC);
+CREATE INDEX ix_users_username ON users (username ASC, password ASC);
+
+CREATE OR REPLACE FUNCTION update_users_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE FUNCTION update_users_updated_at();
 
 CREATE TABLE users_property
 (
@@ -120,13 +155,32 @@ CREATE TABLE users
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
     password CHAR(40) NOT NULL,
-    created_at DATETIME,
-    updated_at DATETIME,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
     deleted_at DATETIME,
     role VARCHAR(20),
 
-    CONSTRAINT pk_users PRIMARY KEY (userid)
+    CONSTRAINT pk_users PRIMARY KEY (userid),
+    CONSTRAINT ix_username UNIQUE (username),
+    CONSTRAINT ix_users_2 UNIQUE (email)
 );
+
+CREATE INDEX ix_users_email ON users (email ASC, password ASC);
+CREATE INDEX ix_users_username ON users (username ASC, password ASC);
+
+GO
+CREATE TRIGGER trigger_update_users_updated_at
+ON users
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE users
+    SET updated_at = GETDATE()
+    FROM users u
+    INNER JOIN inserted i ON u.userid = i.userid;
+END;
+GO
 
 CREATE TABLE users_property
 (
