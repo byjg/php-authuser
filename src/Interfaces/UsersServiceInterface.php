@@ -186,6 +186,15 @@ interface UsersServiceInterface
         array      $tokenUserFields = []
     ): ?UserToken;
 
+    public function createInsecureAuthToken(
+        UserModel|string    $login,
+        JwtWrapper          $jwtWrapper,
+        int                 $expires = 1200,
+        array               $updateUserInfo = [],
+        array               $updateTokenInfo = [],
+        array               $tokenUserFields = []
+    ): ?UserToken;
+
     /**
      * Validate authentication token
      *

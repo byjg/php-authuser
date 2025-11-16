@@ -477,21 +477,22 @@ class UsersService implements UsersServiceInterface
         return $users;
     }
 
-    /**
-     * @inheritDoc
-     */
     #[\Override]
-    public function createAuthToken(
-        string     $login,
-        string     $password,
-        JwtWrapper $jwtWrapper,
-        int        $expires = 1200,
-        array      $updateUserInfo = [],
-        array      $updateTokenInfo = [],
-        array      $tokenUserFields = [User::Userid, User::Name, User::Role]
+    public function createInsecureAuthToken(
+        string|UserModel $login,
+        JwtWrapper       $jwtWrapper,
+        int              $expires = 1200,
+        array            $updateUserInfo = [],
+        array            $updateTokenInfo = [],
+        array            $tokenUserFields = [User::Userid, User::Name, User::Role]
     ): ?UserToken
     {
-        $user = $this->isValidUser($login, $password);
+        if (is_string($login)) {
+            $user = $this->getByLogin($login);
+        } else {
+            $user = $login;
+        }
+
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
         }
@@ -523,6 +524,35 @@ class UsersService implements UsersServiceInterface
             user: $user,
             token: $token,
             data: $updateTokenInfo
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\Override]
+    public function createAuthToken(
+        string     $login,
+        string     $password,
+        JwtWrapper $jwtWrapper,
+        int        $expires = 1200,
+        array      $updateUserInfo = [],
+        array      $updateTokenInfo = [],
+        array      $tokenUserFields = [User::Userid, User::Name, User::Role]
+    ): ?UserToken
+    {
+        $user = $this->isValidUser($login, $password);
+        if (is_null($user)) {
+            throw new UserNotFoundException('User not found');
+        }
+
+        return $this->createInsecureAuthToken(
+            $user,
+            $jwtWrapper,
+            $expires,
+            $updateUserInfo,
+            $updateTokenInfo,
+            $tokenUserFields
         );
     }
 

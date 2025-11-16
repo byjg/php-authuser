@@ -544,6 +544,204 @@ print_r($permissions);
 $permissionManager->revokePermission($userId, 'posts', 'delete');
 ```
 
+## OAuth Authentication Example
+
+This example shows how to integrate OAuth authentication using `createInsecureAuthToken()`.
+
+```php
+<?php
+// oauth-callback.php
+require_once 'api-config.php';
+
+use ByJG\Authenticate\Exception\UserNotFoundException;
+
+// After OAuth provider validates the user
+$oauthUserData = [
+    'email' => 'user@example.com',
+    'name' => 'John Doe',
+    'provider' => 'google',
+    'provider_id' => '123456789'
+];
+
+try {
+    // Check if user exists
+    $user = $users->getByEmail($oauthUserData['email']);
+
+    if ($user === null) {
+        // Create new user for first-time OAuth login
+        $user = $users->addUser(
+            $oauthUserData['name'],
+            $oauthUserData['email'],  // Use email as username
+            $oauthUserData['email'],
+            bin2hex(random_bytes(16))  // Random password (user won't use it)
+        );
+
+        // Store OAuth provider info
+        $users->addProperty($user->getUserid(), 'oauth_provider', $oauthUserData['provider']);
+        $users->addProperty($user->getUserid(), 'oauth_provider_id', $oauthUserData['provider_id']);
+    }
+
+    // Create token without password validation
+    $userToken = $users->createInsecureAuthToken(
+        $user,  // Pass UserModel directly
+        $jwtWrapper,
+        3600,
+        ['last_oauth_login' => date('Y-m-d H:i:s')],
+        [
+            'auth_method' => 'oauth',
+            'provider' => $oauthUserData['provider']
+        ]
+    );
+
+    // Return token to client
+    jsonResponse([
+        'success' => true,
+        'token' => $userToken->token,
+        'user' => [
+            'id' => $user->getUserid(),
+            'name' => $user->getName(),
+            'email' => $user->getEmail()
+        ]
+    ]);
+
+} catch (Exception $e) {
+    jsonResponse(['error' => $e->getMessage()], 500);
+}
+```
+
+## Token Refresh Example
+
+Implement a token refresh mechanism using `createInsecureAuthToken()`.
+
+```php
+<?php
+// api/refresh-token.php
+require_once '../api-config.php';
+
+use ByJG\JwtWrapper\JwtHashHmacSecret;
+use ByJG\JwtWrapper\JwtWrapper;
+
+// Different secret for refresh tokens
+$refreshSecret = getenv('JWT_REFRESH_SECRET') ?: 'refresh-secret-here==';
+$refreshWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret($refreshSecret));
+
+// Extract refresh token from request
+$headers = getallheaders();
+$authHeader = $headers['Authorization'] ?? '';
+
+if (!preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+    jsonResponse(['error' => 'No refresh token provided'], 401);
+}
+
+$refreshToken = $matches[1];
+
+try {
+    // Decode refresh token
+    $jwtData = $refreshWrapper->extractData($refreshToken);
+    $userId = $jwtData->data['userid'] ?? null;
+
+    if (!$userId) {
+        jsonResponse(['error' => 'Invalid refresh token'], 401);
+    }
+
+    // Get user
+    $user = $users->getById($userId);
+
+    if ($user === null) {
+        jsonResponse(['error' => 'User not found'], 404);
+    }
+
+    // Verify refresh token is valid
+    $userToken = $users->isValidToken($user->getEmail(), $refreshWrapper, $refreshToken);
+
+    if ($userToken === null) {
+        jsonResponse(['error' => 'Invalid or expired refresh token'], 401);
+    }
+
+    // Create new access token (using main JWT wrapper)
+    $newAccessToken = $users->createInsecureAuthToken(
+        $user,
+        $jwtWrapper,
+        900,  // 15 minutes
+        [],
+        ['token_type' => 'access']
+    );
+
+    jsonResponse([
+        'success' => true,
+        'access_token' => $newAccessToken->token,
+        'expires_in' => 900
+    ]);
+
+} catch (Exception $e) {
+    jsonResponse(['error' => $e->getMessage()], 500);
+}
+```
+
+### Initial Login with Refresh Token
+
+```php
+<?php
+// api/login-with-refresh.php
+require_once '../api-config.php';
+
+use ByJG\JwtWrapper\JwtHashHmacSecret;
+use ByJG\JwtWrapper\JwtWrapper;
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    jsonResponse(['error' => 'Method not allowed'], 405);
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+$username = $input['username'] ?? '';
+$password = $input['password'] ?? '';
+
+try {
+    // Main JWT wrapper for access tokens
+    $jwtSecret = getenv('JWT_SECRET') ?: 'secret-here==';
+    $jwtWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret($jwtSecret));
+
+    // Separate wrapper for refresh tokens
+    $refreshSecret = getenv('JWT_REFRESH_SECRET') ?: 'refresh-secret-here==';
+    $refreshWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret($refreshSecret));
+
+    // Validate credentials
+    $user = $users->isValidUser($username, $password);
+
+    if ($user === null) {
+        jsonResponse(['error' => 'Invalid credentials'], 401);
+    }
+
+    // Create short-lived access token
+    $accessToken = $users->createInsecureAuthToken(
+        $user,
+        $jwtWrapper,
+        900,  // 15 minutes
+        ['last_login' => date('Y-m-d H:i:s')],
+        ['token_type' => 'access']
+    );
+
+    // Create long-lived refresh token
+    $refreshToken = $users->createInsecureAuthToken(
+        $user,
+        $refreshWrapper,
+        604800,  // 7 days
+        [],
+        ['token_type' => 'refresh']
+    );
+
+    jsonResponse([
+        'success' => true,
+        'access_token' => $accessToken->token,
+        'refresh_token' => $refreshToken->token,
+        'expires_in' => 900
+    ]);
+
+} catch (Exception $e) {
+    jsonResponse(['error' => $e->getMessage()], 500);
+}
+```
+
 ## Next Steps
 
 - [Getting Started](getting-started.md) - Basic concepts

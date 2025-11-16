@@ -40,7 +40,7 @@ $users->save($user);
 ```
 
 :::warning SHA-1 Deprecation
-SHA-1 is used for backward compatibility. For new projects, consider implementing a custom password hasher using bcrypt or Argon2. See [Mappers](mappers.md#example-bcrypt-password-mapper) for details.
+SHA-1 is used for backward compatibility. For new projects, consider implementing a custom password hasher using bcrypt or Argon2. See [Mappers](mappers.md) for details.
 :::
 
 :::tip Enforce Password Strength
@@ -76,6 +76,35 @@ if ($userToken !== null) {
 ```
 
 Need to include standard user columns (name, email, etc.) automatically? Pass the optional seventh argument with `User` enum values or strings. See [JWT Tokens](jwt-tokens.md#copy-user-fields-automatically) for details.
+
+:::tip UserToken Return Type
+Both `createAuthToken()` and `createInsecureAuthToken()` return a `UserToken` object with three properties:
+- `token` - The JWT token string
+- `user` - The UserModel instance
+- `data` - Array of token payload data
+
+This provides immediate access to both the token and user information without additional database queries.
+:::
+
+### Creating Tokens Without Password Validation
+
+Use `createInsecureAuthToken()` when you need to create tokens without password validation:
+
+```php
+<?php
+// After OAuth authentication or token refresh
+$user = $users->getByEmail($email);
+
+$userToken = $users->createInsecureAuthToken(
+    $user,              // Can pass UserModel or login string
+    $jwtWrapper,
+    3600
+);
+
+echo "Token: " . $userToken->token;
+```
+
+See [JWT Tokens](jwt-tokens.md#creating-tokens-without-password-validation) for complete details and use cases.
 
 ### Validating JWT Tokens
 

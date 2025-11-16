@@ -5,6 +5,9 @@ namespace Tests;
 use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
+use ByJG\Authenticate\Exception\UserNotFoundException;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserToken;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
@@ -237,6 +240,188 @@ abstract class TestUsersBase extends TestCase
      * @return void
      */
     abstract public function testCreateAuthToken();
+
+    public function testCreateAuthTokenReturnsUserToken(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createAuthToken(
+            $login,
+            'pwd2',
+            $jwtWrapper,
+            1200
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertNotEmpty($userToken->token);
+        $this->assertInstanceOf(UserModel::class, $userToken->user);
+        $this->assertIsArray($userToken->data);
+        $this->assertEquals(2, $userToken->user->getUserid());
+    }
+
+    public function testCreateAuthTokenWithInvalidPassword(): void
+    {
+        $this->expectException(UserNotFoundException::class);
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $this->object->createAuthToken(
+            $login,
+            'wrongpassword',
+            $jwtWrapper,
+            1200
+        );
+    }
+
+    public function testCreateAuthTokenWithUpdateUserInfo(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createAuthToken(
+            $login,
+            'pwd2',
+            $jwtWrapper,
+            1200,
+            ['last_login' => '2024-01-01 12:00:00']
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertEquals('2024-01-01 12:00:00', $userToken->user->get('last_login'));
+    }
+
+    public function testCreateAuthTokenWithCustomTokenData(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createAuthToken(
+            $login,
+            'pwd2',
+            $jwtWrapper,
+            1200,
+            [],
+            ['custom_field' => 'custom_value', 'another_field' => 123]
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertEquals('custom_value', $userToken->data['custom_field']);
+        $this->assertEquals(123, $userToken->data['another_field']);
+    }
+
+    public function testCreateAuthTokenIncludesDefaultUserFields(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createAuthToken(
+            $login,
+            'pwd2',
+            $jwtWrapper,
+            1200
+        );
+
+        $this->assertArrayHasKey('userid', $userToken->data);
+        $this->assertArrayHasKey('name', $userToken->data);
+        $this->assertArrayHasKey('role', $userToken->data);
+        $this->assertEquals(2, $userToken->data['userid']);
+    }
+
+    public function testCreateAuthTokenStoresTokenHash(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createAuthToken(
+            $login,
+            'pwd2',
+            $jwtWrapper,
+            1200
+        );
+
+        $expectedHash = sha1($userToken->token);
+        $this->assertEquals($expectedHash, $userToken->user->get('TOKEN_HASH'));
+    }
+
+    public function testCreateInsecureAuthTokenWithLoginString(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createInsecureAuthToken(
+            $login,
+            $jwtWrapper,
+            1200
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertNotEmpty($userToken->token);
+        $this->assertInstanceOf(UserModel::class, $userToken->user);
+        $this->assertEquals(2, $userToken->user->getUserid());
+    }
+
+    public function testCreateInsecureAuthTokenWithUserModel(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $user = $this->object->getByLogin($login);
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createInsecureAuthToken(
+            $user,
+            $jwtWrapper,
+            1200
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertNotEmpty($userToken->token);
+        $this->assertEquals($user->getUserid(), $userToken->user->getUserid());
+    }
+
+    public function testCreateInsecureAuthTokenWithInvalidLogin(): void
+    {
+        $this->expectException(UserNotFoundException::class);
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $this->object->createInsecureAuthToken(
+            'nonexistent@example.com',
+            $jwtWrapper,
+            1200
+        );
+    }
+
+    public function testCreateInsecureAuthTokenWithCustomFields(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createInsecureAuthToken(
+            $login,
+            $jwtWrapper,
+            1200,
+            ['session_id' => 'abc123'],
+            ['ip_address' => '192.168.1.1']
+        );
+
+        $this->assertInstanceOf(UserToken::class, $userToken);
+        $this->assertEquals('abc123', $userToken->user->get('session_id'));
+        $this->assertEquals('192.168.1.1', $userToken->data['ip_address']);
+    }
+
+    public function testCreateInsecureAuthTokenStoresTokenHash(): void
+    {
+        $login = $this->__chooseValue('user2', 'user2@gmail.com');
+        $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
+
+        $userToken = $this->object->createInsecureAuthToken(
+            $login,
+            $jwtWrapper,
+            1200
+        );
+
+        $expectedHash = sha1($userToken->token);
+        $this->assertEquals($expectedHash, $userToken->user->get('TOKEN_HASH'));
+    }
 
     public function testValidateTokenWithAnotherUser(): void
     {

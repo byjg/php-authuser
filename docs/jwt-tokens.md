@@ -125,6 +125,62 @@ $userToken = $users->createAuthToken(
 
 In the example above, the token payload receives the user's `name`, `email`, and the value returned by `$user->get('department')` automatically.
 
+### Creating Tokens Without Password Validation
+
+The `createInsecureAuthToken()` method creates JWT tokens without validating the user's password. This is useful for:
+- Creating tokens after social authentication (OAuth, SAML, etc.)
+- Implementing "remember me" functionality
+- Token refresh mechanisms
+- Administrative token generation
+
+:::warning Security Warning
+Use `createInsecureAuthToken()` with caution. Only call it after you've verified the user's identity through another secure method.
+:::
+
+#### Using Login String
+
+```php
+<?php
+$userToken = $users->createInsecureAuthToken(
+    'johndoe',              // Login (username or email)
+    $jwtWrapper,
+    3600,                   // Expires in 1 hour
+    [],                     // Update user properties (optional)
+    ['auth_method' => 'oauth']  // Additional token data
+);
+
+echo "Token: " . $userToken->token;
+```
+
+#### Using UserModel Object
+
+```php
+<?php
+// After social authentication
+$user = $users->getByEmail($oauthEmail);
+
+if ($user !== null) {
+    $userToken = $users->createInsecureAuthToken(
+        $user,                  // Pass UserModel directly
+        $jwtWrapper,
+        3600,
+        ['last_oauth_login' => date('Y-m-d H:i:s')],
+        ['oauth_provider' => 'google']
+    );
+
+    echo "Token: " . $userToken->token;
+}
+```
+
+#### Comparison: createAuthToken vs createInsecureAuthToken
+
+| Feature             | createAuthToken   | createInsecureAuthToken                |
+|---------------------|-------------------|----------------------------------------|
+| Password validation | ✅ Required        | ❌ Skipped                              |
+| First parameter     | Login string only | Login string OR UserModel              |
+| Use case            | Normal login      | OAuth, token refresh, admin operations |
+| Security level      | High              | Use with caution                       |
+
 ## Validating JWT Tokens
 
 ### Token Validation
