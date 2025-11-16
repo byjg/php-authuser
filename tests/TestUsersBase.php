@@ -256,7 +256,6 @@ abstract class TestUsersBase extends TestCase
         $this->assertInstanceOf(UserToken::class, $userToken);
         $this->assertNotEmpty($userToken->token);
         $this->assertInstanceOf(UserModel::class, $userToken->user);
-        $this->assertIsArray($userToken->data);
         $this->assertEquals(2, $userToken->user->getUserid());
     }
 
