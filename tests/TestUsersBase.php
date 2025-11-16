@@ -201,7 +201,7 @@ abstract class TestUsersBase extends TestCase
 
         $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('12345678', false));
 
-        $token = $this->object->createAuthToken(
+        $userToken = $this->object->createAuthToken(
             $loginCreated,
             'pwd2',
             $jwtWrapper,
@@ -212,24 +212,25 @@ abstract class TestUsersBase extends TestCase
 
         $user = $this->object->getByLogin($login);
 
-        $dataFromToken = new \stdClass();
-        $dataFromToken->tokenData = $tokenData;
-        $dataFromToken->userid = $userId;
-        $dataFromToken->name = $user->getName();
-        $dataFromToken->role = $user->getRole();
+        $dataFromToken = [
+            'tokenData' => $tokenData,
+            'userid' => $userId,
+            'name' => $user->getName(),
+            'role' => $user->getRole(),
+        ];
 
-        $tokenResult = $this->object->isValidToken($loginCreated, $jwtWrapper, $token);
+        $tokenResult = $this->object->isValidToken($loginCreated, $jwtWrapper, $userToken->token);
 
         // Compare data object
-        $this->assertEquals($dataFromToken, $tokenResult['data']);
+        $this->assertEquals($dataFromToken, $tokenResult->data);
 
         // Compare user fields (excluding timestamps which may differ)
-        $this->assertEquals($user->getUserid(), $tokenResult['user']->getUserid());
-        $this->assertEquals($user->getName(), $tokenResult['user']->getName());
-        $this->assertEquals($user->getEmail(), $tokenResult['user']->getEmail());
-        $this->assertEquals($user->getUsername(), $tokenResult['user']->getUsername());
-        $this->assertEquals($user->getPassword(), $tokenResult['user']->getPassword());
-        $this->assertEquals($user->getRole(), $tokenResult['user']->getRole());
+        $this->assertEquals($user->getUserid(), $tokenResult->user->getUserid());
+        $this->assertEquals($user->getName(), $tokenResult->user->getName());
+        $this->assertEquals($user->getEmail(), $tokenResult->user->getEmail());
+        $this->assertEquals($user->getUsername(), $tokenResult->user->getUsername());
+        $this->assertEquals($user->getPassword(), $tokenResult->user->getPassword());
+        $this->assertEquals($user->getRole(), $tokenResult->user->getRole());
     }
 
     /**
@@ -244,7 +245,7 @@ abstract class TestUsersBase extends TestCase
         $loginToFail = $this->__chooseValue('user1', 'user1@gmail.com');
 
         $jwtWrapper = new JwtWrapper('api.test.com', new JwtHashHmacSecret('1234567'));
-        $token = $this->object->createAuthToken(
+        $userToken = $this->object->createAuthToken(
             $login,
             'pwd2',
             $jwtWrapper,
@@ -253,7 +254,7 @@ abstract class TestUsersBase extends TestCase
             ['tokenData'=>'tokenValue']
         );
 
-        $this->object->isValidToken($loginToFail, $jwtWrapper, $token);
+        $this->object->isValidToken($loginToFail, $jwtWrapper, $userToken->token);
     }
 
     /**

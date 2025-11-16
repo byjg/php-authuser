@@ -314,7 +314,7 @@ $username = $input['username'] ?? '';
 $password = $input['password'] ?? '';
 
 try {
-    $token = $users->createAuthToken(
+    $userToken = $users->createAuthToken(
         $username,
         $password,
         $jwtWrapper,
@@ -328,13 +328,13 @@ try {
         ]
     );
 
-    if ($token === null) {
+    if ($userToken === null) {
         jsonResponse(['error' => 'Invalid credentials'], 401);
     }
 
     jsonResponse([
         'success' => true,
-        'token' => $token,
+        'token' => $userToken->token,
         'expires_in' => 3600
     ]);
 
@@ -370,13 +370,13 @@ try {
     }
 
     // Validate token
-    $result = $users->isValidToken($username, $jwtWrapper, $token);
+    $userToken = $users->isValidToken($username, $jwtWrapper, $token);
 
-    if ($result === null) {
+    if ($userToken === null) {
         jsonResponse(['error' => 'Token validation failed'], 401);
     }
 
-    $user = $result['user'];
+    $user = $userToken->user;
 
     // Handle request
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {

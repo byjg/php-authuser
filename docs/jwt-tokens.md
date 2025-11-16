@@ -45,16 +45,16 @@ Use your API hostname (or any issuer string you want to validate) as the first a
 
 ```php
 <?php
-$token = $users->createAuthToken(
+$userToken = $users->createAuthToken(
     'johndoe',           // Login (username or email)
     'password123',       // Password
     $jwtWrapper,         // JWT wrapper instance
     3600                 // Expires in 1 hour (seconds)
 );
 
-if ($token !== null) {
+if ($userToken !== null) {
     // Return token to client
-    echo json_encode(['token' => $token]);
+    echo json_encode(['token' => $userToken->token]);
 } else {
     // Authentication failed
     http_response_code(401);
@@ -68,7 +68,7 @@ You can include additional data in the JWT payload:
 
 ```php
 <?php
-$token = $users->createAuthToken(
+$userToken = $users->createAuthToken(
     'johndoe',
     'password123',
     $jwtWrapper,
@@ -80,13 +80,16 @@ $token = $users->createAuthToken(
         'tenant_id' => '12345'
     ]
 );
+
+// Access the token string
+$token = $userToken->token;
 ```
 
 ### Update User Properties on Login
 
 ```php
 <?php
-$token = $users->createAuthToken(
+$userToken = $users->createAuthToken(
     'johndoe',
     'password123',
     $jwtWrapper,
@@ -109,7 +112,7 @@ Instead of manually adding every field to `$updateTokenInfo`, pass a seventh arg
 <?php
 use ByJG\Authenticate\Enum\User;
 
-$token = $users->createAuthToken(
+$userToken = $users->createAuthToken(
     'johndoe',
     'password123',
     $jwtWrapper,
@@ -129,11 +132,11 @@ In the example above, the token payload receives the user's `name`, `email`, and
 ```php
 <?php
 try {
-    $result = $users->isValidToken('johndoe', $jwtWrapper, $token);
+    $userToken = $users->isValidToken('johndoe', $jwtWrapper, $token);
 
-    if ($result !== null) {
-        $user = $result['user'];        // UserModel instance
-        $tokenData = $result['data'];   // Token payload data
+    if ($userToken !== null) {
+        $user = $userToken->user;        // UserModel instance
+        $tokenData = $userToken->data;   // Token payload data
 
         echo "Authenticated: " . $user->getName();
         echo "Role: " . $tokenData['role'];
@@ -202,7 +205,7 @@ header('Content-Type: application/json');
 $input = json_decode(file_get_contents('php://input'), true);
 
 try {
-    $token = $users->createAuthToken(
+    $userToken = $users->createAuthToken(
         $input['username'],
         $input['password'],
         $jwtWrapper,
@@ -217,13 +220,13 @@ try {
         ]
     );
 
-    if ($token === null) {
+    if ($userToken === null) {
         throw new Exception('Authentication failed');
     }
 
     echo json_encode([
         'success' => true,
-        'token' => $token,
+        'token' => $userToken->token,
         'expires_in' => 3600
     ]);
 
@@ -265,13 +268,13 @@ try {
     }
 
     // Validate token
-    $result = $users->isValidToken($username, $jwtWrapper, $token);
+    $userToken = $users->isValidToken($username, $jwtWrapper, $token);
 
-    if ($result === null) {
+    if ($userToken === null) {
         throw new Exception('Invalid token');
     }
 
-    $user = $result['user'];
+    $user = $userToken->user;
 
     // Process request
     echo json_encode([
@@ -348,7 +351,7 @@ For long-lived sessions, implement a refresh token pattern:
 ```php
 <?php
 // Create short-lived access token
-$accessToken = $users->createAuthToken(
+$accessUserToken = $users->createAuthToken(
     $login,
     $password,
     $jwtWrapper,
@@ -358,7 +361,7 @@ $accessToken = $users->createAuthToken(
 );
 
 // Create long-lived refresh token
-$refreshToken = $users->createAuthToken(
+$refreshUserToken = $users->createAuthToken(
     $login,
     $password,
     $jwtWrapperRefresh,  // Different wrapper/key
@@ -368,8 +371,8 @@ $refreshToken = $users->createAuthToken(
 );
 
 echo json_encode([
-    'access_token' => $accessToken,
-    'refresh_token' => $refreshToken
+    'access_token' => $accessUserToken->token,
+    'refresh_token' => $refreshUserToken->token
 ]);
 ```
 

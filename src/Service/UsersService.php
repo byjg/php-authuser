@@ -13,6 +13,7 @@ use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 use ByJG\Authenticate\Interfaces\UsersServiceInterface;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Model\UserToken;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\JwtWrapper\JwtWrapper;
@@ -488,7 +489,8 @@ class UsersService implements UsersServiceInterface
         array      $updateUserInfo = [],
         array      $updateTokenInfo = [],
         array      $tokenUserFields = [User::Userid, User::Name, User::Role]
-    ): ?string {
+    ): ?UserToken
+    {
         $user = $this->isValidUser($login, $password);
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
@@ -517,7 +519,11 @@ class UsersService implements UsersServiceInterface
         $user->set('TOKEN_HASH', sha1($token));
         $this->save($user);
 
-        return $token;
+        return new UserToken(
+            user: $user,
+            token: $token,
+            data: $tokenUserFields
+        );
     }
 
     /**
@@ -527,7 +533,7 @@ class UsersService implements UsersServiceInterface
      * @throws UserNotFoundException
      */
     #[\Override]
-    public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): ?array
+    public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): UserToken
     {
         $user = $this->getByLogin($login);
 
@@ -543,10 +549,11 @@ class UsersService implements UsersServiceInterface
 
         $this->save($user);
 
-        return [
-            'user' => $user,
-            'data' => $data->data
-        ];
+        return new UserToken(
+            user: $user,
+            token: $token,
+            data: (array)$data->data
+        );
     }
 
     #[\Override]

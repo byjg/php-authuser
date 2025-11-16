@@ -4,6 +4,7 @@ namespace ByJG\Authenticate\Interfaces;
 
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Model\UserToken;
 use ByJG\JwtWrapper\JwtWrapper;
 use ByJG\MicroOrm\Literal\Literal;
 
@@ -173,7 +174,7 @@ interface UsersServiceInterface
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
      * @param array $tokenUserFields
-     * @return string|null
+     * @return UserToken|null
      */
     public function createAuthToken(
         string     $login,
@@ -183,7 +184,7 @@ interface UsersServiceInterface
         array      $updateUserInfo = [],
         array      $updateTokenInfo = [],
         array      $tokenUserFields = []
-    ): ?string;
+    ): ?UserToken;
 
     /**
      * Validate authentication token
@@ -191,9 +192,9 @@ interface UsersServiceInterface
      * @param string $login
      * @param JwtWrapper $jwtWrapper
      * @param string $token
-     * @return array|null
+     * @return UserToken
      */
-    public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): ?array;
+    public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): UserToken;
 
     public function getUsersEntity(array $fields): UserModel;
 }

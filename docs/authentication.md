@@ -61,7 +61,7 @@ $jwtSecret = getenv('JWT_SECRET') ?: JwtWrapper::generateSecret(64);  // base64 
 $jwtWrapper = new JwtWrapper('your-server.com', new JwtHashHmacSecret($jwtSecret));
 
 // Create authentication token
-$token = $users->createAuthToken(
+$userToken = $users->createAuthToken(
     'johndoe',              // Login
     'SecurePass123',        // Password
     $jwtWrapper,
@@ -70,8 +70,8 @@ $token = $users->createAuthToken(
     ['role' => 'admin']     // Additional token data
 );
 
-if ($token !== null) {
-    echo "Token: " . $token;
+if ($userToken !== null) {
+    echo "Token: " . $userToken->token;
 }
 ```
 
@@ -81,11 +81,11 @@ Need to include standard user columns (name, email, etc.) automatically? Pass th
 
 ```php
 <?php
-$result = $users->isValidToken('johndoe', $jwtWrapper, $token);
+$userToken = $users->isValidToken('johndoe', $jwtWrapper, $token);
 
-if ($result !== null) {
-    $user = $result['user'];
-    $tokenData = $result['data'];
+if ($userToken !== null) {
+    $user = $userToken->user;
+    $tokenData = $userToken->data;
 
     echo "User: " . $user->getName();
     echo "Role: " . $tokenData['role'];
