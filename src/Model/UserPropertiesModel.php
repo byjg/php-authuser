@@ -24,10 +24,10 @@ class UserPropertiesModel
     /**
      * UserPropertiesModel constructor.
      *
-     * @param string $name
-     * @param string $value
+     * @param string|null $name
+     * @param string|null $value
      */
-    public function __construct(string $name = "", string $value = "")
+    public function __construct(?string $name = null, ?string $value = null)
     {
         $this->name = $name;
         $this->value = $value;
