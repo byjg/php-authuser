@@ -2,7 +2,7 @@
 
 namespace ByJG\Authenticate\Enum;
 
-enum UserProperty: string
+enum UserPropertyField: string
 {
     // User properties field name constants
     case Id = 'id';

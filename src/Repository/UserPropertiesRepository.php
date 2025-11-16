@@ -5,7 +5,7 @@ namespace ByJG\Authenticate\Repository;
 use ByJG\AnyDataset\Core\Exception\DatabaseException;
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Exception\DbDriverNotConnected;
-use ByJG\Authenticate\Enum\UserProperty;
+use ByJG\Authenticate\Enum\UserPropertyField;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\MicroOrm\DeleteQuery;
 use ByJG\MicroOrm\Exception\OrmBeforeInvalidException;
@@ -78,7 +78,7 @@ class UserPropertiesRepository
      */
     public function getByUserId(string|Literal|int $userid): array
     {
-        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
         if (is_string($userIdUpdateFunction)) {
             $userIdUpdateFunction = new $userIdUpdateFunction();
@@ -105,12 +105,12 @@ class UserPropertiesRepository
      */
     public function getByUserIdAndName(string|Literal|int $userid, string $propertyName): array
     {
-        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
         if (is_string($userIdUpdateFunction)) {
             $userIdUpdateFunction = new $userIdUpdateFunction();
         }
-        $nameMapping = $this->mapper->getFieldMap(UserProperty::Name->value);
+        $nameMapping = $this->mapper->getFieldMap(UserPropertyField::Name->value);
 
         $userIdField = $userIdMapping->getFieldName();
         $nameField = $nameMapping->getFieldName();
@@ -135,7 +135,7 @@ class UserPropertiesRepository
      */
     public function deleteByUserId(string|Literal|int $userid): void
     {
-        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
         if (is_string($userIdUpdateFunction)) {
             $userIdUpdateFunction = new $userIdUpdateFunction();
@@ -161,14 +161,14 @@ class UserPropertiesRepository
      */
     public function deleteByUserIdAndName(string|Literal|int $userid, string $propertyName, ?string $value = null): void
     {
-        $userIdMapping = $this->mapper->getFieldMap(UserProperty::Userid->value);
+        $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $userIdField = $userIdMapping->getFieldName();
         $userIdUpdateFunction = $userIdMapping->getUpdateFunction();
         if (is_string($userIdUpdateFunction)) {
             $userIdUpdateFunction = new $userIdUpdateFunction();
         }
-        $nameField = $this->mapper->getFieldMap(UserProperty::Name->value)->getFieldName();
-        $valueField = $this->mapper->getFieldMap(UserProperty::Value->value)->getFieldName();
+        $nameField = $this->mapper->getFieldMap(UserPropertyField::Name->value)->getFieldName();
+        $valueField = $this->mapper->getFieldMap(UserPropertyField::Value->value)->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
@@ -194,8 +194,8 @@ class UserPropertiesRepository
      */
     public function deleteByName(string $propertyName, ?string $value = null): void
     {
-        $nameField = $this->mapper->getFieldMap(UserProperty::Name->value)->getFieldName();
-        $valueField = $this->mapper->getFieldMap(UserProperty::Value->value)->getFieldName();
+        $nameField = $this->mapper->getFieldMap(UserPropertyField::Name->value)->getFieldName();
+        $valueField = $this->mapper->getFieldMap(UserPropertyField::Value->value)->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())

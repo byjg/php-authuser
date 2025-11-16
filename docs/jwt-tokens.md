@@ -110,7 +110,7 @@ Instead of manually adding every field to `$updateTokenInfo`, pass a seventh arg
 
 ```php
 <?php
-use ByJG\Authenticate\Enum\User;
+use ByJG\Authenticate\Enum\UserField;
 
 $userToken = $users->createAuthToken(
     'johndoe',
@@ -119,7 +119,7 @@ $userToken = $users->createAuthToken(
     3600,
     [],
     [],
-    [User::Name, User::Email, 'department']
+    [UserField::Name, UserField::Email, 'department']
 );
 ```
 

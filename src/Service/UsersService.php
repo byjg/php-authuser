@@ -4,8 +4,8 @@ namespace ByJG\Authenticate\Service;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Enum\LoginField;
-use ByJG\Authenticate\Enum\User;
-use ByJG\Authenticate\Enum\UserProperty;
+use ByJG\Authenticate\Enum\UserField;
+use ByJG\Authenticate\Enum\UserPropertyField;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
@@ -46,19 +46,19 @@ class UsersService implements UsersServiceInterface
         $this->loginField = $loginField;
 
         $userMapper = $usersRepository->getRepository()->getMapper();
-        $userCheck = ($userMapper->getFieldMap(User::Userid->value) !== null) &&
-            ($userMapper->getFieldMap(User::Name->value) !== null) &&
-            ($userMapper->getFieldMap(User::Email->value) !== null) &&
-            ($userMapper->getFieldMap(User::Username->value) !== null) &&
-            ($userMapper->getFieldMap(User::Password->value) !== null) &&
-            ($userMapper->getFieldMap(User::Role->value) !== null);
+        $userCheck = ($userMapper->getFieldMap(UserField::Userid->value) !== null) &&
+            ($userMapper->getFieldMap(UserField::Name->value) !== null) &&
+            ($userMapper->getFieldMap(UserField::Email->value) !== null) &&
+            ($userMapper->getFieldMap(UserField::Username->value) !== null) &&
+            ($userMapper->getFieldMap(UserField::Password->value) !== null) &&
+            ($userMapper->getFieldMap(UserField::Role->value) !== null);
 
         if (!$userCheck) {
             throw new InvalidArgumentException('Invalid user repository field mappings');
         }
 
         // Validate password mapper implements PasswordMapperInterface (handles both string class name and instance)
-        $passwordUpdateFunction = $userMapper->getFieldMap(User::Password->value)->getUpdateFunction();
+        $passwordUpdateFunction = $userMapper->getFieldMap(UserField::Password->value)->getUpdateFunction();
         if (!is_subclass_of($passwordUpdateFunction, PasswordMapperInterface::class, true)) {
             throw new InvalidArgumentException('Password update function must implement PasswordMapperInterface');
         }
@@ -66,9 +66,9 @@ class UsersService implements UsersServiceInterface
         $this->passwordDefinition?->setPasswordMapper($passwordUpdateFunction);
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();
-        $propertyCheck = ($propertyMapper->getFieldMap(UserProperty::Userid->value) !== null) &&
-            ($propertyMapper->getFieldMap(UserProperty::Name->value) !== null) &&
-            ($propertyMapper->getFieldMap(UserProperty::Value->value) !== null);
+        $propertyCheck = ($propertyMapper->getFieldMap(UserPropertyField::Userid->value) !== null) &&
+            ($propertyMapper->getFieldMap(UserPropertyField::Name->value) !== null) &&
+            ($propertyMapper->getFieldMap(UserPropertyField::Value->value) !== null);
 
         if (!$propertyCheck) {
             throw new InvalidArgumentException('Invalid property repository field mappings');
@@ -135,9 +135,9 @@ class UsersService implements UsersServiceInterface
 
         $mapper = $this->usersRepository->getMapper();
         $model = $mapper->getEntity([
-            $mapper->getFieldMap(User::Name->value)->getFieldName() => $name,
-            $mapper->getFieldMap(User::Email->value)->getFieldName() => $email,
-            $mapper->getFieldMap(User::Username->value)->getFieldName() => $userName,
+            $mapper->getFieldMap(UserField::Name->value)->getFieldName() => $name,
+            $mapper->getFieldMap(UserField::Email->value)->getFieldName() => $email,
+            $mapper->getFieldMap(UserField::Username->value)->getFieldName() => $userName,
         ]);
         $this->applyPasswordDefinition($model);
         $model->setPassword($password);
@@ -185,7 +185,7 @@ class UsersService implements UsersServiceInterface
     #[\Override]
     public function getByEmail(string $email): ?UserModel
     {
-        $fieldMap = $this->usersRepository->getMapper()->getFieldMap(User::Email->value);
+        $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Email->value);
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $email);
         if ($user !== null) {
             $this->loadUserProperties($user);
@@ -200,7 +200,7 @@ class UsersService implements UsersServiceInterface
     #[\Override]
     public function getByUsername(string $username): ?UserModel
     {
-        $fieldMap = $this->usersRepository->getMapper()->getFieldMap(User::Username->value);
+        $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Username->value);
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $username);
         if ($user !== null) {
             $this->loadUserProperties($user);
@@ -298,7 +298,7 @@ class UsersService implements UsersServiceInterface
         }
 
         // Hash the password for comparison using the model's configured password mapper
-        $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap(User::Password->value);
+        $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap(UserField::Password->value);
         $hashedPassword = $passwordFieldMapping->getUpdateFunctionValue($password, null);
 
         if ($user->getPassword() === $hashedPassword) {
@@ -371,9 +371,9 @@ class UsersService implements UsersServiceInterface
         if (!$this->hasProperty($userId, $propertyName, $value)) {
             $propMapper = $this->propertiesRepository->getMapper();
             $property = $propMapper->getEntity([
-                $propMapper->getFieldMap(UserProperty::Userid->value)->getFieldName() => $userId,
-                $propMapper->getFieldMap(UserProperty::Name->value)->getFieldName() => $propertyName,
-                $propMapper->getFieldMap(UserProperty::Value->value)->getFieldName() => $value
+                $propMapper->getFieldMap(UserPropertyField::Userid->value)->getFieldName() => $userId,
+                $propMapper->getFieldMap(UserPropertyField::Name->value)->getFieldName() => $propertyName,
+                $propMapper->getFieldMap(UserPropertyField::Value->value)->getFieldName() => $value
             ]);
             $this->propertiesRepository->save($property);
         }
@@ -392,9 +392,9 @@ class UsersService implements UsersServiceInterface
         if (empty($properties)) {
             $propMapper = $this->propertiesRepository->getMapper();
             $property = $propMapper->getEntity([
-                $propMapper->getFieldMap(UserProperty::Userid->value)->getFieldName() => $userId,
-                $propMapper->getFieldMap(UserProperty::Name->value)->getFieldName() => $propertyName,
-                $propMapper->getFieldMap(UserProperty::Value->value)->getFieldName() => $value
+                $propMapper->getFieldMap(UserPropertyField::Userid->value)->getFieldName() => $userId,
+                $propMapper->getFieldMap(UserPropertyField::Name->value)->getFieldName() => $propertyName,
+                $propMapper->getFieldMap(UserPropertyField::Value->value)->getFieldName() => $value
             ]);
         } else {
             $property = $properties[0];
@@ -452,9 +452,9 @@ class UsersService implements UsersServiceInterface
             $userPk = $userPk[0];
         }
 
-        $propUserIdField = $this->propertiesRepository->getMapper()->getFieldMap(UserProperty::Userid->value)->getFieldName();
-        $propNameField = $this->propertiesRepository->getMapper()->getFieldMap(UserProperty::Name->value)->getFieldName();
-        $propValueField = $this->propertiesRepository->getMapper()->getFieldMap(UserProperty::Value->value)->getFieldName();
+        $propUserIdField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Userid->value)->getFieldName();
+        $propNameField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Name->value)->getFieldName();
+        $propValueField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Value->value)->getFieldName();
 
         $query = Query::getInstance()
             ->field("u.*")
@@ -484,7 +484,7 @@ class UsersService implements UsersServiceInterface
         int              $expires = 1200,
         array            $updateUserInfo = [],
         array            $updateTokenInfo = [],
-        array            $tokenUserFields = [User::Userid, User::Name, User::Role]
+        array            $tokenUserFields = [UserField::Userid, UserField::Name, UserField::Role]
     ): ?UserToken
     {
         if (is_string($login)) {
@@ -502,7 +502,7 @@ class UsersService implements UsersServiceInterface
         }
 
         foreach ($tokenUserFields as $field) {
-            $fieldName = $field instanceof User ? $field->value : $field;
+            $fieldName = $field instanceof UserField ? $field->value : $field;
             if (!is_string($fieldName) || $fieldName === '') {
                 continue;
             }
@@ -538,7 +538,7 @@ class UsersService implements UsersServiceInterface
         int        $expires = 1200,
         array      $updateUserInfo = [],
         array      $updateTokenInfo = [],
-        array      $tokenUserFields = [User::Userid, User::Name, User::Role]
+        array      $tokenUserFields = [UserField::Userid, UserField::Name, UserField::Role]
     ): ?UserToken
     {
         $user = $this->isValidUser($login, $password);
