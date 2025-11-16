@@ -48,7 +48,7 @@ class PasswordDefinition
         return $this->rules;
     }
 
-    public function getRule($rule): string|bool|int
+    public function getRule(string $rule): string|bool|int
     {
         if (!array_key_exists($rule, $this->rules)) {
             throw new InvalidArgumentException("Invalid rule");

@@ -88,6 +88,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function save(UserModel $model): UserModel
     {
         $newUser = false;
@@ -118,6 +119,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function addUser(string $name, string $userName, string $email, string $password): UserModel
     {
 
@@ -158,6 +160,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getById(string|HexUuidLiteral|int $userid): ?UserModel
     {
         $user = $this->usersRepository->getById($userid);
@@ -170,6 +173,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getByEmail(string $email): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(User::Email->value);
@@ -183,6 +187,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getByUsername(string $username): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(User::Username->value);
@@ -196,6 +201,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getByLogin(string $login): ?UserModel
     {
         return $this->loginField === LoginField::Email
@@ -218,6 +224,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function removeByLogin(string $login): bool
     {
         $user = $this->getByLogin($login);
@@ -230,6 +237,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function removeById(string|HexUuidLiteral|int $userid): bool
     {
         try {
@@ -246,6 +254,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function isValidUser(string $login, string $password): ?UserModel
     {
         $user = $this->getByLogin($login);
@@ -268,6 +277,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function hasProperty(string|int|HexUuidLiteral $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
@@ -292,6 +302,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getProperty(string|HexUuidLiteral|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
@@ -315,6 +326,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function addProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool
     {
         $user = $this->getById($userId);
@@ -338,6 +350,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function setProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value): bool
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
@@ -361,6 +374,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function removeProperty(string|HexUuidLiteral|int $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
@@ -374,6 +388,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function removeAllProperties(string $propertyName, ?string $value = null): void
     {
         $this->propertiesRepository->deleteByName($propertyName, $value);
@@ -382,6 +397,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
@@ -390,6 +406,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $userTable = $this->usersRepository->getTableName();
@@ -423,6 +440,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function createAuthToken(
         string     $login,
         string     $password,
@@ -458,6 +476,7 @@ class UsersService implements UsersServiceInterface
      * @throws NotAuthenticatedException
      * @throws UserNotFoundException
      */
+    #[\Override]
     public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): ?array
     {
         $user = $this->getByLogin($login);
@@ -480,6 +499,7 @@ class UsersService implements UsersServiceInterface
         ];
     }
 
+    #[\Override]
     public function getUsersEntity(array $fields): UserModel
     {
         return $this->getUsersRepository()->getMapper()->getEntity($fields);

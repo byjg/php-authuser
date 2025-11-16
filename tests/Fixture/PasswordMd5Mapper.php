@@ -9,6 +9,7 @@ use ByJG\MicroOrm\Interface\MapperFunctionInterface;
  */
 class PasswordMd5Mapper implements MapperFunctionInterface
 {
+
     #[\Override]
     public function processedValue(mixed $value, mixed $instance, mixed $executor = null): mixed
     {

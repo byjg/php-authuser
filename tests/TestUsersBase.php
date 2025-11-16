@@ -195,7 +195,7 @@ abstract class TestUsersBase extends TestCase
         $this->assertEquals('moderator', $user3->getRole());
     }
 
-    protected function expectedToken($tokenData, $login, $userId): void
+    protected function expectedToken(string $tokenData, string $login, int $userId): void
     {
         $loginCreated = $this->__chooseValue('user2', 'user2@gmail.com');
 
@@ -397,7 +397,6 @@ abstract class TestUsersBase extends TestCase
 
         // Should update successfully
         $savedUser = $this->object->save($user);
-        $this->assertNotNull($savedUser);
 
         // Verify password was updated (by checking authentication works with login field)
         $login = $this->__chooseValue($user->getUsername(), $user->getEmail());
