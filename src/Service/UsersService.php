@@ -62,9 +62,7 @@ class UsersService implements UsersServiceInterface
             throw new InvalidArgumentException('Password update function must implement PasswordMapperInterface');
         }
 
-        if ($this->passwordDefinition !== null) {
-            $this->passwordDefinition->setPasswordMapper($passwordUpdateFunction);
-        }
+        $this->passwordDefinition?->setPasswordMapper($passwordUpdateFunction);
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();
         $propertyCheck = ($propertyMapper->getFieldMap(UserProperty::Userid->value) !== null) &&
@@ -140,9 +138,7 @@ class UsersService implements UsersServiceInterface
             $mapper->getFieldMap(User::Email->value)->getFieldName() => $email,
             $mapper->getFieldMap(User::Username->value)->getFieldName() => $userName,
         ]);
-        if ($this->passwordDefinition !== null) {
-            $model->withPasswordDefinition($this->passwordDefinition);
-        }
+        $this->applyPasswordDefinition($model);
         $model->setPassword($password);
 
         return $this->save($model);
@@ -177,6 +173,7 @@ class UsersService implements UsersServiceInterface
         $user = $this->usersRepository->getById($userid);
         if ($user !== null) {
             $this->loadUserProperties($user);
+            $this->applyPasswordDefinition($user);
         }
         return $user;
     }
@@ -191,6 +188,7 @@ class UsersService implements UsersServiceInterface
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $email);
         if ($user !== null) {
             $this->loadUserProperties($user);
+            $this->applyPasswordDefinition($user);
         }
         return $user;
     }
@@ -205,6 +203,7 @@ class UsersService implements UsersServiceInterface
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $username);
         if ($user !== null) {
             $this->loadUserProperties($user);
+            $this->applyPasswordDefinition($user);
         }
         return $user;
     }
@@ -230,6 +229,29 @@ class UsersService implements UsersServiceInterface
     {
         $properties = $this->propertiesRepository->getByUserId($user->getUserid());
         $user->setProperties($properties);
+    }
+
+    protected function applyPasswordDefinition(UserModel $user): void
+    {
+        if ($this->passwordDefinition !== null) {
+            $user->withPasswordDefinition($this->passwordDefinition);
+        }
+    }
+
+    protected function resolveUserFieldValue(UserModel $user, string $fieldName): mixed
+    {
+        $camel = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ' , $fieldName)));
+        $method = 'get' . $camel;
+        if (method_exists($user, $method)) {
+            return $user->$method();
+        }
+
+        $value = $user->get($fieldName);
+        if ($value !== null) {
+            return $value;
+        }
+
+        return null;
     }
 
     /**
@@ -445,7 +467,13 @@ class UsersService implements UsersServiceInterface
                 ->where("p$count.$propValueField = :value$count", ["value$count" => $value]);
         }
 
-        return $this->usersRepository->getRepository()->getByQuery($query);
+        $users = $this->usersRepository->getRepository()->getByQuery($query);
+        if ($this->passwordDefinition !== null) {
+            foreach ($users as $user) {
+                $this->applyPasswordDefinition($user);
+            }
+        }
+        return $users;
     }
 
     /**
@@ -458,7 +486,8 @@ class UsersService implements UsersServiceInterface
         JwtWrapper $jwtWrapper,
         int        $expires = 1200,
         array      $updateUserInfo = [],
-        array      $updateTokenInfo = []
+        array      $updateTokenInfo = [],
+        array      $tokenUserFields = [User::Userid, User::Name, User::Role]
     ): ?string {
         $user = $this->isValidUser($login, $password);
         if (is_null($user)) {
@@ -469,8 +498,18 @@ class UsersService implements UsersServiceInterface
             $user->set($key, $value);
         }
 
-        $updateTokenInfo['login'] = $login;
-        $updateTokenInfo['userid'] = $user->getUserid();
+        foreach ($tokenUserFields as $field) {
+            $fieldName = $field instanceof User ? $field->value : $field;
+            if (!is_string($fieldName) || $fieldName === '') {
+                continue;
+            }
+
+            $value = $this->resolveUserFieldValue($user, $fieldName);
+            if ($value !== null) {
+                $updateTokenInfo[$fieldName] = $value;
+            }
+        }
+
         $jwtData = $jwtWrapper->createJwtData($updateTokenInfo, $expires);
 
         $token = $jwtWrapper->generateToken($jwtData);
@@ -513,6 +552,8 @@ class UsersService implements UsersServiceInterface
     #[\Override]
     public function getUsersEntity(array $fields): UserModel
     {
-        return $this->getUsersRepository()->getMapper()->getEntity($fields);
+        $entity = $this->getUsersRepository()->getMapper()->getEntity($fields);
+        $this->applyPasswordDefinition($entity);
+        return $entity;
     }
 }

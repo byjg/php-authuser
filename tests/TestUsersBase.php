@@ -214,8 +214,9 @@ abstract class TestUsersBase extends TestCase
 
         $dataFromToken = new \stdClass();
         $dataFromToken->tokenData = $tokenData;
-        $dataFromToken->login = $loginCreated;
         $dataFromToken->userid = $userId;
+        $dataFromToken->name = $user->getName();
+        $dataFromToken->role = $user->getRole();
 
         $tokenResult = $this->object->isValidToken($loginCreated, $jwtWrapper, $token);
 

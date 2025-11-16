@@ -13,6 +13,7 @@ Auth User PHP is a simple and customizable library for user authentication in PH
 <?php
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UsersRepository;
@@ -26,7 +27,7 @@ $dbDriver = DbFactory::getDbInstance('mysql://user:pass@host/db');
 $db = DatabaseExecutor::using($dbDriver);
 $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 
 // Create and authenticate user
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');
@@ -38,6 +39,8 @@ if ($user !== null) {
     echo "User authenticated successfully!";
 }
 ```
+
+To authenticate users by email instead of username, create the service with `LoginField::Email`.
 
 ## Next Steps
 

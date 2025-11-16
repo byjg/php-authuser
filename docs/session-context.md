@@ -66,10 +66,8 @@ $sessionContext = new SessionContext($cachePool, $uniquePrefix);
 <?php
 // After validating user credentials
 $sessionContext->registerLogin($userId);
-
-// With additional session data
-$sessionContext->registerLogin($userId, ['ip' => $_SERVER['REMOTE_ADDR']]);
 ```
+Call `setSessionData()` after `registerLogin()` if you need to store extra session metadata (e.g., IP address, login time).
 
 ### Check Authentication Status
 
@@ -142,12 +140,25 @@ Returns `false` if:
 
 ```php
 <?php
-use ByJG\Authenticate\UsersDBDataset;
+use ByJG\AnyDataset\Db\DatabaseExecutor;
+use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Enum\LoginField;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Model\UserPropertiesModel;
+use ByJG\Authenticate\Repository\UserPropertiesRepository;
+use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\SessionContext;
 use ByJG\Cache\Factory;
 
-// Initialize
-$users = new UsersDBDataset($dbDriver);
+require_once 'vendor/autoload.php';
+
+// Initialize repositories and service (same setup shown in Getting Started)
+$dbDriver = DbFactory::getDbInstance('mysql://user:password@localhost/app');
+$db = DatabaseExecutor::using($dbDriver);
+$usersRepo = new UsersRepository($db, UserModel::class);
+$propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 $sessionContext = new SessionContext(Factory::createSessionPool());
 
 // Login flow
@@ -169,7 +180,7 @@ if (!$sessionContext->isAuthenticated()) {
 }
 
 $userId = $sessionContext->userInfo();
-$user = $users->get($userId);
+$user = $users->getById($userId);
 $loginTime = $sessionContext->getSessionData('login_time');
 
 echo "Welcome, " . $user->getName();

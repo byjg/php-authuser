@@ -27,6 +27,7 @@ class PasswordMd5Mapper implements PasswordMapperInterface
         return strtolower(md5($value));
     }
 
+    #[\Override]
     public function isPasswordEncrypted(mixed $password): bool
     {
         return is_string($password) &&  strlen($password) === 32 &&  ctype_xdigit($password);

@@ -42,6 +42,7 @@ See [Installation Guide](docs/installation.md) for detailed setup instructions a
 <?php
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory as DbFactory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UsersRepository;
@@ -55,7 +56,7 @@ $dbDriver = DbFactory::getDbInstance('mysql://user:pass@host/db');
 $db = DatabaseExecutor::using($dbDriver);
 $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 
 // Create and authenticate a user
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');
@@ -67,6 +68,8 @@ if ($authenticatedUser !== null) {
     echo "Welcome, " . $authenticatedUser->getName();
 }
 ```
+
+Set the third constructor argument to `LoginField::Email` if you prefer authenticating users by email instead of username.
 
 See [Getting Started](docs/getting-started.md) for a complete introduction and [Examples](docs/examples.md) for more use cases.
 

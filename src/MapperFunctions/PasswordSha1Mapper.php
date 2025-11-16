@@ -27,6 +27,7 @@ class PasswordSha1Mapper implements PasswordMapperInterface
         return strtolower(sha1($value));
     }
 
+    #[\Override]
     public function isPasswordEncrypted(mixed $password): bool
     {
         return (is_string($password) && strlen($password) === 40);

@@ -22,8 +22,9 @@ if ($user !== null) {
 ```
 
 :::tip Login Field
-The `isValidUser()` method uses the login field configured in your `UsersService` constructor. This can be either `UsersService::LOGIN_IS_EMAIL` or `UsersService::LOGIN_IS_USERNAME`.
+The `isValidUser()` method uses the login field configured in your `UsersService` constructor. Pass either `LoginField::Email` or `LoginField::Username` when creating the service.
 :::
+`LoginField` lives in the `ByJG\Authenticate\Enum` namespace.
 
 ## Password Hashing
 
@@ -56,7 +57,8 @@ use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 
 // Create JWT wrapper
-$jwtWrapper = new JwtWrapper('your-server.com', new JwtHashHmacSecret('your-secret-key'));
+$jwtSecret = getenv('JWT_SECRET') ?: JwtWrapper::generateSecret(64);  // base64 encoded secret
+$jwtWrapper = new JwtWrapper('your-server.com', new JwtHashHmacSecret($jwtSecret));
 
 // Create authentication token
 $token = $users->createAuthToken(
@@ -72,6 +74,8 @@ if ($token !== null) {
     echo "Token: " . $token;
 }
 ```
+
+Need to include standard user columns (name, email, etc.) automatically? Pass the optional seventh argument with `User` enum values or strings. See [JWT Tokens](jwt-tokens.md#copy-user-fields-automatically) for details.
 
 ### Validating JWT Tokens
 
@@ -96,11 +100,9 @@ When a JWT token is created, a hash of the token is stored in the user's propert
 JWT tokens provide stateless authentication, better scalability, and easier integration with modern frontend frameworks and mobile applications. They're also more secure than traditional PHP sessions.
 :::
 
-## Session-Based Authentication (Legacy)
+## Session-Based Authentication
 
-:::warning Deprecated
-SessionContext relies on traditional PHP sessions and is less secure than JWT tokens. It's maintained for backward compatibility only. **For new projects, use JWT tokens instead.**
-:::
+The `SessionContext` class persists the authenticated user ID inside a PSR-6 cache pool. Use this when you need server-managed sessions (for example, classic PHP applications).
 
 ### Basic Authentication Flow
 

@@ -22,15 +22,15 @@ JWT (JSON Web Tokens) is a compact, URL-safe means of representing claims to be 
 
 ```php
 <?php
-use ByJG\JwtWrapper\JwtKeySecret;
+use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 
-// Create a secret key
-$jwtKey = new JwtKeySecret('your-secret-key-keep-it-safe');
-
-// Create JWT wrapper
-$jwtWrapper = new JwtWrapper($jwtKey);
+$secret = getenv('JWT_SECRET') ?: JwtWrapper::generateSecret(64); // base64 encoded value
+$jwtKey = new JwtHashHmacSecret($secret);
+$jwtWrapper = new JwtWrapper('api.example.com', $jwtKey);
 ```
+
+Use your API hostname (or any issuer string you want to validate) as the first argument to `JwtWrapper`.
 
 :::danger Secret Key Security
 - Keep your secret key **confidential** and **secure**
@@ -100,6 +100,27 @@ $token = $users->createAuthToken(
     ]
 );
 ```
+
+### Copy User Fields Automatically
+
+Instead of manually adding every field to `$updateTokenInfo`, pass a seventh argument with an array of `User` enum values or string property names. The service will read the corresponding getters (or custom properties) from the `UserModel` and copy them into the token payload.
+
+```php
+<?php
+use ByJG\Authenticate\Enum\User;
+
+$token = $users->createAuthToken(
+    'johndoe',
+    'password123',
+    $jwtWrapper,
+    3600,
+    [],
+    [],
+    [User::Name, User::Email, 'department']
+);
+```
+
+In the example above, the token payload receives the user's `name`, `email`, and the value returned by `$user->get('department')` automatically.
 
 ## Validating JWT Tokens
 
@@ -285,7 +306,7 @@ if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         $jwtData = $jwtWrapper->extractData($token);
         $username = $jwtData->data['login'] ?? null;
 
-        $user = $users->get($username, $users->getUserDefinition()->loginField());
+        $user = $users->getByLogin($username);
         if ($user !== null) {
             $users->removeProperty($user->getUserid(), 'TOKEN_HASH');
         }

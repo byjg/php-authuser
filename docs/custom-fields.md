@@ -124,6 +124,7 @@ CREATE TABLE users
 
 ```php
 <?php
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -141,7 +142,7 @@ $usersRepo = new UsersRepository($db, CustomUserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
 
 // Create service
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Email);
 
 // Using the model directly
 $user = new CustomUserModel();
@@ -252,6 +253,7 @@ class CustomUserModel extends UserModel
 <?php
 namespace App;
 
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -269,7 +271,7 @@ $usersRepo = new UsersRepository($db, CustomUserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
 
 // Initialize user service
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Email);
 
 // Create a user
 $user = new CustomUserModel();

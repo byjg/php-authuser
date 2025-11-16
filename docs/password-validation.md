@@ -27,6 +27,45 @@ $userModel->withPasswordDefinition($passwordDefinition);
 $userModel->setPassword('WeakPwd');  // Throws InvalidArgumentException
 ```
 
+### Applying Rules Through UsersService
+
+Instead of attaching the definition to every `UserModel` manually, pass it to the `UsersService` constructor. Every entity created through the service (e.g., via `addUser()` or `getUsersEntity()`) receives the same `PasswordDefinition`.
+
+```php
+<?php
+use ByJG\Authenticate\Definition\PasswordDefinition;
+use ByJG\Authenticate\Enum\LoginField;
+use ByJG\Authenticate\Service\UsersService;
+
+$passwordDefinition = new PasswordDefinition([
+    PasswordDefinition::MINIMUM_CHARS => 12,
+    PasswordDefinition::REQUIRE_NUMBERS => 2,
+]);
+
+$users = new UsersService(
+    $usersRepo,
+    $propsRepo,
+    LoginField::Username,
+    $passwordDefinition
+);
+
+$newUser = $users->addUser('Jane', 'jane', 'jane@example.com', 'StrongPassword123!');
+```
+
+Need a blank entity with the validation rules already loaded? Use `getUsersEntity()`:
+
+```php
+<?php
+$user = $users->getUsersEntity([
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+]);
+$user->setPassword('AnotherStrongPass123!');
+$users->save($user);
+```
+
+This approach guarantees that every model created or retrieved through the service (`getById()`, `getByEmail()`, `getUsersByProperty()`, etc.) automatically enforces your password policy.
+
 ## Password Rules
 
 ### Default Rules
@@ -253,7 +292,7 @@ Repeated patterns include:
 <?php
 // Password change with validation
 try {
-    $user = $users->get($userId);
+    $user = $users->getById($userId);
     $user->withPasswordDefinition($passwordDefinition);
 
     // Verify old password

@@ -11,7 +11,10 @@ The library uses a repository pattern to store users in relational databases thr
 
 ### Default Schema
 
-The default database structure uses two tables:
+The default database structure uses two tables. Below are the schema definitions for different databases:
+
+<details>
+<summary>MySQL / MariaDB</summary>
 
 ```sql
 CREATE TABLE users
@@ -41,6 +44,104 @@ CREATE TABLE users_property
 ) ENGINE=InnoDB;
 ```
 
+</details>
+
+<details>
+<summary>SQLite</summary>
+
+```sql
+CREATE TABLE users
+(
+    userid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(50),
+    email VARCHAR(120),
+    username VARCHAR(15) NOT NULL,
+    password CHAR(40) NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+    role VARCHAR(20)
+);
+
+CREATE TABLE users_property
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(20),
+    value VARCHAR(100),
+    userid INTEGER NOT NULL,
+
+    CONSTRAINT fk_custom_user FOREIGN KEY (userid) REFERENCES users (userid)
+);
+```
+
+</details>
+
+<details>
+<summary>PostgreSQL</summary>
+
+```sql
+CREATE TABLE users
+(
+    userid SERIAL NOT NULL,
+    name VARCHAR(50),
+    email VARCHAR(120),
+    username VARCHAR(15) NOT NULL,
+    password CHAR(40) NOT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    role VARCHAR(20),
+
+    CONSTRAINT pk_users PRIMARY KEY (userid)
+);
+
+CREATE TABLE users_property
+(
+    id SERIAL NOT NULL,
+    name VARCHAR(20),
+    value VARCHAR(100),
+    userid INTEGER NOT NULL,
+
+    CONSTRAINT pk_custom PRIMARY KEY (id),
+    CONSTRAINT fk_custom_user FOREIGN KEY (userid) REFERENCES users (userid)
+);
+```
+
+</details>
+
+<details>
+<summary>SQL Server</summary>
+
+```sql
+CREATE TABLE users
+(
+    userid INTEGER IDENTITY(1,1) NOT NULL,
+    name VARCHAR(50),
+    email VARCHAR(120),
+    username VARCHAR(15) NOT NULL,
+    password CHAR(40) NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+    role VARCHAR(20),
+
+    CONSTRAINT pk_users PRIMARY KEY (userid)
+);
+
+CREATE TABLE users_property
+(
+    id INTEGER IDENTITY(1,1) NOT NULL,
+    name VARCHAR(20),
+    value VARCHAR(100),
+    userid INTEGER NOT NULL,
+
+    CONSTRAINT pk_custom PRIMARY KEY (id),
+    CONSTRAINT fk_custom_user FOREIGN KEY (userid) REFERENCES users (userid)
+);
+```
+
+</details>
+
 ## Basic Usage
 
 ### Using Default Configuration
@@ -49,6 +150,7 @@ CREATE TABLE users_property
 <?php
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Model\UserModel;
 use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Repository\UsersRepository;
@@ -64,7 +166,7 @@ $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
 
 // Create service
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 ```
 
 ### Supported Databases
@@ -90,6 +192,7 @@ use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
+use ByJG\MicroOrm\MapperFunctions\NowUtcMapper;
 use ByJG\MicroOrm\Literal\Literal;
 
 #[TableAttribute(tableName: 'my_users_table')]
@@ -164,19 +267,22 @@ You can configure whether users log in with their email or username:
 
 ```php
 <?php
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
+use ByJG\Authenticate\Enum\LoginField;
+
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Email);
 ```
 
 ### Login with Username
 
 ```php
 <?php
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 ```
 
 :::tip Login Field
 The login field affects methods like `isValidUser()` and `getByLogin()`. They will use the configured field for authentication.
 :::
+`LoginField` is available under the `ByJG\Authenticate\Enum` namespace.
 
 ## Complete Example
 
@@ -184,6 +290,7 @@ The login field affects methods like `isValidUser()` and `getByLogin()`. They wi
 <?php
 use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\AnyDataset\Db\Factory;
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Service\UsersService;
@@ -195,7 +302,7 @@ $db = DatabaseExecutor::using($dbDriver);
 // Initialize with custom models
 $usersRepo = new UsersRepository($db, CustomUserModel::class);
 $propsRepo = new UserPropertiesRepository($db, CustomPropertiesModel::class);
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_EMAIL);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Email);
 
 // Use it
 $user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'password123');

@@ -16,6 +16,7 @@ This page contains complete, working examples for common use cases.
 // config.php
 require_once 'vendor/autoload.php';
 
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -35,7 +36,7 @@ $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
 
 // Initialize user service
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 
 // Initialize session
 $sessionContext = new SessionContext(Factory::createSessionPool());
@@ -263,6 +264,7 @@ exit;
 // api-config.php
 require_once 'vendor/autoload.php';
 
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -280,10 +282,11 @@ $db = DatabaseExecutor::using($dbDriver);
 // Initialize repositories and service
 $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 
 // JWT
-$jwtWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret(getenv('JWT_SECRET') ?: 'your-secret-key'));
+$jwtSecret = getenv('JWT_SECRET') ?: 'base64-encoded-secret-goes-here=='; // Store this in environment variables
+$jwtWrapper = new JwtWrapper('api.example.com', new JwtHashHmacSecret($jwtSecret));
 
 // Helper function
 function jsonResponse($data, $statusCode = 200)
@@ -415,6 +418,7 @@ try {
 // multi-tenant-example.php
 require_once 'vendor/autoload.php';
 
+use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Service\UsersService;
 use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
@@ -428,7 +432,7 @@ $db = DatabaseExecutor::using($dbDriver);
 
 $usersRepo = new UsersRepository($db, UserModel::class);
 $propsRepo = new UserPropertiesRepository($db, UserPropertiesModel::class);
-$users = new UsersService($usersRepo, $propsRepo, UsersService::LOGIN_IS_USERNAME);
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 
 // Add user to organization
 function addUserToOrganization($users, $userId, $orgId, $role = 'member')

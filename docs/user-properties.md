@@ -49,7 +49,7 @@ You can also manage properties directly through the `UserModel`:
 <?php
 use ByJG\Authenticate\Model\UserPropertiesModel;
 
-$user = $users->get($userId);
+$user = $users->getById($userId);
 
 // Set a property value
 $user->set('phone', '555-1234');
@@ -88,7 +88,7 @@ Returns `null` if the property doesn't exist.
 
 ```php
 <?php
-$user = $users->get($userId);
+$user = $users->getById($userId);
 
 // Get property value(s)
 $phone = $user->get('phone');
@@ -119,10 +119,6 @@ if ($users->hasProperty($userId, 'role', 'admin')) {
     echo "User is an admin";
 }
 ```
-
-:::tip Admin Bypass
-The `hasProperty()` method always returns `true` for admin users, regardless of the actual property values.
-:::
 
 ## Removing Properties
 
@@ -167,7 +163,7 @@ $engineers = $users->getUsersByProperty('department', 'Engineering');
 
 ```php
 <?php
-$users = $users->getUsersByPropertySet([
+$matchingUsers = $users->getUsersByPropertySet([
     'department' => 'Engineering',
     'role' => 'senior',
     'status' => 'active'

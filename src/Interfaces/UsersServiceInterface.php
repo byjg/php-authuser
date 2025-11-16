@@ -172,6 +172,7 @@ interface UsersServiceInterface
      * @param int $expires
      * @param array $updateUserInfo
      * @param array $updateTokenInfo
+     * @param array $tokenUserFields
      * @return string|null
      */
     public function createAuthToken(
@@ -180,7 +181,8 @@ interface UsersServiceInterface
         JwtWrapper $jwtWrapper,
         int        $expires = 1200,
         array      $updateUserInfo = [],
-        array      $updateTokenInfo = []
+        array      $updateTokenInfo = [],
+        array      $tokenUserFields = []
     ): ?string;
 
     /**
