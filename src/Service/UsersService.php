@@ -239,7 +239,7 @@ class UsersService implements UsersServiceInterface
         }
     }
 
-    protected function resolveUserFieldValue(UserModel $user, string $fieldName): mixed
+    protected function resolveUserFieldValue(UserModel $user, string $fieldName, ?string $default = null): mixed
     {
         $camel = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ' , $fieldName)));
         $method = 'get' . $camel;
@@ -252,7 +252,7 @@ class UsersService implements UsersServiceInterface
             return $value;
         }
 
-        return null;
+        return $default;
     }
 
     /**
@@ -501,13 +501,18 @@ class UsersService implements UsersServiceInterface
             $user->set($key, $value);
         }
 
-        foreach ($tokenUserFields as $field) {
+        foreach ($tokenUserFields as $key => $field) {
+            $default = null;
+            if (!is_numeric($key)) {
+                $default = $field;
+                $field = $key;
+            }
             $fieldName = $field instanceof UserField ? $field->value : $field;
             if (!is_string($fieldName) || $fieldName === '') {
                 continue;
             }
 
-            $value = $this->resolveUserFieldValue($user, $fieldName);
+            $value = $this->resolveUserFieldValue($user, $fieldName, $default);
             if ($value !== null) {
                 $updateTokenInfo[$fieldName] = $value;
             }
