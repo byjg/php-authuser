@@ -51,9 +51,9 @@ class UsersDBDataset2ByUserNameTestUsersBase extends TestUsersBase
             $loginField
         );
 
-        $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1');
+        $this->object->addUser('User 1', 'user1', 'user1@gmail.com', 'pwd1', "role3");
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
-        $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
+        $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3', "foobar");
     }
 
     #[\Override]

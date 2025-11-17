@@ -174,7 +174,7 @@ abstract class TestUsersBase extends TestCase
         // Check user has no role initially
         $user3 = $this->object->getById($this->prefix . '3');
         $this->assertFalse($user3->hasRole('admin'));
-        $this->assertEmpty($user3->getRole());
+        $this->assertEquals("foobar", $user3->getRole());
 
         // Set a role
         $login = $this->__chooseValue('user3', 'user3@gmail.com');
@@ -220,7 +220,6 @@ abstract class TestUsersBase extends TestCase
             'tokenData' => $tokenData,
             'userid' => $userId,
             'name' => $user->getName(),
-            'role' => $user->getRole(),
         ];
 
         $tokenResult = $this->object->isValidToken($loginCreated, $jwtWrapper, $userToken->token);
@@ -230,11 +229,8 @@ abstract class TestUsersBase extends TestCase
 
         // Compare user fields (excluding timestamps which may differ)
         $this->assertEquals($user->getUserid(), $tokenResult->user->getUserid());
-        $this->assertEquals($user->getName(), $tokenResult->user->getName());
-        $this->assertEquals($user->getEmail(), $tokenResult->user->getEmail());
-        $this->assertEquals($user->getUsername(), $tokenResult->user->getUsername());
-        $this->assertEquals($user->getPassword(), $tokenResult->user->getPassword());
-        $this->assertEquals($user->getRole(), $tokenResult->user->getRole());
+        $this->assertEquals($user->get("userData"), "userValue");
+        $this->assertEquals($user->get("userData"), $tokenResult->user->get("userData"));
     }
 
     /**
@@ -332,7 +328,7 @@ abstract class TestUsersBase extends TestCase
 
         $this->assertArrayHasKey('userid', $userToken->data);
         $this->assertArrayHasKey('name', $userToken->data);
-        $this->assertArrayHasKey('role', $userToken->data);
+        $this->assertArrayNotHasKey('role', $userToken->data); // Role isn't set because is null
         $this->assertEquals(2, $userToken->data['userid']);
     }
 

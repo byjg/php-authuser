@@ -64,7 +64,7 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $user->getCreatedAt());
 
         $this->object->addUser('User 2', 'user2', 'user2@gmail.com', 'pwd2');
-        $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3');
+        $this->object->addUser('User 3', 'user3', 'user3@gmail.com', 'pwd3', 'foobar');
     }
 
     #[\Override]

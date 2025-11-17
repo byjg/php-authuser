@@ -74,7 +74,7 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
             new MyUserModel('User 2', 'user2@gmail.com', 'user2', 'pwd2', '', 'other 2')
         );
         $this->object->save(
-            new MyUserModel('User 3', 'user3@gmail.com', 'user3', 'pwd3', '', 'other 3')
+            new MyUserModel('User 3', 'user3@gmail.com', 'user3', 'pwd3', 'foobar', 'other 3')
         );
     }
 
