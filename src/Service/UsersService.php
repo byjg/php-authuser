@@ -127,10 +127,11 @@ class UsersService implements UsersServiceInterface
     }
 
     /**
+     * @param string|null $role
      * @inheritDoc
      */
     #[\Override]
-    public function addUser(string $name, string $userName, string $email, string $password): UserModel
+    public function addUser(string $name, string $userName, string $email, string $password, ?string $role = null): UserModel
     {
 
         $mapper = $this->usersRepository->getMapper();
@@ -138,6 +139,7 @@ class UsersService implements UsersServiceInterface
             $mapper->getFieldMap(UserField::Name->value)->getFieldName() => $name,
             $mapper->getFieldMap(UserField::Email->value)->getFieldName() => $email,
             $mapper->getFieldMap(UserField::Username->value)->getFieldName() => $userName,
+            $mapper->getFieldMap(UserField::Role->value)->getFieldName() => $role
         ]);
         $this->applyPasswordDefinition($model);
         $model->setPassword($password);
@@ -244,15 +246,12 @@ class UsersService implements UsersServiceInterface
         $camel = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ' , $fieldName)));
         $method = 'get' . $camel;
         if (method_exists($user, $method)) {
-            return $user->$method();
+            $value = $user->$method();
+        } else {
+            $value = $user->get($fieldName);
         }
 
-        $value = $user->get($fieldName);
-        if ($value !== null) {
-            return $value;
-        }
-
-        return $default;
+        return empty($value) ? $default : $value;
     }
 
     /**

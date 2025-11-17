@@ -28,9 +28,10 @@ interface UsersServiceInterface
      * @param string $userName
      * @param string $email
      * @param string $password
+     * @param string|null $role
      * @return UserModel
      */
-    public function addUser(string $name, string $userName, string $email, string $password): UserModel;
+    public function addUser(string $name, string $userName, string $email, string $password, ?string $role = null): UserModel;
 
     /**
      * Get user by ID

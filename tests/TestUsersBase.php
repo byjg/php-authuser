@@ -3,6 +3,7 @@
 namespace Tests;
 
 use ByJG\Authenticate\Enum\LoginField;
+use ByJG\Authenticate\Enum\UserField;
 use ByJG\Authenticate\Exception\NotAuthenticatedException;
 use ByJG\Authenticate\Exception\UserExistsException;
 use ByJG\Authenticate\Exception\UserNotFoundException;
@@ -250,13 +251,21 @@ abstract class TestUsersBase extends TestCase
             $login,
             'pwd2',
             $jwtWrapper,
-            1200
+            1200,
+            tokenUserFields: [
+                UserField::Username->value,
+                UserField::Email->value,
+                UserField::Role->value => "nobody"
+            ]
         );
 
         $this->assertInstanceOf(UserToken::class, $userToken);
         $this->assertNotEmpty($userToken->token);
         $this->assertInstanceOf(UserModel::class, $userToken->user);
         $this->assertEquals(2, $userToken->user->getUserid());
+        $this->assertEquals('user2', $userToken->data["username"]);
+        $this->assertEquals('user2@gmail.com', $userToken->data["email"]);
+        $this->assertEquals('nobody', $userToken->data["role"]);
     }
 
     public function testCreateAuthTokenWithInvalidPassword(): void
