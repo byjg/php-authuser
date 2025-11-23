@@ -46,11 +46,12 @@ class UsersService implements UsersServiceInterface
         $this->loginField = $loginField;
 
         $userMapper = $usersRepository->getRepository()->getMapper();
+        $passwordFieldMapping = $userMapper->getFieldMap(UserField::Password->value);
         $userCheck = ($userMapper->getFieldMap(UserField::Userid->value) !== null) &&
             ($userMapper->getFieldMap(UserField::Name->value) !== null) &&
             ($userMapper->getFieldMap(UserField::Email->value) !== null) &&
             ($userMapper->getFieldMap(UserField::Username->value) !== null) &&
-            ($userMapper->getFieldMap(UserField::Password->value) !== null) &&
+            ($passwordFieldMapping !== null) &&
             ($userMapper->getFieldMap(UserField::Role->value) !== null);
 
         if (!$userCheck) {
@@ -58,11 +59,13 @@ class UsersService implements UsersServiceInterface
         }
 
         // Validate password mapper implements PasswordMapperInterface (handles both string class name and instance)
-        $passwordUpdateFunction = $userMapper->getFieldMap(UserField::Password->value)->getUpdateFunction();
+        $passwordUpdateFunction = $passwordFieldMapping->getUpdateFunction();
         if (!is_subclass_of($passwordUpdateFunction, PasswordMapperInterface::class, true)) {
             throw new InvalidArgumentException('Password update function must implement PasswordMapperInterface');
         }
 
+        // Type assertion for Psalm - we've verified it's a PasswordMapperInterface or string
+        /** @var PasswordMapperInterface|string $passwordUpdateFunction */
         $this->passwordDefinition?->setPasswordMapper($passwordUpdateFunction);
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();
@@ -116,7 +119,11 @@ class UsersService implements UsersServiceInterface
         }
 
         if ($newUser) {
-            $model = $this->getById($model->getUserid());
+            $userId = $model->getUserid();
+            if ($userId === null) {
+                throw new UserNotFoundException("User ID not set after save");
+            }
+            $model = $this->getById($userId);
         }
 
         if ($model === null) {
@@ -135,12 +142,26 @@ class UsersService implements UsersServiceInterface
     {
 
         $mapper = $this->usersRepository->getMapper();
+        $nameMapping = $mapper->getFieldMap(UserField::Name->value);
+        $emailMapping = $mapper->getFieldMap(UserField::Email->value);
+        $usernameMapping = $mapper->getFieldMap(UserField::Username->value);
+        $roleMapping = $mapper->getFieldMap(UserField::Role->value);
+
+        if ($nameMapping === null || $emailMapping === null || $usernameMapping === null || $roleMapping === null) {
+            throw new InvalidArgumentException('Required field mapping not found');
+        }
+
         $model = $mapper->getEntity([
-            $mapper->getFieldMap(UserField::Name->value)->getFieldName() => $name,
-            $mapper->getFieldMap(UserField::Email->value)->getFieldName() => $email,
-            $mapper->getFieldMap(UserField::Username->value)->getFieldName() => $userName,
-            $mapper->getFieldMap(UserField::Role->value)->getFieldName() => $role
+            $nameMapping->getFieldName() => $name,
+            $emailMapping->getFieldName() => $email,
+            $usernameMapping->getFieldName() => $userName,
+            $roleMapping->getFieldName() => $role
         ]);
+
+        if (!$model instanceof UserModel) {
+            throw new InvalidArgumentException('Entity must be an instance of UserModel');
+        }
+
         $this->applyPasswordDefinition($model);
         $model->setPassword($password);
 
@@ -156,11 +177,13 @@ class UsersService implements UsersServiceInterface
      */
     protected function canAddUser(UserModel $model): bool
     {
-        if (!empty($model->getUserid()) && $this->getById($model->getUserid()) !== null) {
+        $userId = $model->getUserid();
+        if (!empty($userId) && $this->getById($userId) !== null) {
             throw new UserExistsException('User ID already exists');
         }
 
-        if ($this->getByUsername($model->getUsername()) !== null) {
+        $username = $model->getUsername();
+        if ($username !== null && $this->getByUsername($username) !== null) {
             throw new UserExistsException('Username already exists');
         }
 
@@ -188,6 +211,9 @@ class UsersService implements UsersServiceInterface
     public function getByEmail(string $email): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Email->value);
+        if ($fieldMap === null) {
+            throw new InvalidArgumentException('Email field mapping not found');
+        }
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $email);
         if ($user !== null) {
             $this->loadUserProperties($user);
@@ -203,6 +229,9 @@ class UsersService implements UsersServiceInterface
     public function getByUsername(string $username): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Username->value);
+        if ($fieldMap === null) {
+            throw new InvalidArgumentException('Username field mapping not found');
+        }
         $user = $this->usersRepository->getByField($fieldMap->getFieldName(), $username);
         if ($user !== null) {
             $this->loadUserProperties($user);
@@ -230,7 +259,11 @@ class UsersService implements UsersServiceInterface
      */
     protected function loadUserProperties(UserModel $user): void
     {
-        $properties = $this->propertiesRepository->getByUserId($user->getUserid());
+        $userId = $user->getUserid();
+        if ($userId === null) {
+            return;
+        }
+        $properties = $this->propertiesRepository->getByUserId($userId);
         $user->setProperties($properties);
     }
 
@@ -262,7 +295,10 @@ class UsersService implements UsersServiceInterface
     {
         $user = $this->getByLogin($login);
         if ($user !== null) {
-            return $this->removeById($user->getUserid());
+            $userId = $user->getUserid();
+            if ($userId !== null) {
+                return $this->removeById($userId);
+            }
         }
         return false;
     }
@@ -298,6 +334,9 @@ class UsersService implements UsersServiceInterface
 
         // Hash the password for comparison using the model's configured password mapper
         $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap(UserField::Password->value);
+        if ($passwordFieldMapping === null) {
+            throw new InvalidArgumentException('Password field mapping not found');
+        }
         $hashedPassword = $passwordFieldMapping->getUpdateFunctionValue($password, null);
 
         if ($user->getPassword() === $hashedPassword) {
@@ -369,11 +408,24 @@ class UsersService implements UsersServiceInterface
 
         if (!$this->hasProperty($userId, $propertyName, $value)) {
             $propMapper = $this->propertiesRepository->getMapper();
+            $userIdMapping = $propMapper->getFieldMap(UserPropertyField::Userid->value);
+            $nameMapping = $propMapper->getFieldMap(UserPropertyField::Name->value);
+            $valueMapping = $propMapper->getFieldMap(UserPropertyField::Value->value);
+
+            if ($userIdMapping === null || $nameMapping === null || $valueMapping === null) {
+                throw new InvalidArgumentException('Required field mapping not found');
+            }
+
             $property = $propMapper->getEntity([
-                $propMapper->getFieldMap(UserPropertyField::Userid->value)->getFieldName() => $userId,
-                $propMapper->getFieldMap(UserPropertyField::Name->value)->getFieldName() => $propertyName,
-                $propMapper->getFieldMap(UserPropertyField::Value->value)->getFieldName() => $value
+                $userIdMapping->getFieldName() => $userId,
+                $nameMapping->getFieldName() => $propertyName,
+                $valueMapping->getFieldName() => $value
             ]);
+
+            if (!$property instanceof UserPropertiesModel) {
+                throw new InvalidArgumentException('Entity must be an instance of UserPropertiesModel');
+            }
+
             $this->propertiesRepository->save($property);
         }
 
@@ -390,11 +442,23 @@ class UsersService implements UsersServiceInterface
 
         if (empty($properties)) {
             $propMapper = $this->propertiesRepository->getMapper();
+            $userIdMapping = $propMapper->getFieldMap(UserPropertyField::Userid->value);
+            $nameMapping = $propMapper->getFieldMap(UserPropertyField::Name->value);
+            $valueMapping = $propMapper->getFieldMap(UserPropertyField::Value->value);
+
+            if ($userIdMapping === null || $nameMapping === null || $valueMapping === null) {
+                throw new InvalidArgumentException('Required field mapping not found');
+            }
+
             $property = $propMapper->getEntity([
-                $propMapper->getFieldMap(UserPropertyField::Userid->value)->getFieldName() => $userId,
-                $propMapper->getFieldMap(UserPropertyField::Name->value)->getFieldName() => $propertyName,
-                $propMapper->getFieldMap(UserPropertyField::Value->value)->getFieldName() => $value
+                $userIdMapping->getFieldName() => $userId,
+                $nameMapping->getFieldName() => $propertyName,
+                $valueMapping->getFieldName() => $value
             ]);
+
+            if (!$property instanceof UserPropertiesModel) {
+                throw new InvalidArgumentException('Entity must be an instance of UserPropertiesModel');
+            }
         } else {
             $property = $properties[0];
             $property->setValue($value);
@@ -451,9 +515,18 @@ class UsersService implements UsersServiceInterface
             $userPk = $userPk[0];
         }
 
-        $propUserIdField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Userid->value)->getFieldName();
-        $propNameField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Name->value)->getFieldName();
-        $propValueField = $this->propertiesRepository->getMapper()->getFieldMap(UserPropertyField::Value->value)->getFieldName();
+        $propMapper = $this->propertiesRepository->getMapper();
+        $userIdMapping = $propMapper->getFieldMap(UserPropertyField::Userid->value);
+        $nameMapping = $propMapper->getFieldMap(UserPropertyField::Name->value);
+        $valueMapping = $propMapper->getFieldMap(UserPropertyField::Value->value);
+
+        if ($userIdMapping === null || $nameMapping === null || $valueMapping === null) {
+            throw new InvalidArgumentException('Required field mapping not found');
+        }
+
+        $propUserIdField = $userIdMapping->getFieldName();
+        $propNameField = $nameMapping->getFieldName();
+        $propValueField = $valueMapping->getFieldName();
 
         $query = Query::getInstance()
             ->field("u.*")
@@ -594,6 +667,9 @@ class UsersService implements UsersServiceInterface
     public function getUsersEntity(array $fields): UserModel
     {
         $entity = $this->getUsersRepository()->getMapper()->getEntity($fields);
+        if (!$entity instanceof UserModel) {
+            throw new InvalidArgumentException('Entity must be an instance of UserModel');
+        }
         $this->applyPasswordDefinition($entity);
         return $entity;
     }

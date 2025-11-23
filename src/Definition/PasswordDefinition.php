@@ -185,7 +185,10 @@ class PasswordDefinition
                     $isRepeated = ($char == $previousChar);
                     $previousChar = strtoupper($previousChar);
                     $upperChar = strtoupper($char);
-                    $isSequential = ($upperChar == chr(ord($previousChar) + 1)) || ($upperChar == chr(ord($previousChar) - 1));
+                    $prevOrd = ord($previousChar);
+                    $nextOrd = ($prevOrd + 1) % 256;
+                    $prevPrevOrd = ($prevOrd - 1 + 256) % 256;
+                    $isSequential = ($upperChar == chr($nextOrd)) || ($upperChar == chr($prevPrevOrd));
                     if (!$isRepeated && !$isSequential) {
                         break;
                     }

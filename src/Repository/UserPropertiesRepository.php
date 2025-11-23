@@ -79,6 +79,9 @@ class UserPropertiesRepository
     public function getByUserId(string|Literal|int $userid): array
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
+        if ($userIdMapping === null) {
+            throw new \InvalidArgumentException('User ID field mapping not found');
+        }
         $userIdField = $userIdMapping->getFieldName();
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
@@ -104,6 +107,10 @@ class UserPropertiesRepository
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
         $nameMapping = $this->mapper->getFieldMap(UserPropertyField::Name->value);
 
+        if ($userIdMapping === null || $nameMapping === null) {
+            throw new \InvalidArgumentException('Required field mapping not found');
+        }
+
         $userIdField = $userIdMapping->getFieldName();
         $nameField = $nameMapping->getFieldName();
 
@@ -128,6 +135,9 @@ class UserPropertiesRepository
     public function deleteByUserId(string|Literal|int $userid): void
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
+        if ($userIdMapping === null) {
+            throw new \InvalidArgumentException('User ID field mapping not found');
+        }
         $userIdField = $userIdMapping->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
@@ -151,9 +161,16 @@ class UserPropertiesRepository
     public function deleteByUserIdAndName(string|Literal|int $userid, string $propertyName, ?string $value = null): void
     {
         $userIdMapping = $this->mapper->getFieldMap(UserPropertyField::Userid->value);
+        $nameMapping = $this->mapper->getFieldMap(UserPropertyField::Name->value);
+        $valueMapping = $this->mapper->getFieldMap(UserPropertyField::Value->value);
+
+        if ($userIdMapping === null || $nameMapping === null || $valueMapping === null) {
+            throw new \InvalidArgumentException('Required field mapping not found');
+        }
+
         $userIdField = $userIdMapping->getFieldName();
-        $nameField = $this->mapper->getFieldMap(UserPropertyField::Name->value)->getFieldName();
-        $valueField = $this->mapper->getFieldMap(UserPropertyField::Value->value)->getFieldName();
+        $nameField = $nameMapping->getFieldName();
+        $valueField = $valueMapping->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
@@ -179,8 +196,15 @@ class UserPropertiesRepository
      */
     public function deleteByName(string $propertyName, ?string $value = null): void
     {
-        $nameField = $this->mapper->getFieldMap(UserPropertyField::Name->value)->getFieldName();
-        $valueField = $this->mapper->getFieldMap(UserPropertyField::Value->value)->getFieldName();
+        $nameMapping = $this->mapper->getFieldMap(UserPropertyField::Name->value);
+        $valueMapping = $this->mapper->getFieldMap(UserPropertyField::Value->value);
+
+        if ($nameMapping === null || $valueMapping === null) {
+            throw new \InvalidArgumentException('Required field mapping not found');
+        }
+
+        $nameField = $nameMapping->getFieldName();
+        $valueField = $valueMapping->getFieldName();
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())

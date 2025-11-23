@@ -7,7 +7,7 @@ title: Installation
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.3 or higher
 - Composer
 
 ## Install via Composer
@@ -20,10 +20,8 @@ composer require byjg/authuser
 
 ## Running Tests
 
-Because this project uses PHP Session, you need to run the unit tests with the `--stderr` flag:
-
 ```bash
-./vendor/bin/phpunit --stderr
+composer test
 ```
 
 ## Next Steps

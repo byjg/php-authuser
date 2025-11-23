@@ -21,7 +21,10 @@ class UserIdGeneratorMapper implements MapperFunctionInterface
 
         // Generate from username if instance is UserModel
         if ($instance instanceof UserModel) {
-            return preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($instance->getUsername()));
+            $username = $instance->getUsername();
+            if ($username !== null) {
+                return preg_replace('/(?:([\w])|([\W]))/', '\1', strtolower($username));
+            }
         }
 
         return $value;

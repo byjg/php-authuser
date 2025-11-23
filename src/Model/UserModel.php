@@ -180,7 +180,7 @@ class UserModel
         if (empty($property)) {
             $property = new UserPropertiesModel($name, $value);
             $this->addProperty($property);
-        } else {
+        } elseif ($property instanceof UserPropertiesModel) {
             $property->setValue($value);
         }
     }
