@@ -2,7 +2,9 @@
 
 namespace ByJG\Authenticate\Definition;
 
+use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 use InvalidArgumentException;
+use Random\RandomException;
 
 class PasswordDefinition
 {
@@ -16,6 +18,8 @@ class PasswordDefinition
     const ALLOW_REPEATED = "allow_repeated";
 
     protected array $rules = [];
+
+    protected PasswordMapperInterface|string|null $passwordMapper = null;
 
     public function __construct($rules = null)
     {
@@ -47,7 +51,7 @@ class PasswordDefinition
         return $this->rules;
     }
 
-    public function getRule($rule): string|bool|int
+    public function getRule(string $rule): string|bool|int
     {
         if (!array_key_exists($rule, $this->rules)) {
             throw new InvalidArgumentException("Invalid rule");
@@ -113,6 +117,98 @@ class PasswordDefinition
         return $result;
     }
 
+    /**
+     * @throws RandomException
+     */
+    public function generatePassword(int $extendSize = 0): string
+    {
+        $charsList = [
+            self::REQUIRE_UPPERCASE => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            self::REQUIRE_LOWERCASE => 'abcdefghijklmnopqrstuvwxyz',
+            self::REQUIRE_SYMBOLS => '!@#$%^&*()-_=+{};:,<.>',
+            self::REQUIRE_NUMBERS => '0123456789'
+        ];
 
+        $charsCount = [
+            self::REQUIRE_UPPERCASE => 0,
+            self::REQUIRE_LOWERCASE => 0,
+            self::REQUIRE_SYMBOLS => 0,
+            self::REQUIRE_NUMBERS => 0
+        ];
 
+        foreach ($this->rules as $rule => $value) {
+            if ($rule == self::MINIMUM_CHARS) {
+                continue;
+            }
+
+            switch ($rule) {
+                case self::REQUIRE_UPPERCASE:
+                    $charsCount[self::REQUIRE_UPPERCASE] = $value;
+                    break;
+                case self::REQUIRE_LOWERCASE:
+                    $charsCount[self::REQUIRE_LOWERCASE] = $value;
+                    break;
+                case self::REQUIRE_SYMBOLS:
+                    $charsCount[self::REQUIRE_SYMBOLS] = $value;
+                    break;
+                case self::REQUIRE_NUMBERS:
+                    $charsCount[self::REQUIRE_NUMBERS] = $value;
+                    break;
+            }
+        }
+
+        $size = intval($this->rules[self::MINIMUM_CHARS]) + $extendSize;
+        $totalChars = intval(array_sum($charsCount));
+        $rulesWithValueGreaterThanZero = array_filter($charsCount, function ($value) {
+            return $value > 0;
+        });
+        if (empty($rulesWithValueGreaterThanZero)) {
+            $rulesWithValueGreaterThanZero[self::REQUIRE_LOWERCASE] = 1;
+            $rulesWithValueGreaterThanZero[self::REQUIRE_NUMBERS] = 1;
+        }
+        while ($totalChars < $size) {
+            $rule = array_rand($rulesWithValueGreaterThanZero);
+            $rulesWithValueGreaterThanZero[$rule]++;
+            $totalChars++;
+        }
+
+        $password = '';
+        while (strlen($password) < $size) {
+            foreach ($rulesWithValueGreaterThanZero as $rule => $value) {
+                if ($value == 0) {
+                    continue;
+                }
+
+                do {
+                    $char = $charsList[$rule][random_int(0, strlen($charsList[$rule]) - 1)];
+                    $previousChar = $password[strlen($password) - 1] ?? "\0";
+                    $isRepeated = ($char == $previousChar);
+                    $previousChar = strtoupper($previousChar);
+                    $upperChar = strtoupper($char);
+                    $prevOrd = ord($previousChar);
+                    $nextOrd = ($prevOrd + 1) % 256;
+                    $prevPrevOrd = ($prevOrd - 1 + 256) % 256;
+                    $isSequential = ($upperChar == chr($nextOrd)) || ($upperChar == chr($prevPrevOrd));
+                    if (!$isRepeated && !$isSequential) {
+                        break;
+                    }
+                } while (true);
+                $password .= $char;
+                $rulesWithValueGreaterThanZero[$rule]--;
+            }
+        }
+
+        return $password;
+    }
+
+    public function getPasswordMapper(): PasswordMapperInterface|string|null
+    {
+        return $this->passwordMapper;
+    }
+
+    // This is used internally;
+    public function setPasswordMapper(PasswordMapperInterface|string|null $passwordMapper): void
+    {
+        $this->passwordMapper = $passwordMapper;
+    }
 }

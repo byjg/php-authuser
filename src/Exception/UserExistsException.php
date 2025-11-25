@@ -2,7 +2,9 @@
 
 namespace ByJG\Authenticate\Exception;
 
-class UserExistsException extends \Exception
+use Exception;
+
+class UserExistsException extends Exception
 {
     //put your code here
 }

@@ -15,17 +15,19 @@ class UserModelTest extends TestCase
      */
     protected $object;
 
+    #[\Override]
     public function setUp(): void
     {
         $this->object = new UserModel();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         $this->object = null;
     }
 
-    public function testUserModel()
+    public function testUserModel(): void
     {
         $this->object->setUserid("10");
         $this->object->setName('John');
@@ -40,7 +42,7 @@ class UserModelTest extends TestCase
         $this->assertEquals('johnuser', $this->object->getUsername());
     }
 
-    public function testUserModelProperties()
+    public function testUserModelProperties(): void
     {
         $this->object->setUserid("10");
         $this->object->setName('John');
@@ -64,7 +66,7 @@ class UserModelTest extends TestCase
         ], $this->object->getProperties());
     }
 
-    public function testPasswordDefinition()
+    public function testPasswordDefinition(): void
     {
         $this->object->withPasswordDefinition(new PasswordDefinition([
             PasswordDefinition::MINIMUM_CHARS => 12,
@@ -77,12 +79,18 @@ class UserModelTest extends TestCase
             PasswordDefinition::ALLOW_REPEATED => 0      // Allow repeated characters
         ]));
 
-        $this->assertEmpty($this->object->setPassword(null));
-        $this->assertEmpty($this->object->setPassword(''));
-        $this->assertEmpty($this->object->setPassword('!Ab18Uk*H2oU9NQ'));
+        // These passwords should be accepted (null, empty, and valid password)
+        $this->object->setPassword(null);
+        $this->assertNull($this->object->getPassword());
+
+        $this->object->setPassword('');
+        $this->assertEmpty($this->object->getPassword());
+
+        $this->object->setPassword('!Ab18Uk*H2oU9NQ');
+        $this->assertEquals('!Ab18Uk*H2oU9NQ', $this->object->getPassword());
     }
 
-    public function testPasswordDefinitionError()
+    public function testPasswordDefinitionError(): void
     {
         $this->expectException(InvalidArgumentException::class);
 

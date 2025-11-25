@@ -3,18 +3,38 @@
 namespace ByJG\Authenticate\Model;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
+use ByJG\MicroOrm\Literal\Literal;
+use ByJG\MicroOrm\Trait\CreatedAt;
+use ByJG\MicroOrm\Trait\DeletedAt;
+use ByJG\MicroOrm\Trait\UpdatedAt;
 use InvalidArgumentException;
 
+#[TableAttribute(tableName: 'users')]
 class UserModel
 {
-    protected string|int|HexUuidLiteral|null $userid = null;
+    use CreatedAt;
+    use UpdatedAt;
+    use DeletedAt;
+    #[FieldAttribute(primaryKey: true)]
+    protected string|int|Literal|null $userid = null;
+
+    #[FieldAttribute]
     protected ?string $name = null;
+
+    #[FieldAttribute]
     protected ?string $email = null;
+
+    #[FieldAttribute]
     protected ?string $username = null;
+
+    #[FieldAttribute(updateFunction: PasswordSha1Mapper::class)]
     protected ?string $password = null;
-    protected ?string $created = null;
-    protected ?string $admin = null;
+
+    #[FieldAttribute]
+    protected ?string $role = null;
 
     protected ?PasswordDefinition $passwordDefinition = null;
 
@@ -27,30 +47,30 @@ class UserModel
      * @param string $email
      * @param string $username
      * @param string $password
-     * @param string $admin
+     * @param string $role
      */
-    public function __construct(string $name = "", string $email = "", string $username = "", string $password = "", string $admin = "no")
+    public function __construct(string $name = "", string $email = "", string $username = "", string $password = "", string $role = "")
     {
         $this->name = $name;
         $this->email = $email;
         $this->username = $username;
         $this->setPassword($password);
-        $this->admin = $admin;
+        $this->role = $role;
     }
 
 
     /**
-     * @return string|int|HexUuidLiteral|null
+     * @return string|int|Literal|null
      */
-    public function getUserid(): string|int|HexUuidLiteral|null
+    public function getUserid(): string|int|Literal|null
     {
         return $this->userid;
     }
 
     /**
-     * @param string|int|HexUuidLiteral|null $userid
+     * @param string|int|Literal|null $userid
      */
-    public function setUserid(string|int|HexUuidLiteral|null $userid): void
+    public function setUserid(string|int|Literal|null $userid): void
     {
         $this->userid = $userid;
     }
@@ -120,7 +140,7 @@ class UserModel
         if (!empty($this->passwordDefinition) && !empty($password) && strlen($password) != 40) {
             $match = $this->passwordDefinition->matchPassword($password);
             if ($match != PasswordDefinition::SUCCESS) {
-                throw new InvalidArgumentException("Password does not match the password definition [{$match}]");
+                throw new InvalidArgumentException("Password does not match the password definition [$match]");
             }
         }
 
@@ -130,33 +150,28 @@ class UserModel
     /**
      * @return string|null
      */
-    public function getCreated(): ?string
+    public function getRole(): ?string
     {
-        return $this->created;
+        return $this->role;
     }
 
     /**
-     * @param string|null $created
+     * @param string|null $role
      */
-    public function setCreated(?string $created): void
+    public function setRole(?string $role): void
     {
-        $this->created = $created;
+        $this->role = $role;
     }
 
     /**
-     * @return string|null
+     * Check if user has a specific role
+     *
+     * @param string $role Role name to check
+     * @return bool
      */
-    public function getAdmin(): ?string
+    public function hasRole(string $role): bool
     {
-        return $this->admin;
-    }
-
-    /**
-     * @param string|null $admin
-     */
-    public function setAdmin(?string $admin): void
-    {
-        $this->admin = $admin;
+        return $this->role !== null && $this->role !== '' && strcasecmp($this->role, $role) === 0;
     }
 
     public function set(string $name, string|null $value): void
@@ -165,7 +180,7 @@ class UserModel
         if (empty($property)) {
             $property = new UserPropertiesModel($name, $value);
             $this->addProperty($property);
-        } else {
+        } elseif ($property instanceof UserPropertiesModel) {
             $property->setValue($value);
         }
     }
@@ -222,6 +237,7 @@ class UserModel
     public function withPasswordDefinition(PasswordDefinition $passwordDefinition): static
     {
         $this->passwordDefinition = $passwordDefinition;
+        $this->setPassword($this->password);
         return $this;
     }
 }

@@ -2,39 +2,49 @@
 
 namespace ByJG\Authenticate\Model;
 
-use ByJG\MicroOrm\Literal\HexUuidLiteral;
+use ByJG\MicroOrm\Attributes\FieldAttribute;
+use ByJG\MicroOrm\Attributes\TableAttribute;
+use ByJG\MicroOrm\Literal\Literal;
 
+#[TableAttribute(tableName: 'users_property')]
 class UserPropertiesModel
 {
-    protected string|int|HexUuidLiteral|null $userid = null;
+    #[FieldAttribute]
+    protected string|int|Literal|null $userid = null;
+
+    #[FieldAttribute(primaryKey: true)]
     protected ?string $id = null;
+
+    #[FieldAttribute]
     protected ?string $name = null;
+
+    #[FieldAttribute]
     protected ?string $value = null;
 
     /**
      * UserPropertiesModel constructor.
      *
-     * @param string $name
-     * @param string $value
+     * @param string|null $name
+     * @param string|null $value
      */
-    public function __construct(string $name = "", string $value = "")
+    public function __construct(?string $name = null, ?string $value = null)
     {
         $this->name = $name;
         $this->value = $value;
     }
 
     /**
-     * @return string|int|HexUuidLiteral|null
+     * @return string|int|Literal|null
      */
-    public function getUserid(): string|int|HexUuidLiteral|null
+    public function getUserid(): string|int|Literal|null
     {
         return $this->userid;
     }
 
     /**
-     * @param string|int|HexUuidLiteral|null $userid
+     * @param string|int|Literal|null $userid
      */
-    public function setUserid(string|int|HexUuidLiteral|null $userid): void
+    public function setUserid(string|int|Literal|null $userid): void
     {
         $this->userid = $userid;
     }

@@ -2,7 +2,9 @@
 
 namespace ByJG\Authenticate\Exception;
 
-class NotAuthenticatedException extends \Exception
+use Exception;
+
+class NotAuthenticatedException extends Exception
 {
     //put your code here
 }
