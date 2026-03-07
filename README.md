@@ -1,10 +1,4 @@
----
-tags: [php, authentication]
----
-
 # User Authentication
-
-A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml)
@@ -13,23 +7,25 @@ A simple and customizable library for user authentication in PHP applications us
 [![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/license)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
 
+A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
+
 The main purpose is to handle all complexity of user validation, authentication, properties management, and access tokens, abstracting the database layer.
 This class can persist user data into session (or file, memcache, etc.) between requests.
 
 ## Documentation
 
-- [Getting Started](getting-started)
-- [Installation](installation)
-- [User Management](user-management)
-- [Authentication](authentication)
-- [Session Context](session-context)
-- [User Properties](user-properties)
-- [Database Storage](database-storage)
-- [Password Validation](password-validation)
-- [JWT Tokens](jwt-tokens)
-- [Custom Fields](custom-fields)
-- [Mappers](mappers)
-- [Examples](examples)
+- [Getting Started](docs/getting-started.md)
+- [Installation](docs/installation.md)
+- [User Management](docs/user-management.md)
+- [Authentication](docs/authentication.md)
+- [Session Context](docs/session-context.md)
+- [User Properties](docs/user-properties.md)
+- [Database Storage](docs/database-storage.md)
+- [Password Validation](docs/password-validation.md)
+- [JWT Tokens](docs/jwt-tokens.md)
+- [Custom Fields](docs/custom-fields.md)
+- [Mappers](docs/mappers.md)
+- [Examples](docs/examples.md)
 
 ## Quick Start
 
@@ -39,7 +35,7 @@ This class can persist user data into session (or file, memcache, etc.) between 
 composer require byjg/authuser
 ```
 
-See [Installation Guide](installation) for detailed setup instructions and requirements.
+See [Installation Guide](docs/installation.md) for detailed setup instructions and requirements.
 
 ## Basic Usage
 
@@ -76,19 +72,19 @@ if ($authenticatedUser !== null) {
 
 Set the third constructor argument to `LoginField::Email` if you prefer authenticating users by email instead of username.
 
-See [Getting Started](getting-started) for a complete introduction and [Examples](examples) for more use cases.
+See [Getting Started](docs/getting-started.md) for a complete introduction and [Examples](docs/examples.md) for more use cases.
 
 ## Features
 
-- **User Management** - Complete CRUD operations. See [User Management](user-management)
-- **Authentication** - Username/email + password or JWT tokens. See [Authentication](authentication) and [JWT Tokens](jwt-tokens)
-- **Session Management** - PSR-6 compatible cache storage. See [Session Context](session-context)
-- **User Properties** - Store custom key-value metadata. See [User Properties](user-properties)
-- **Password Validation** - Built-in strength requirements. See [Password Validation](password-validation)
-- **Database Storage** - Supports MySQL, PostgreSQL, SQLite, and more. See [Database Storage](database-storage)
-- **Custom Schema** - Map to existing database tables. See [Database Storage](database-storage)
-- **Field Mappers** - Transform data during read/write. See [Mappers](mappers)
-- **Extensible Model** - Add custom fields easily. See [Custom Fields](custom-fields)
+- **User Management** - Complete CRUD operations. See [User Management](docs/user-management.md)
+- **Authentication** - Username/email + password or JWT tokens. See [Authentication](docs/authentication.md) and [JWT Tokens](docs/jwt-tokens.md)
+- **Session Management** - PSR-6 compatible cache storage. See [Session Context](docs/session-context.md)
+- **User Properties** - Store custom key-value metadata. See [User Properties](docs/user-properties.md)
+- **Password Validation** - Built-in strength requirements. See [Password Validation](docs/password-validation.md)
+- **Database Storage** - Supports MySQL, PostgreSQL, SQLite, and more. See [Database Storage](docs/database-storage.md)
+- **Custom Schema** - Map to existing database tables. See [Database Storage](docs/database-storage.md)
+- **Field Mappers** - Transform data during read/write. See [Mappers](docs/mappers.md)
+- **Extensible Model** - Add custom fields easily. See [Custom Fields](docs/custom-fields.md)
 
 ## Running Tests
 
