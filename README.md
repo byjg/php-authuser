@@ -1,4 +1,11 @@
+---
+sidebar_key: authuser
+tags: [php, authentication]
+---
+
 # User Authentication
+
+A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml)
@@ -6,8 +13,6 @@
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-authuser/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-authuser.svg)](https://opensource.byjg.com/license)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-authuser.svg)](https://github.com/byjg/php-authuser/releases/)
-
-A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
 
 The main purpose is to handle all complexity of user validation, authentication, properties management, and access tokens, abstracting the database layer.
 This class can persist user data into session (or file, memcache, etc.) between requests.
