@@ -98,6 +98,18 @@ class UsersService implements UsersServiceInterface
         return $this->propertiesRepository;
     }
 
+    public function getLoginField(): LoginField
+    {
+        return $this->loginField;
+    }
+
+    public function getLoginValue(UserModel $user): ?string
+    {
+        return $this->loginField === LoginField::Email
+            ? $user->getEmail()
+            : $user->getUsername();
+    }
+
     /**
      * @inheritDoc
      */
