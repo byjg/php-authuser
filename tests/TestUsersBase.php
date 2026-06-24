@@ -31,7 +31,7 @@ abstract class TestUsersBase extends TestCase
     {
         return match ($this->loginField) {
             LoginField::Email => $forEmail,
-            LoginField::Username => $forUsername,
+            LoginField::Username, LoginField::EmailOrUsername => $forUsername,
         };
     }
 
