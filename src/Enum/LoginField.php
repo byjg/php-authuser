@@ -6,4 +6,5 @@ enum LoginField
 {
     case Email;
     case Username;
+    case EmailOrUsername;
 }

@@ -105,9 +105,11 @@ class UsersService implements UsersServiceInterface
 
     public function getLoginValue(UserModel $user): ?string
     {
-        return $this->loginField === LoginField::Email
-            ? $user->getEmail()
-            : $user->getUsername();
+        return match($this->loginField) {
+            LoginField::Email => $user->getEmail(),
+            LoginField::Username => $user->getUsername(),
+            LoginField::EmailOrUsername => $user->getUsername() ?? $user->getEmail(),
+        };
     }
 
     /**
@@ -258,9 +260,11 @@ class UsersService implements UsersServiceInterface
     #[\Override]
     public function getByLogin(string $login): ?UserModel
     {
-        return $this->loginField === LoginField::Email
-            ? $this->getByEmail($login)
-            : $this->getByUsername($login);
+        return match($this->loginField) {
+            LoginField::Email => $this->getByEmail($login),
+            LoginField::Username => $this->getByUsername($login),
+            LoginField::EmailOrUsername => $this->getByUsername($login) ?? $this->getByEmail($login),
+        };
     }
 
     /**
