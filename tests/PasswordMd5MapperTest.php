@@ -25,7 +25,8 @@ class PasswordMd5MapperTest extends TestCase
     public function setUp(): void
     {
         $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
-        $this->db->execute('create table users (
+        $executor = DatabaseExecutor::using($this->db);
+        $executor->execute('create table users (
             userid integer primary key autoincrement,
             name varchar(45),
             email varchar(200),
@@ -37,7 +38,7 @@ class PasswordMd5MapperTest extends TestCase
             role varchar(20));'
         );
 
-        $this->db->execute('create table users_property (
+        $executor->execute('create table users_property (
             id integer primary key autoincrement,
             userid integer,
             name varchar(45),
@@ -45,7 +46,6 @@ class PasswordMd5MapperTest extends TestCase
         );
 
         // Create repositories and service with custom MD5 password mapper via UserModelMd5
-        $executor = DatabaseExecutor::using($this->db);
         $usersRepository = new UsersRepository($executor, UserModelMd5::class);
         $propertiesRepository = new UserPropertiesRepository($executor, UserPropertiesModel::class);
         $this->service = new UsersService(

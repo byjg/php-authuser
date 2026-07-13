@@ -26,7 +26,8 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->loginField = $loginField;
 
         $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
-        $this->db->execute('create table users (
+        $executor = DatabaseExecutor::using($this->db);
+        $executor->execute('create table users (
             userid integer primary key  autoincrement,
             name varchar(45),
             email varchar(200),
@@ -38,14 +39,13 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
             role varchar(20));'
         );
 
-        $this->db->execute('create table users_property (
+        $executor->execute('create table users_property (
             id integer primary key  autoincrement,
             userid integer,
             name varchar(45),
             value varchar(45));'
         );
 
-        $executor = DatabaseExecutor::using($this->db);
         $usersRepository = new UsersRepository($executor, UserModel::class);
         $propertiesRepository = new UserPropertiesRepository($executor, UserPropertiesModel::class);
         $this->object = new UsersService(
