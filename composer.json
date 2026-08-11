@@ -16,7 +16,7 @@
   "require": {
     "php": ">=8.3 <8.6",
     "byjg/micro-orm": "^7.0",
-    "byjg/cache-engine": "^6.0",
+    "byjg/cache-engine": "^7.0",
     "byjg/jwt-wrapper": "^6.0"
   },
   "require-dev": {
