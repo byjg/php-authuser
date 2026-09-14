@@ -38,7 +38,8 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
         $this->loginField = $loginField;
 
         $this->db = Factory::getDbInstance(self::CONNECTION_STRING);
-        $this->db->execute('create table mytable (
+        $executor = DatabaseExecutor::using($this->db);
+        $executor->execute('create table mytable (
             myuserid integer primary key  autoincrement,
             myname varchar(45),
             myemail varchar(200),
@@ -51,14 +52,13 @@ class UsersDBDatasetDefinitionTest extends UsersDBDatasetByUsernameTestUsersBase
             myrole varchar(20));'
         );
 
-        $this->db->execute('create table theirproperty (
+        $executor->execute('create table theirproperty (
             theirid integer primary key  autoincrement,
             theiruserid integer,
             theirname varchar(45),
             theirvalue varchar(45));'
         );
 
-        $executor = DatabaseExecutor::using($this->db);
         $usersRepository = new UsersRepository($executor, MyUserModel::class);
         $propertiesRepository = new UserPropertiesRepository($executor, MyUserPropertiesModel::class);
         $this->object = new UsersService(
