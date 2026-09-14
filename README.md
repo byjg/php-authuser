@@ -128,14 +128,5 @@ Because this project uses PHP Session you need to run the unit test the followin
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/byjg/php-authuser/blob/master/LICENSE) file for details.
 
-## Dependencies
-
-```mermaid
-flowchart TD
-    byjg/authuser --> byjg/micro-orm
-    byjg/authuser --> byjg/cache-engine
-    byjg/authuser --> byjg/jwt-wrapper
-```
-
 ----
 [Open source ByJG](http://opensource.byjg.com)
