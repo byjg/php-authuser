@@ -62,6 +62,18 @@ observers are now scoped per executor instead of global.
 - PHPUnit: `^10.5|^11.5` → `^12.5`
 - Psalm: `vimeo/psalm ^5.9|^6.13` → `psalm/phar ^6.16`
 
+### Enum cases renamed to PascalCase
+
+Enum cases follow the ByJG standard and are written in PascalCase. The backed values did not
+change, so `->value`, `from()`, `tryFrom()` and stored data are not affected; only code that
+names a case (or reads `->name`) has to be updated.
+
+| Enum | Before (6.x) | After (7.0) |
+|---|---|---|
+| `UserField` | `Created_at`, `uUpdated_at`, `Deleted_at` | `CreatedAt`, `UpdatedAt`, `DeletedAt` |
+
+Not a plain change of casing: `UserField::uUpdated_at` is now `UserField::UpdatedAt`.
+
 ## Migration from 6.x
 
 1. Update the composer constraint:
