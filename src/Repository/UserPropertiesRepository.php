@@ -85,7 +85,7 @@ class UserPropertiesRepository
         $userIdField = $userIdMapping->getFieldName();
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)]);
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null, $this->repository->getExecutor())]);
 
         return $this->repository->getByQuery($query);
     }
@@ -116,7 +116,7 @@ class UserPropertiesRepository
 
         $query = Query::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)])
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null, $this->repository->getExecutor())])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         return $this->repository->getByQuery($query);
@@ -142,7 +142,7 @@ class UserPropertiesRepository
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)]);
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null, $this->repository->getExecutor())]);
 
         $this->repository->deleteByQuery($deleteQuery);
     }
@@ -174,7 +174,7 @@ class UserPropertiesRepository
 
         $deleteQuery = DeleteQuery::getInstance()
             ->table($this->mapper->getTable())
-            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null)])
+            ->where("$userIdField = :userid", ['userid' => $userIdMapping->getUpdateFunctionValue($userid, null, $this->repository->getExecutor())])
             ->where("$nameField = :name", ['name' => $propertyName]);
 
         if ($value !== null) {
