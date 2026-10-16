@@ -74,6 +74,14 @@ names a case (or reads `->name`) has to be updated.
 
 Not a plain change of casing: `UserField::uUpdated_at` is now `UserField::UpdatedAt`.
 
+## Bug Fixes
+
+- `UserPropertiesRepository` converted the user id for its queries without the database at
+  hand (`getUpdateFunctionValue($userid, null)`), so a UUID user id was always written as
+  `X'…'`. With byjg/micro-orm 7.0, which writes a UUID in the syntax of each database, the
+  repository now passes its executor, and the queries work on PostgreSQL (a native `uuid`)
+  and SQL Server too.
+
 ## Migration from 6.x
 
 1. Update the composer constraint:
