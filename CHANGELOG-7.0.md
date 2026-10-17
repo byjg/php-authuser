@@ -6,13 +6,13 @@
 ## Overview
 
 Version 7.0 upgrades the underlying persistence stack to `byjg/micro-orm` 7.0 and
-`byjg/anydataset-db` 7.0. The AuthUser public API is **unchanged**: `UsersService`,
-`UsersRepository`, `UserPropertiesRepository`, models, enums and mapper interfaces keep the exact
-same signatures as 6.x.
+`byjg/anydataset-db` 7.0. `UsersService`, `UsersRepository`, `UserPropertiesRepository`, models
+and mapper interfaces keep the same signatures as 6.x; the only API change is the renaming of the
+`UserField` enum cases to PascalCase (see below).
 
 Since 6.0 the library was already wired exclusively through `DatabaseExecutor` — the API that
-became mandatory in anydataset-db 7.0 — so no library code had to change beyond the dependency
-constraints.
+became mandatory in anydataset-db 7.0 — so apart from that rename, the library code changed only
+to fix the user id conversion in `UserPropertiesRepository` (see Bug Fixes).
 
 ## Breaking Changes
 
@@ -137,3 +137,4 @@ While 7.0 is unreleased these resolve to `7.0.x-dev` from each component's
 ## Housekeeping
 
 - `phpunit.xml.dist` renamed to `phpunit.xml`.
+- The root `example.php` script was removed; see the [Examples](docs/examples.md) page.

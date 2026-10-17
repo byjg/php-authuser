@@ -33,9 +33,7 @@ This class can persist user data into session (or file, memcache, etc.) between 
 - [Mappers](docs/mappers.md)
 - [Examples](docs/examples.md)
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
 composer require byjg/authuser
@@ -92,14 +90,6 @@ See [Getting Started](docs/getting-started.md) for a complete introduction and [
 - **Field Mappers** - Transform data during read/write. See [Mappers](docs/mappers.md)
 - **Extensible Model** - Add custom fields easily. See [Custom Fields](docs/custom-fields.md)
 
-## Running Tests
-
-Because this project uses PHP Session you need to run the unit test the following manner:
-
-```bash
-./vendor/bin/phpunit --stderr
-```
-
 ## Architecture
 
 ```text
@@ -128,6 +118,14 @@ Because this project uses PHP Session you need to run the unit test the followin
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/byjg/php-authuser/blob/master/LICENSE) file for details.
+
+## Running Tests
+
+Because this project uses PHP Session you need to run the unit test the following manner:
+
+```bash
+./vendor/bin/phpunit --stderr
+```
 
 ----
 [Open source ByJG](https://opensource.byjg.com)

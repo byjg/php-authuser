@@ -41,11 +41,11 @@ class CustomUserModel extends UserModel
         string $email = "",
         string $username = "",
         string $password = "",
-        string $admin = "no",
+        string $role = "",
         string $phone = "",
         string $department = ""
     ) {
-        parent::__construct($name, $email, $username, $password, $admin);
+        parent::__construct($name, $email, $username, $password, $role);
         $this->phone = $phone;
         $this->department = $department;
     }
@@ -186,6 +186,7 @@ You can mark fields as read-only to prevent updates using the `ReadOnlyMapper`:
 
 ```php
 <?php
+use ByJG\MicroOrm\MapperFunctions\NowUtcMapper;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 
@@ -212,38 +213,20 @@ You can transform fields during read/write operations using mappers. See [Mapper
 
 ### JSON Fields
 
-For storing JSON data in custom fields:
+For storing JSON data in custom fields, use a pair of mappers such as the `JsonEncodeMapper` / `JsonDecodeMapper` shown in [Mappers](mappers.md#json-columns-example):
 
 ```php
 <?php
-use ByJG\MicroOrm\FieldMapping\FieldHandler;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 
 class CustomUserModel extends UserModel
 {
     #[FieldAttribute(
         fieldName: 'metadata',
-        updateFunction: [FieldHandler::class, 'toJson'],
-        selectFunction: [FieldHandler::class, 'fromJson']
+        updateFunction: JsonEncodeMapper::class,
+        selectFunction: JsonDecodeMapper::class
     )]
     protected ?array $metadata = null;
-}
-```
-
-### Date/Time Fields
-
-```php
-<?php
-use ByJG\MicroOrm\FieldMapping\FieldHandler;
-use ByJG\MicroOrm\Attributes\FieldAttribute;
-
-class CustomUserModel extends UserModel
-{
-    #[FieldAttribute(
-        fieldName: 'created_at',
-        selectFunction: [FieldHandler::class, 'toDate']
-    )]
-    protected ?\DateTime $createdAt = null;
 }
 ```
 

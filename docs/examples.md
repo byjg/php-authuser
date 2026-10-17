@@ -305,6 +305,8 @@ function jsonResponse($data, $statusCode = 200)
 // api/login.php
 require_once '../api-config.php';
 
+use ByJG\Authenticate\Exception\UserNotFoundException;
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['error' => 'Method not allowed'], 405);
 }
@@ -324,13 +326,10 @@ try {
             'last_ip' => $_SERVER['REMOTE_ADDR']
         ],
         [
+            'login' => $username,
             'ip' => $_SERVER['REMOTE_ADDR']
         ]
     );
-
-    if ($userToken === null) {
-        jsonResponse(['error' => 'Invalid credentials'], 401);
-    }
 
     jsonResponse([
         'success' => true,
@@ -338,6 +337,8 @@ try {
         'expires_in' => 3600
     ]);
 
+} catch (UserNotFoundException $e) {
+    jsonResponse(['error' => 'Invalid credentials'], 401);
 } catch (Exception $e) {
     jsonResponse(['error' => $e->getMessage()], 500);
 }
@@ -363,7 +364,7 @@ $token = $matches[1];
 try {
     // Decode token to get username
     $jwtData = $jwtWrapper->extractData($token);
-    $username = $jwtData->data['login'] ?? null;
+    $username = $jwtData->data->login ?? null;
 
     if (!$username) {
         jsonResponse(['error' => 'Invalid token'], 401);
@@ -638,7 +639,7 @@ $refreshToken = $matches[1];
 try {
     // Decode refresh token
     $jwtData = $refreshWrapper->extractData($refreshToken);
-    $userId = $jwtData->data['userid'] ?? null;
+    $userId = $jwtData->data->userid ?? null;
 
     if (!$userId) {
         jsonResponse(['error' => 'Invalid refresh token'], 401);
@@ -652,7 +653,7 @@ try {
     }
 
     // Verify refresh token is valid
-    $userToken = $users->isValidToken($user->getEmail(), $refreshWrapper, $refreshToken);
+    $userToken = $users->isValidToken($users->getLoginValue($user), $refreshWrapper, $refreshToken);
 
     if ($userToken === null) {
         jsonResponse(['error' => 'Invalid or expired refresh token'], 401);

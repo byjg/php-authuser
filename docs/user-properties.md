@@ -228,14 +228,10 @@ Properties are stored in a separate table (default: `users_property`):
 
 | Column     | Description              |
 |------------|--------------------------|
-| customid   | Property ID              |
+| id         | Property ID              |
 | userid     | User ID (foreign key)    |
 | name       | Property name            |
 | value      | Property value           |
-
-### XML/AnyDataset Storage
-
-Properties are stored as fields within each user's record, with arrays used for multiple values.
 
 ## Next Steps
 

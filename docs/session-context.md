@@ -125,9 +125,11 @@ $cart = $sessionContext->getSessionData('shopping_cart');
 $lastPage = $sessionContext->getSessionData('last_page');
 ```
 
-Returns `false` if:
-- The user is not authenticated
-- The key doesn't exist
+Returns `false` if the key doesn't exist.
+
+:::warning Authentication Required
+`getSessionData()` also requires an authenticated user and throws a `NotAuthenticatedException` otherwise.
+:::
 
 ### Session Data Lifecycle
 

@@ -83,12 +83,14 @@ $user = $users->getByUsername('johndoe');
 
 ### Get User by Login Field
 
-The login field is determined by the `UsersService` constructor (either email or username):
+The login field is determined by the `UsersService` constructor (email, username, or `LoginField::EmailOrUsername` for either):
 
 ```php
 <?php
 $user = $users->getByLogin('johndoe');
 ```
+
+`getLoginField()` returns the configured `LoginField`, and `getLoginValue($user)` returns the value of that field for a given user (the username first, then the email, for `LoginField::EmailOrUsername`).
 
 ### Using Custom Queries
 
@@ -105,10 +107,12 @@ $usersRepo = $users->getUsersRepository();
 $query = Query::getInstance()
     ->table('users')
     ->where('email = :email', ['email' => 'john@example.com'])
-    ->where('admin = :admin', ['admin' => 'yes']);
+    ->where('role = :role', ['role' => 'admin']);
 
 $results = $usersRepo->getRepository()->getByQuery($query);
 ```
+
+`UsersRepository` also provides `getAll()` and `getByField($field, $value)`. These return the raw models: unlike the `UsersService` methods, they do not load the user properties.
 
 ## Updating Users
 
