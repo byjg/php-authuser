@@ -46,6 +46,16 @@ class SessionContextTest extends TestCase
         $this->assertFalse($this->object->isAuthenticated());
     }
 
+    public function testRegisterLoginKeepsTheData(): void
+    {
+        $this->object->registerLogin(10, ['property1' => 'value1']);
+
+        $this->assertEquals('value1', $this->object->getSessionData('property1'));
+        $this->assertFalse($this->object->getSessionData('property2'));
+
+        $this->object->registerLogout();
+    }
+
     public function testUserContextNotActiveSession(): void
     {
         $this->expectException(\ByJG\Authenticate\Exception\NotAuthenticatedException::class);

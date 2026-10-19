@@ -67,7 +67,8 @@ $sessionContext = new SessionContext($cachePool, $uniquePrefix);
 // After validating user credentials
 $sessionContext->registerLogin($userId);
 ```
-Call `setSessionData()` after `registerLogin()` if you need to store extra session metadata (e.g., IP address, login time).
+To store extra session metadata (e.g., IP address, login time), pass it as the second argument,
+`registerLogin($userId, ['ip' => $ip])`, or call `setSessionData()` after `registerLogin()`.
 
 ### Check Authentication Status
 

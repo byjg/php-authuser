@@ -81,6 +81,8 @@ Not a plain change of casing: `UserField::uUpdated_at` is now `UserField::Update
   `X'…'`. With byjg/micro-orm 7.0, which writes a UUID in the syntax of each database, the
   repository now passes its executor, and the queries work on PostgreSQL (a native `uuid`)
   and SQL Server too.
+- `SessionContext::registerLogin($userId, $data)` lost `$data`: it stored the cache item in
+  place of the array, so `getSessionData()` never found the values passed at login.
 
 ## Migration from 6.x
 
