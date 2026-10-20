@@ -75,23 +75,23 @@ Version 6.0 represents a major architectural overhaul of the php-authuser librar
 | Component | Before (5.x) | After (6.0) | Description |
 |-----------|--------------|-------------|-------------|
 | **PHP Version** | `>=8.1 <8.4` | `>=8.3 <8.6` | Minimum PHP version raised to 8.3 |
-| **Dependencies** | `byjg/micro-orm: ^5.0`<br>`byjg/cache-engine: ^5.0` | `byjg/micro-orm: ^6.0`<br>`byjg/cache-engine: ^6.0` | Updated to version 6.x of core dependencies |
+| **Dependencies** | `byjg/micro-orm: ^5.0`<br/>`byjg/cache-engine: ^5.0` | `byjg/micro-orm: ^6.0`<br/>`byjg/cache-engine: ^6.0` | Updated to version 6.x of core dependencies |
 | **Main Class** | `UsersDBDataset` | `UsersService` + `UsersRepository` | Replaced dataset pattern with repository/service pattern |
-| **Legacy Classes** | `UsersAnyDataset`<br>`UsersDBDataset`<br>`UsersBase` | **Removed** | Migrate to `UsersRepository` + `UsersService` |
-| **Definition Classes** | `UserDefinition`<br>`UserPropertiesDefinition` | **Removed** | Use ORM attributes on model classes instead |
+| **Legacy Classes** | `UsersAnyDataset`<br/>`UsersDBDataset`<br/>`UsersBase` | **Removed** | Migrate to `UsersRepository` + `UsersService` |
+| **Definition Classes** | `UserDefinition`<br/>`UserPropertiesDefinition` | **Removed** | Use ORM attributes on model classes instead |
 | **Field Reference** | String constants | `LoginField` enum | Use `LoginField::Username` or `LoginField::Email` |
 | **Type Hints** | `HexUuidLiteral` | `Literal` | Generic `Literal` class replaces `HexUuidLiteral` |
-| **User Field: admin** | `$user->getAdmin()`<br>`$user->setAdmin('yes')` | `$user->getRole()`<br>`$user->setRole('admin')`<br>`$user->hasRole('admin')` | Admin is now a role value, not a separate field |
-| **User Field: created** | `$user->getCreated()`<br>`$user->setCreated($date)` | `$user->getCreatedAt()`<br>Auto-managed | Renamed to `createdAt` and auto-managed by ORM |
+| **User Field: admin** | `$user->getAdmin()`<br/>`$user->setAdmin('yes')` | `$user->getRole()`<br/>`$user->setRole('admin')`<br/>`$user->hasRole('admin')` | Admin is now a role value, not a separate field |
+| **User Field: created** | `$user->getCreated()`<br/>`$user->setCreated($date)` | `$user->getCreatedAt()`<br/>Auto-managed | Renamed to `createdAt` and auto-managed by ORM |
 | **Timestamp Fields** | Manual `created` field | `createdAt`, `updatedAt`, `deletedAt` traits | Automatic timestamp management |
-| **User Retrieval** | `getById($id)`<br>`getByEmail($email)`<br>`getByUsername($username)`<br>`getByLoginField($field, $value)` | `get($field, $value)` | Consolidated into single `get()` method |
+| **User Retrieval** | `getById($id)`<br/>`getByEmail($email)`<br/>`getByUsername($username)`<br/>`getByLoginField($field, $value)` | `get($field, $value)` | Consolidated into single `get()` method |
 | **isAdmin() Method** | `$usersService->isAdmin($user)` | `$user->hasRole('admin')` | Moved from service to model as `hasRole()` |
 | **Token Returns** | String or array | `UserToken` object | Token methods now return `UserToken` instances |
 | **ID Generator** | `UniqueIdGeneratorInterface` | `MapperFunctionInterface` | Use mapper functions for custom ID generation |
 | **Constructor (UsersDBDataset)** | `DbDriverInterface\|DatabaseExecutor` | N/A - Use `UsersRepository` | Parameter order changed in legacy class before removal |
 | **Interfaces** | `UsersInterface` | `UsersServiceInterface` | Interface renamed and restructured |
 | **Exceptions** | `NotImplementedException` | **Removed** | Standard exceptions used instead |
-| **Entity Processors** | `ClosureEntityProcessor`<br>`PassThroughEntityProcessor` | **Removed** | Use mapper functions instead |
+| **Entity Processors** | `ClosureEntityProcessor`<br/>`PassThroughEntityProcessor` | **Removed** | Use mapper functions instead |
 
 ## Upgrade Path from 5.x to 6.x
 
