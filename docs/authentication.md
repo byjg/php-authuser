@@ -22,7 +22,7 @@ if ($user !== null) {
 ```
 
 :::tip Login Field
-The `isValidUser()` method uses the login field configured in your `UsersService` constructor. Pass either `LoginField::Email` or `LoginField::Username` when creating the service.
+The `isValidUser()` method uses the login field configured in your `UsersService` constructor. Pass `LoginField::Email`, `LoginField::Username` or `LoginField::EmailOrUsername` when creating the service.
 :::
 `LoginField` lives in the `ByJG\Authenticate\Enum` namespace.
 
@@ -75,7 +75,7 @@ if ($userToken !== null) {
 }
 ```
 
-Need to include standard user columns (name, email, etc.) automatically? Pass the optional seventh argument with `User` enum values or strings. See [JWT Tokens](jwt-tokens.md#copy-user-fields-automatically) for details.
+Need to include standard user columns (name, email, etc.) automatically? Pass the optional seventh argument with `UserField` enum values or strings. See [JWT Tokens](jwt-tokens.md#copy-user-fields-automatically) for details.
 
 :::tip UserToken Return Type
 Both `createAuthToken()` and `createInsecureAuthToken()` return a `UserToken` object with three properties:

@@ -73,9 +73,9 @@ class SessionContext implements UserContextInterface
         $item->set($userId);
         $this->session->saveDeferred($item);
 
-        $data = $this->session->getItem("user.$this->key.data");
-        $data->set($data);
-        $this->session->saveDeferred($data);
+        $dataItem = $this->session->getItem("user.$this->key.data");
+        $dataItem->set($data);
+        $this->session->saveDeferred($dataItem);
 
         $this->session->commit();
     }

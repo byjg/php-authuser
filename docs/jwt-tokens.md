@@ -45,22 +45,27 @@ Use your API hostname (or any issuer string you want to validate) as the first a
 
 ```php
 <?php
-$userToken = $users->createAuthToken(
-    'johndoe',           // Login (username or email)
-    'password123',       // Password
-    $jwtWrapper,         // JWT wrapper instance
-    3600                 // Expires in 1 hour (seconds)
-);
+use ByJG\Authenticate\Exception\UserNotFoundException;
 
-if ($userToken !== null) {
+try {
+    $userToken = $users->createAuthToken(
+        'johndoe',           // Login (username or email)
+        'password123',       // Password
+        $jwtWrapper,         // JWT wrapper instance
+        3600                 // Expires in 1 hour (seconds)
+    );
+
     // Return token to client
     echo json_encode(['token' => $userToken->token]);
-} else {
+} catch (UserNotFoundException $e) {
     // Authentication failed
     http_response_code(401);
     echo json_encode(['error' => 'Invalid credentials']);
 }
 ```
+
+`createAuthToken()` throws `UserNotFoundException` when the login or the password is invalid.
+`createInsecureAuthToken()` throws the same exception when the login does not exist.
 
 ### Token with Custom Data
 
@@ -106,7 +111,7 @@ $userToken = $users->createAuthToken(
 
 ### Copy User Fields Automatically
 
-Instead of manually adding every field to `$updateTokenInfo`, pass a seventh argument with an array of `User` enum values or string property names. The service will read the corresponding getters (or custom properties) from the `UserModel` and copy them into the token payload.
+Instead of manually adding every field to `$updateTokenInfo`, pass a seventh argument with an array of `UserField` enum values or string property names. The service will read the corresponding getters (or custom properties) from the `UserModel` and copy them into the token payload.
 
 ```php
 <?php
@@ -124,6 +129,8 @@ $userToken = $users->createAuthToken(
 ```
 
 In the example above, the token payload receives the user's `name`, `email`, and the value returned by `$user->get('department')` automatically.
+
+When the argument is omitted, it defaults to `[UserField::Userid, UserField::Name, UserField::Role]`. An entry written as `'field' => 'default'` uses `'default'` when the user has no value for that field.
 
 ### Creating Tokens Without Password Validation
 
@@ -271,6 +278,7 @@ try {
             'last_ip' => $_SERVER['REMOTE_ADDR']
         ],
         [
+            'login' => $input['username'],
             'ip' => $_SERVER['REMOTE_ADDR'],
             'user_agent' => $_SERVER['HTTP_USER_AGENT']
         ]
@@ -317,7 +325,7 @@ $token = $matches[1];
 // Extract username from token (you need to decode it first)
 try {
     $jwtData = $jwtWrapper->extractData($token);
-    $username = $jwtData->data['login'] ?? null;
+    $username = $jwtData->data->login ?? null;
 
     if (!$username) {
         throw new Exception('Invalid token structure');
@@ -363,7 +371,7 @@ if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
 
     try {
         $jwtData = $jwtWrapper->extractData($token);
-        $username = $jwtData->data['login'] ?? null;
+        $username = $jwtData->data->login ?? null;
 
         $user = $users->getByLogin($username);
         if ($user !== null) {

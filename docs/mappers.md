@@ -51,11 +51,12 @@ This package ships with a few mapper utilities that complement the ones provided
     use ByJG\Authenticate\MapperFunctions\UserIdGeneratorMapper;
     use ByJG\Authenticate\Model\UserModel;
     use ByJG\MicroOrm\Attributes\FieldAttribute;
+    use ByJG\MicroOrm\Literal\Literal;
 
     class UsernameAsIdModel extends UserModel
     {
         #[FieldAttribute(primaryKey: true, updateFunction: UserIdGeneratorMapper::class)]
-        protected string|int|null $userid = null;
+        protected string|int|Literal|null $userid = null;
     }
     ```
 - **ClosureMapper** – wraps anonymous functions so they implement `MapperFunctionInterface`. This is handy when you need a small transformation in place.
@@ -154,24 +155,21 @@ protected array $preferences = [];
 
 ## Entity Processors
 
-Where mappers transform *fields*, entity processors transform the entire model before it is inserted or updated. They implement `EntityProcessorInterface` and can be attached through `TableAttribute` or by calling `setBeforeInsert()` / `setBeforeUpdate()` on the repository.
+Where mappers transform *fields*, entity processors transform the entire row before it is inserted or updated. They implement `EntityProcessorInterface` and can be attached through `TableAttribute` or by calling `setBeforeInsert()` / `setBeforeUpdate()` on the repository.
+
+`process()` receives the row as an array keyed by database column name and must return the (modified) array.
 
 ```php
 <?php
 namespace App\Processor;
 
-use ByJG\Authenticate\Model\UserModel;
 use ByJG\MicroOrm\Interface\EntityProcessorInterface;
 
 class UsernameValidationProcessor implements EntityProcessorInterface
 {
-    public function process(mixed $instance): void
+    public function process(array $instance): array
     {
-        if (!$instance instanceof UserModel) {
-            return;
-        }
-
-        $username = (string) $instance->getUsername();
+        $username = (string) ($instance['username'] ?? '');
         if (strlen($username) < 3) {
             throw new \InvalidArgumentException('Username must have at least 3 characters.');
         }
@@ -179,6 +177,8 @@ class UsernameValidationProcessor implements EntityProcessorInterface
         if (!preg_match('/^[A-Za-z0-9_]+$/', $username)) {
             throw new \InvalidArgumentException('Username can only contain letters, numbers, and underscores.');
         }
+
+        return $instance;
     }
 }
 
@@ -188,12 +188,12 @@ class AuditProcessor implements EntityProcessorInterface
     {
     }
 
-    public function process(mixed $instance): void
+    public function process(array $instance): array
     {
-        if ($instance instanceof UserModel) {
-            $instance->set('modified_by', (string) $this->actorId);
-            $instance->set('modified_at', date('Y-m-d H:i:s'));
-        }
+        // Assumes the users table has the modified_by and modified_at columns
+        $instance['modified_by'] = $this->actorId;
+        $instance['modified_at'] = date('Y-m-d H:i:s');
+        return $instance;
     }
 }
 ```

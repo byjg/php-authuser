@@ -10,8 +10,8 @@ enum UserField: string
     case Email = 'email';
     case Username = 'username';
     case Password = 'password';
-    case Created_at = 'created_at';
-    case uUpdated_at = 'updated_at';
-    case Deleted_at = 'deleted_at';
+    case CreatedAt = 'created_at';
+    case UpdatedAt = 'updated_at';
+    case DeletedAt = 'deleted_at';
     case Role = 'role';
 }

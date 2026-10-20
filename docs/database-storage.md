@@ -315,7 +315,7 @@ $propsRepo = new UserPropertiesRepository($db, CustomPropertiesModel::class);
 
 ## Login Field Configuration
 
-You can configure whether users log in with their email or username:
+You can configure whether users log in with their email, their username, or either of them:
 
 ### Login with Email
 
@@ -332,6 +332,15 @@ $users = new UsersService($usersRepo, $propsRepo, LoginField::Email);
 <?php
 $users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
 ```
+
+### Login with Username or Email
+
+```php
+<?php
+$users = new UsersService($usersRepo, $propsRepo, LoginField::EmailOrUsername);
+```
+
+The login is looked up as a username first and, if no user is found, as an email.
 
 :::tip Login Field
 The login field affects methods like `isValidUser()` and `getByLogin()`. They will use the configured field for authentication.

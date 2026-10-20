@@ -67,7 +67,8 @@ $sessionContext = new SessionContext($cachePool, $uniquePrefix);
 // After validating user credentials
 $sessionContext->registerLogin($userId);
 ```
-Call `setSessionData()` after `registerLogin()` if you need to store extra session metadata (e.g., IP address, login time).
+To store extra session metadata (e.g., IP address, login time), pass it as the second argument,
+`registerLogin($userId, ['ip' => $ip])`, or call `setSessionData()` after `registerLogin()`.
 
 ### Check Authentication Status
 
@@ -125,9 +126,11 @@ $cart = $sessionContext->getSessionData('shopping_cart');
 $lastPage = $sessionContext->getSessionData('last_page');
 ```
 
-Returns `false` if:
-- The user is not authenticated
-- The key doesn't exist
+Returns `false` if the key doesn't exist.
+
+:::warning Authentication Required
+`getSessionData()` also requires an authenticated user and throws a `NotAuthenticatedException` otherwise.
+:::
 
 ### Session Data Lifecycle
 
