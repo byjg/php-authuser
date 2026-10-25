@@ -5,7 +5,7 @@ tags: [php, authentication]
 
 # User Authentication
 
-A simple and customizable library for user authentication in PHP applications using a clean repository and service layer architecture.
+Users, passwords, tokens and per-user properties behind one service, on any database, without adopting a framework.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-authuser/actions/workflows/phpunit.yml)
@@ -17,6 +17,28 @@ A simple and customizable library for user authentication in PHP applications us
 
 The main purpose is to handle all complexity of user validation, authentication, properties management, and access tokens, abstracting the database layer.
 This class can persist user data into session (or file, memcache, etc.) between requests.
+
+## Why
+
+Authentication is the same in every application: store users and hashed passwords, validate
+a login, issue a token, keep a few extra attributes per user. Frameworks bundle it with
+everything else; doing it by hand means getting password hashing and tokens right yourself.
+
+AuthUser is that layer on its own, built on a repository and a service:
+
+```php
+$users = new UsersService($usersRepo, $propsRepo, LoginField::Username);
+
+$user = $users->addUser('John Doe', 'johndoe', 'john@example.com', 'SecurePass123');
+$users->addProperty($user->getUserid(), 'department', 'Engineering');
+$engineers = $users->getUsersByProperty('department', 'Engineering');
+```
+
+- **Properties without schema changes.** Any number of key/value attributes per user, and
+  queries by them, without adding columns.
+- **Fits your schema.** Mappers and custom fields adapt it to an existing users table.
+- **Sessions or JWT.** The authenticated user is kept in a session context, or issued as a
+  JWT token.
 
 ## Documentation
 
