@@ -1,5 +1,6 @@
 ---
 sidebar_key: authuser
+sidebar_category: infrastructure
 tags: [php, authentication]
 ---
 
