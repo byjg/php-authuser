@@ -6,7 +6,8 @@ use ByJG\AnyDataset\Db\DatabaseExecutor;
 use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
 
 /**
- * Mapper function to hash passwords using SHA1
+ * Mapper function to hash passwords using SHA1 (unsalted). PasswordBcryptMapper, the default,
+ * also reads these hashes and upgrades them; select this mapper only to keep SHA-1.
  */
 class PasswordSha1Mapper implements PasswordMapperInterface
 {
@@ -31,5 +32,17 @@ class PasswordSha1Mapper implements PasswordMapperInterface
     public function isPasswordEncrypted(mixed $password): bool
     {
         return (is_string($password) && strlen($password) === 40);
+    }
+
+    #[\Override]
+    public function verifyPassword(string $password, string $hash): bool
+    {
+        return hash_equals(strtolower($hash), sha1($password));
+    }
+
+    #[\Override]
+    public function needsRehash(string $hash): bool
+    {
+        return false;
     }
 }

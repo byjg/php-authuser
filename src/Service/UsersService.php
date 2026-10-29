@@ -22,6 +22,7 @@ use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Query;
 use Exception;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Service for User operations - Business Logic Layer
@@ -348,18 +349,59 @@ class UsersService implements UsersServiceInterface
             return null;
         }
 
-        // Hash the password for comparison using the model's configured password mapper
+        // The model's password mapper verifies the password against the stored hash
+        if (!$this->passwordMapper()->verifyPassword($password, (string)$user->getPassword())) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\Override]
+    public function rehashPasswordIfNeeded(UserModel $user, string $password): bool
+    {
+        $mapper = $this->passwordMapper();
+        $oldHash = (string)$user->getPassword();
+        if (!$mapper->needsRehash($oldHash)) {
+            return false;
+        }
+
+        // Set as a hash: an existing password is not checked against the password definition
+        $user->setPassword((string)$mapper->processedValue($password, $user));
+        try {
+            $this->usersRepository->save($user);
+            $stored = $this->usersRepository->getById($user->getUserid() ?? '')?->getPassword();
+            if ($mapper->verifyPassword($password, (string)$stored)) {
+                return true;
+            }
+        } catch (Throwable) {
+            // A column too short for the new hash, in strict mode: nothing was written
+        }
+
+        // Not stored, or stored truncated (a column too short, without strict mode): keep the old hash
+        $user->setPassword($oldHash);
+        $this->usersRepository->save($user);
+        return false;
+    }
+
+    /**
+     * The password mapper of the user model (the constructor checks it is a PasswordMapperInterface)
+     */
+    protected function passwordMapper(): PasswordMapperInterface
+    {
         $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap(UserField::Password->value);
         if ($passwordFieldMapping === null) {
             throw new InvalidArgumentException('Password field mapping not found');
         }
-        $hashedPassword = $passwordFieldMapping->getUpdateFunctionValue($password, null);
-
-        if ($user->getPassword() === $hashedPassword) {
-            return $user;
+        $mapper = $passwordFieldMapping->getUpdateFunction();
+        if (is_string($mapper)) {
+            $mapper = new $mapper();
         }
-
-        return null;
+        /** @var PasswordMapperInterface $mapper */
+        return $mapper;
     }
 
     /**
@@ -638,6 +680,7 @@ class UsersService implements UsersServiceInterface
         if (is_null($user)) {
             throw new UserNotFoundException('User not found');
         }
+        $this->rehashPasswordIfNeeded($user, $password);
 
         return $this->createInsecureAuthToken(
             $user,

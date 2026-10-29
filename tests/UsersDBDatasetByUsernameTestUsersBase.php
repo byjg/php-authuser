@@ -58,7 +58,8 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->assertEquals(1, $user->getUserid());
         $this->assertEquals('User 1', $user->getName());
         $this->assertEquals('user1', $user->getUsername());
-        $this->assertEquals('a63d4b132a9a1d3430f9ae507825f572449e0d17', $user->getPassword());
+        // UserModel hashes with bcrypt by default
+        $this->assertSame(PASSWORD_BCRYPT, password_get_info((string)$user->getPassword())['algo']);
         $this->assertEquals('', $user->getRole());
         $this->assertNotNull($user->getCreatedAt());
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $user->getCreatedAt());
@@ -96,7 +97,7 @@ class UsersDBDatasetByUsernameTestUsersBase extends TestUsersBase
         $this->assertEquals('John Doe', $user->getName());
         $this->assertEquals('john', $user->getUsername());
         $this->assertEquals('johndoe@gmail.com', $user->getEmail());
-        $this->assertEquals('91dfd9ddb4198affc5c194cd8ce6d338fde470e2', $user->getPassword());
+        $this->assertSame(PASSWORD_BCRYPT, password_get_info((string)$user->getPassword())['algo']);
         $this->assertEquals('', $user->getRole());
         $this->assertNotNull($user->getCreatedAt());
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $user->getCreatedAt());

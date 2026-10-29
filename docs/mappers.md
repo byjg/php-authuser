@@ -44,7 +44,13 @@ class CustomUserModel extends UserModel
 
 This package ships with a few mapper utilities that complement the ones provided by Micro ORM:
 
-- **PasswordSha1Mapper** – hashes passwords using SHA-1 (the default on `UserModel`). Replace it with your own mapper to change the hashing algorithm.
+- **PasswordBcryptMapper** – hashes passwords with bcrypt (the default on `UserModel`). It also verifies the SHA-1 hashes of `PasswordSha1Mapper`, which are upgraded to bcrypt at the next login.
+- **PasswordSha1Mapper** – hashes passwords with unsalted SHA-1 (the default before 7.0).
+
+  A password mapper implements `PasswordMapperInterface`: `processedValue()` hashes a plain password,
+  `isPasswordEncrypted()` recognizes a stored hash, `verifyPassword()` checks a password against a hash,
+  and `needsRehash()` tells `UsersService::rehashPasswordIfNeeded()` (called by `createAuthToken()`)
+  to replace a hash at a successful login.
 - **UserIdGeneratorMapper** – derives a user ID from the username when the primary key is empty.
     ```php
     <?php

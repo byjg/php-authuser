@@ -16,6 +16,28 @@ to fix the user id conversion in `UserPropertiesRepository` (see Bug Fixes).
 
 ## Breaking Changes
 
+### Passwords are hashed with bcrypt
+
+`UserModel` hashes passwords with the new `PasswordBcryptMapper` instead of `PasswordSha1Mapper`
+(unsalted SHA-1).
+
+- **Widen the password column** to `VARCHAR(255)`: a bcrypt hash has 60 characters, and a new user
+  or a changed password does not fit in the `CHAR(40)` of a SHA-1 column.
+- **Existing users keep logging in.** The bcrypt mapper verifies a 40-character SHA-1 hash too, and
+  the new `UsersService::rehashPasswordIfNeeded()` replaces it with a bcrypt hash at that user's next
+  login: `createAuthToken()` calls it; a login of your own calls it after `isValidUser()`, which only
+  checks the password. It reads the new hash back and keeps the old one when the column is too short
+  (rejected or truncated), so nobody is locked out before the column is widened.
+- **To keep SHA-1**, select `PasswordSha1Mapper` on the password field of your user model:
+  `#[FieldAttribute(updateFunction: PasswordSha1Mapper::class)]`.
+- `UsersServiceInterface` has the new `rehashPasswordIfNeeded()`.
+- **Custom password mappers** implement two new methods of `PasswordMapperInterface`:
+  `verifyPassword(string $password, string $hash): bool` and `needsRehash(string $hash): bool`.
+  `isValidUser()` uses them instead of comparing the hash of the password with `===`; a SHA-1 or
+  MD5 mapper verifies with `hash_equals()` and returns `false` from `needsRehash()`.
+- `UserModel::setPassword()` asks the password mapper whether a value is already a hash (it skipped
+  the password definition for any 40-character value).
+
 ### Dependencies
 
 | Package | 6.x | 7.0 |
