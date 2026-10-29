@@ -27,14 +27,20 @@ $userModel->withPasswordDefinition($passwordDefinition);
 $userModel->setPassword('WeakPwd');  // Throws InvalidArgumentException
 ```
 
-### Applying Rules Through UsersService
+### Applying Rules Through UsersRepository
 
-Instead of attaching the definition to every `UserModel` manually, pass it to the `UsersService` constructor. Every entity created or loaded through the service (e.g., via `addUser()`, `getUsersEntity()` or `getById()`) receives the same `PasswordDefinition`, and the service sets a `PasswordDefinitionValidator` on the users repository: every save, also of a model created with `new` and saved through `UsersRepository` or MicroORM's `Repository` directly, checks a plain password against the definition and throws `InvalidArgumentException` when it does not match. A stored hash is never checked. A validator the user model declares (`#[TableAttribute(validator: ...)]`) still runs after it; one set later with `setValidator()` replaces it.
+Instead of attaching the definition to every `UserModel` manually, pass it to the `UsersRepository` constructor. The repository is where every user is written, so it owns the rules:
+
+- It sets a `PasswordDefinitionValidator` on its MicroORM `Repository`. Every save, through `UsersService`, `UsersRepository` or the MicroORM `Repository` directly, also of a model created with `new`, checks a plain password against the definition and throws `InvalidArgumentException` when it does not match. A stored hash is never checked.
+- A validator the user model declares (`#[TableAttribute(validator: ...)]`) still runs after it; one set later with `setValidator()` replaces it.
+- `UsersService` takes the definition from the repository (`getPasswordDefinition()`) and gives it to every entity it creates or loads (`addUser()`, `getUsersEntity()`, `getById()`, ...), so `setPassword()` rejects a weak password right away, before the save.
 
 ```php
 <?php
 use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Enum\LoginField;
+use ByJG\Authenticate\Model\UserModel;
+use ByJG\Authenticate\Repository\UsersRepository;
 use ByJG\Authenticate\Service\UsersService;
 
 $passwordDefinition = new PasswordDefinition([
@@ -42,11 +48,12 @@ $passwordDefinition = new PasswordDefinition([
     PasswordDefinition::REQUIRE_NUMBERS => 2,
 ]);
 
+$usersRepo = new UsersRepository($executor, UserModel::class, $passwordDefinition);
+
 $users = new UsersService(
     $usersRepo,
     $propsRepo,
-    LoginField::Username,
-    $passwordDefinition
+    LoginField::Username
 );
 
 $newUser = $users->addUser('Jane', 'jane', 'jane@example.com', 'StrongPassword123!');
@@ -64,7 +71,7 @@ $user->setPassword('AnotherStrongPass123!');
 $users->save($user);
 ```
 
-This approach guarantees that every model created or retrieved through the service (`getById()`, `getByEmail()`, `getUsersByProperty()`, etc.) automatically enforces your password policy.
+This approach guarantees that every model created or retrieved through the service (`getById()`, `getByEmail()`, `getUsersByProperty()`, etc.) enforces your password policy when its password is set, and the repository enforces it again on every save.
 
 ## Password Rules
 

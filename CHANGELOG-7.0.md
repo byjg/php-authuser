@@ -38,6 +38,28 @@ to fix the user id conversion in `UserPropertiesRepository` (see Bug Fixes).
 - `UserModel::setPassword()` asks the password mapper whether a value is already a hash (it skipped
   the password definition for any 40-character value).
 
+### The password definition belongs to UsersRepository
+
+`UsersService` no longer takes a `PasswordDefinition`; pass it to `UsersRepository`:
+
+```php
+<?php
+// 6.x
+$usersRepository = new UsersRepository($executor, UserModel::class);
+$service = new UsersService($usersRepository, $propertiesRepository, LoginField::Username, $passwordDefinition);
+
+// 7.0
+$usersRepository = new UsersRepository($executor, UserModel::class, $passwordDefinition);
+$service = new UsersService($usersRepository, $propertiesRepository, LoginField::Username);
+```
+
+A definition still passed to `UsersService` is silently ignored by PHP (an extra argument), so the
+rules would not apply: move it. The repository sets the new `PasswordDefinitionValidator` (a MicroORM
+`EntityValidatorInterface`) on its MicroORM `Repository`, so every save checks a plain password,
+also of a model created with `new` and saved without the service (see Bug Fixes). The service takes
+the definition from `UsersRepository::getPasswordDefinition()` for the users it creates or loads.
+With byjg/config, an injected `UsersRepository` binding receives a bound `PasswordDefinition` by type.
+
 ### Dependencies
 
 | Package | 6.x | 7.0 |
@@ -99,11 +121,10 @@ Not a plain change of casing: `UserField::uUpdated_at` is now `UserField::Update
 ## Bug Fixes
 
 - A model created with `new UserModel(...)` was saved without checking its password against the
-  service's `PasswordDefinition` (only users created or loaded by `UsersService` had it). The service
-  now sets the new `PasswordDefinitionValidator` (a MicroORM `EntityValidatorInterface`) on the users
-  repository, so every save, also through `UsersRepository` or MicroORM's `Repository`, checks a plain
-  password and throws `InvalidArgumentException` outside the rules; a stored hash is not checked.
-  A validator declared on the user model's `TableAttribute` still runs.
+  `PasswordDefinition` (only users created or loaded by `UsersService` had it). The users repository
+  now checks it on every save, also through `UsersRepository` or MicroORM's `Repository` without the
+  service: a plain password outside the rules throws `InvalidArgumentException`; a stored hash is
+  not checked. A validator declared on the user model's `TableAttribute` still runs.
 
 - `UserPropertiesRepository` converted the user id for its queries without the database at
   hand (`getUpdateFunctionValue($userid, null)`), so a UUID user id was always written as

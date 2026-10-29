@@ -41,7 +41,7 @@ $savedUser = $users->save($userModel);
 
 ### Creating Entities via UsersService
 
-When you need a new `UserModel` that already respects the mapper configuration (including any `PasswordDefinition` passed to the `UsersService` constructor), call `getUsersEntity()`:
+When you need a new `UserModel` that already respects the mapper configuration (including the `PasswordDefinition` passed to the `UsersRepository` constructor), call `getUsersEntity()`:
 
 ```php
 <?php

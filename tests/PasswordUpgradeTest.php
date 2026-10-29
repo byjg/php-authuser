@@ -19,7 +19,7 @@ use RuntimeException;
 use Tests\Fixture\UserModelWithValidator;
 
 /**
- * A UsersService with the default password definition, over a database created with SHA-1
+ * A users repository with the default password definition, over a database created with SHA-1
  * passwords, read by UserModel's default mapper (bcrypt)
  */
 class PasswordUpgradeTest extends TestCase
@@ -63,10 +63,9 @@ class PasswordUpgradeTest extends TestCase
         );
 
         $this->service = new UsersService(
-            new UsersRepository($this->executor, $userClass),
+            new UsersRepository($this->executor, $userClass, new PasswordDefinition()),
             new UserPropertiesRepository($this->executor, UserPropertiesModel::class),
-            LoginField::Username,
-            new PasswordDefinition()
+            LoginField::Username
         );
     }
 
@@ -199,15 +198,17 @@ class PasswordUpgradeTest extends TestCase
     }
 
     /**
-     * Saved without the service, through the users repository or MicroORM's: still checked
+     * A users repository with a definition and no UsersService: its save, and the save of its
+     * MicroORM repository, still check the password
      */
     public function testRepositorySaveChecksTheDefinition(): void
     {
         $this->createDatabase();
+        $repository = new UsersRepository($this->executor, UserModel::class, new PasswordDefinition());
 
-        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $this->service->getUsersRepository()->save($user));
+        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $repository->save($user));
         $this->executor->execute("delete from users where username = 'new'");
-        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $this->service->getUsersRepository()->getRepository()->save($user));
+        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $repository->getRepository()->save($user));
     }
 
     /**
