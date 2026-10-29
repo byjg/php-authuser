@@ -23,7 +23,7 @@ CREATE TABLE users
     name VARCHAR(50),
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
-    password CHAR(40) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT (now()),
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME,
@@ -60,7 +60,7 @@ CREATE TABLE users
     name VARCHAR(50),
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
-    password CHAR(40) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT (datetime('now')),
     updated_at DATETIME DEFAULT (datetime('now')),
     deleted_at DATETIME,
@@ -103,7 +103,7 @@ CREATE TABLE users
     name VARCHAR(50),
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
-    password CHAR(40) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now(),
     deleted_at TIMESTAMP,
@@ -154,7 +154,7 @@ CREATE TABLE users
     name VARCHAR(50),
     email VARCHAR(120),
     username VARCHAR(15) NOT NULL,
-    password CHAR(40) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     deleted_at DATETIME,
@@ -242,7 +242,7 @@ If you have an existing database with different table or column names, create a 
 ```php
 <?php
 use ByJG\Authenticate\Model\UserModel;
-use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
+use ByJG\Authenticate\MapperFunctions\PasswordBcryptMapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\MapperFunctions\ReadOnlyMapper;
@@ -264,7 +264,7 @@ class CustomUserModel extends UserModel
     #[FieldAttribute(fieldName: 'user_name')]
     protected ?string $username = null;
 
-    #[FieldAttribute(fieldName: 'password_hash', updateFunction: PasswordSha1Mapper::class)]
+    #[FieldAttribute(fieldName: 'password_hash', updateFunction: PasswordBcryptMapper::class)]
     protected ?string $password = null;
 
     #[FieldAttribute(fieldName: 'date_created', updateFunction: ReadOnlyMapper::class, insertFunction: NowUtcMapper::class)]

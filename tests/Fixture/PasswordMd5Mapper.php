@@ -32,4 +32,16 @@ class PasswordMd5Mapper implements PasswordMapperInterface
     {
         return is_string($password) &&  strlen($password) === 32 &&  ctype_xdigit($password);
     }
+
+    #[\Override]
+    public function verifyPassword(string $password, string $hash): bool
+    {
+        return hash_equals(strtolower($hash), md5($password));
+    }
+
+    #[\Override]
+    public function needsRehash(string $hash): bool
+    {
+        return false;
+    }
 }

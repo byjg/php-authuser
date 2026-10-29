@@ -348,18 +348,29 @@ class UsersService implements UsersServiceInterface
             return null;
         }
 
-        // Hash the password for comparison using the model's configured password mapper
+        // The model's password mapper verifies the password against the stored hash
         $passwordFieldMapping = $this->usersRepository->getMapper()->getFieldMap(UserField::Password->value);
         if ($passwordFieldMapping === null) {
             throw new InvalidArgumentException('Password field mapping not found');
         }
-        $hashedPassword = $passwordFieldMapping->getUpdateFunctionValue($password, null);
-
-        if ($user->getPassword() === $hashedPassword) {
-            return $user;
+        $mapper = $passwordFieldMapping->getUpdateFunction();
+        if (is_string($mapper)) {
+            $mapper = new $mapper();
+        }
+        /** @var PasswordMapperInterface $mapper The constructor checks it */
+        $hash = (string)$user->getPassword();
+        if (!$mapper->verifyPassword($password, $hash)) {
+            return null;
         }
 
-        return null;
+        // An older hash (SHA-1, or bcrypt with a lower cost) is replaced now that the password is known.
+        // The new hash is set directly: an existing password is not checked against the definition.
+        if ($mapper->needsRehash($hash)) {
+            $user->setPassword((string)$mapper->processedValue($password, $user));
+            $this->usersRepository->save($user);
+        }
+
+        return $user;
     }
 
     /**

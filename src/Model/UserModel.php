@@ -3,7 +3,7 @@
 namespace ByJG\Authenticate\Model;
 
 use ByJG\Authenticate\Definition\PasswordDefinition;
-use ByJG\Authenticate\MapperFunctions\PasswordSha1Mapper;
+use ByJG\Authenticate\MapperFunctions\PasswordBcryptMapper;
 use ByJG\MicroOrm\Attributes\FieldAttribute;
 use ByJG\MicroOrm\Attributes\TableAttribute;
 use ByJG\MicroOrm\Literal\Literal;
@@ -30,7 +30,7 @@ class UserModel
     #[FieldAttribute]
     protected ?string $username = null;
 
-    #[FieldAttribute(updateFunction: PasswordSha1Mapper::class)]
+    #[FieldAttribute(updateFunction: PasswordBcryptMapper::class)]
     protected ?string $password = null;
 
     #[FieldAttribute]
@@ -136,8 +136,8 @@ class UserModel
      */
     public function setPassword(?string $password): void
     {
-        // Password len equals to 40 means that the password is already encrypted with sha1
-        if (!empty($this->passwordDefinition) && !empty($password) && strlen($password) != 40) {
+        // A hash (read from the database) is not checked against the password definition
+        if (!empty($this->passwordDefinition) && !empty($password) && !$this->isPasswordHash($password)) {
             $match = $this->passwordDefinition->matchPassword($password);
             if ($match != PasswordDefinition::SUCCESS) {
                 throw new InvalidArgumentException("Password does not match the password definition [$match]");
@@ -145,6 +145,19 @@ class UserModel
         }
 
         $this->password = $password;
+    }
+
+    /**
+     * Whether the value is a hash, by the password mapper UsersService registers on the
+     * password definition; the default mapper when there is none.
+     */
+    protected function isPasswordHash(string $password): bool
+    {
+        $mapper = $this->passwordDefinition?->getPasswordMapper() ?? PasswordBcryptMapper::class;
+        if (is_string($mapper)) {
+            $mapper = new $mapper();
+        }
+        return $mapper->isPasswordEncrypted($password);
     }
 
     /**

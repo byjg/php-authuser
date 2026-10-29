@@ -470,7 +470,9 @@ abstract class TestUsersBase extends TestCase
         $this->assertEquals('User 2', $user->getName());
         $this->assertEquals('user2', $user->getUsername());
         $this->assertEquals('user2@gmail.com', $user->getEmail());
-        $this->assertEquals('c88b5c841897dafe75cdd9f8ba98b32f007d6bc3', $user->getPassword());
+        // The stored hash is the one of pwd2, whatever the model's password mapper
+        $this->assertNotEquals('pwd2', $user->getPassword());
+        $this->assertEquals($user->getUserid(), $this->object->isValidUser($this->__chooseValue('user2', 'user2@gmail.com'), 'pwd2')?->getUserid());
     }
 
     public function testGetByUserProperty(): void
@@ -706,7 +708,7 @@ abstract class TestUsersBase extends TestCase
 
         // Store the original password hash
         $originalHash = $user->getPassword();
-        $this->assertEquals($originalHash, sha1($originalPassword));
+        $this->assertNotEquals($originalPassword, $originalHash);
 
         // Verify the user can authenticate with the original password
         $login = $this->__chooseValue('testuser', 'test@example.com');
