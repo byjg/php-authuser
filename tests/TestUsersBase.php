@@ -667,16 +667,20 @@ abstract class TestUsersBase extends TestCase
             \ByJG\Authenticate\Definition\PasswordDefinition::REQUIRE_SYMBOLS => 1,
         ]);
 
-        // Get the repositories from existing service
-        $usersRepo = $this->object->getUsersRepository();
+        // A users repository with the password definition, over the same table
+        $repository = $this->object->getUsersRepository()->getRepository();
+        $usersRepo = new \ByJG\Authenticate\Repository\UsersRepository(
+            $repository->getExecutor(),
+            $repository->getMapper()->getEntityClass(),
+            $passwordDef
+        );
         $propsRepo = $this->object->getPropertiesRepository();
 
-        // Create new service with password definition
+        // Create new service over it
         $usersWithPwdDef = new \ByJG\Authenticate\Service\UsersService(
             $usersRepo,
             $propsRepo,
-            LoginField::Username,
-            $passwordDef
+            LoginField::Username
         );
 
         // Valid password should work

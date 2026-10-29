@@ -9,7 +9,7 @@ use ByJG\MicroOrm\Interface\EntityValidatorInterface;
 /**
  * Checks the password of a user against the password definition on every save of the users
  * repository: a plain password outside the rules throws InvalidArgumentException, a stored
- * hash is not checked. UsersService sets it when it is given a PasswordDefinition.
+ * hash is not checked. UsersRepository sets it when it is given a PasswordDefinition.
  */
 class PasswordDefinitionValidator implements EntityValidatorInterface
 {

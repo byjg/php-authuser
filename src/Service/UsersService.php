@@ -2,7 +2,6 @@
 
 namespace ByJG\Authenticate\Service;
 
-use ByJG\Authenticate\Definition\PasswordDefinition;
 use ByJG\Authenticate\Enum\LoginField;
 use ByJG\Authenticate\Enum\UserField;
 use ByJG\Authenticate\Enum\UserPropertyField;
@@ -16,10 +15,8 @@ use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserToken;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
-use ByJG\Authenticate\Validator\PasswordDefinitionValidator;
 use ByJG\JwtWrapper\JwtWrapper;
 use ByJG\JwtWrapper\JwtWrapperException;
-use ByJG\MicroOrm\Interface\EntityValidatorInterface;
 use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Query;
 use Exception;
@@ -34,19 +31,16 @@ class UsersService implements UsersServiceInterface
 {
     protected UsersRepository $usersRepository;
     protected UserPropertiesRepository $propertiesRepository;
-    protected ?PasswordDefinition $passwordDefinition;
     protected LoginField $loginField;
 
 
     public function __construct(
         UsersRepository $usersRepository,
         UserPropertiesRepository $propertiesRepository,
-        LoginField $loginField = LoginField::Username,
-        ?PasswordDefinition $passwordDefinition = null
+        LoginField $loginField = LoginField::Username
     ) {
         $this->usersRepository = $usersRepository;
         $this->propertiesRepository = $propertiesRepository;
-        $this->passwordDefinition = $passwordDefinition;
         $this->loginField = $loginField;
 
         $userMapper = $usersRepository->getRepository()->getMapper();
@@ -66,22 +60,6 @@ class UsersService implements UsersServiceInterface
         $passwordUpdateFunction = $passwordFieldMapping->getUpdateFunction();
         if (!is_subclass_of($passwordUpdateFunction, PasswordMapperInterface::class, true)) {
             throw new InvalidArgumentException('Password update function must implement PasswordMapperInterface');
-        }
-
-        // Type assertion for Psalm - we've verified it's a PasswordMapperInterface or string
-        /** @var PasswordMapperInterface|string $passwordUpdateFunction */
-        $this->passwordDefinition?->setPasswordMapper($passwordUpdateFunction);
-
-        // Every save of the users repository checks a plain password against the definition,
-        // also a user created with new and saved without this service
-        if ($this->passwordDefinition !== null) {
-            $repository = $usersRepository->getRepository();
-            $modelValidator = $repository->getMapper()->getValidator();
-            if (is_string($modelValidator)) {
-                $modelValidator = new $modelValidator();
-            }
-            /** @var EntityValidatorInterface|null $modelValidator The repository checked it */
-            $repository->setValidator(new PasswordDefinitionValidator($this->passwordDefinition, $modelValidator));
         }
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();
@@ -301,8 +279,9 @@ class UsersService implements UsersServiceInterface
 
     protected function applyPasswordDefinition(UserModel $user): void
     {
-        if ($this->passwordDefinition !== null) {
-            $user->withPasswordDefinition($this->passwordDefinition);
+        $passwordDefinition = $this->usersRepository->getPasswordDefinition();
+        if ($passwordDefinition !== null) {
+            $user->withPasswordDefinition($passwordDefinition);
         }
     }
 
@@ -614,10 +593,8 @@ class UsersService implements UsersServiceInterface
         }
 
         $users = $this->usersRepository->getRepository()->getByQuery($query);
-        if ($this->passwordDefinition !== null) {
-            foreach ($users as $user) {
-                $this->applyPasswordDefinition($user);
-            }
+        foreach ($users as $user) {
+            $this->applyPasswordDefinition($user);
         }
         return $users;
     }
