@@ -9,8 +9,8 @@ use ByJG\Authenticate\Interfaces\PasswordMapperInterface;
  * Mapper function to hash passwords with bcrypt (the default on UserModel).
  *
  * It also reads the SHA-1 hashes of PasswordSha1Mapper, so a database created with it keeps
- * working: a SHA-1 hash still verifies, and UsersService::isValidUser() replaces it with a
- * bcrypt hash at the next successful login. The password column needs 60 characters.
+ * working: a SHA-1 hash still verifies, and UsersService::rehashPasswordIfNeeded() (called by
+ * createAuthToken() at login) replaces it with a bcrypt hash. The password column needs 60 characters.
  */
 class PasswordBcryptMapper implements PasswordMapperInterface
 {

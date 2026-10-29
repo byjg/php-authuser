@@ -41,9 +41,23 @@ $users->save($user);
 ```
 
 The bcrypt mapper also reads the SHA-1 hashes of `PasswordSha1Mapper`, the default before 7.0: a
-stored 40-character hash still logs in, and `isValidUser()` replaces it with a bcrypt hash at that
-login. Users move to bcrypt as they log in, without a password reset. A bcrypt hash with a lower cost
-than PHP's current one is replaced the same way.
+stored 40-character hash still logs in. At login, `createAuthToken()` replaces it with a bcrypt hash,
+so users move to bcrypt as they log in, without a password reset. A bcrypt hash with a lower cost than
+PHP's current one is replaced the same way. `isValidUser()` only checks the password and never writes.
+
+A login of your own (without `createAuthToken()`) upgrades the hash with `rehashPasswordIfNeeded()`:
+
+```php
+<?php
+$user = $users->isValidUser($login, $password);
+if ($user !== null) {
+    $users->rehashPasswordIfNeeded($user, $password);
+}
+```
+
+`rehashPasswordIfNeeded()` reads the new hash back. If the password column is too short for it (the
+`CHAR(40)` of a SHA-1 schema), the new hash is rejected or truncated by the database; the method then
+keeps the old hash and returns `false`, so the user can still log in. Widen the column to upgrade.
 
 To keep SHA-1, select its mapper in your user model:
 

@@ -91,6 +91,20 @@ interface UsersServiceInterface
     public function isValidUser(string $login, string $password): ?UserModel;
 
     /**
+     * Replace the user's stored hash when the password mapper says so (a SHA-1 hash, or bcrypt with
+     * a lower cost than the current one), now that the plain password is known. createAuthToken()
+     * calls it at login; call it after isValidUser() in a login of your own.
+     *
+     * The new hash is read back: if it was not stored (a password column too short for it), the
+     * old hash is kept and the method returns false, so the user can still log in.
+     *
+     * @param UserModel $user A user isValidUser() returned for this password
+     * @param string $password The plain password
+     * @return bool Whether the hash was replaced
+     */
+    public function rehashPasswordIfNeeded(UserModel $user, string $password): bool;
+
+    /**
      * Check if user has a property
      *
      * @param string|int|Literal $userId
