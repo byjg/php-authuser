@@ -29,7 +29,7 @@ $userModel->setPassword('WeakPwd');  // Throws InvalidArgumentException
 
 ### Applying Rules Through UsersService
 
-Instead of attaching the definition to every `UserModel` manually, pass it to the `UsersService` constructor. Every entity created through the service (e.g., via `addUser()` or `getUsersEntity()`) receives the same `PasswordDefinition`.
+Instead of attaching the definition to every `UserModel` manually, pass it to the `UsersService` constructor. Every entity created or loaded through the service (e.g., via `addUser()`, `getUsersEntity()` or `getById()`) receives the same `PasswordDefinition`, and the service sets a `PasswordDefinitionValidator` on the users repository: every save, also of a model created with `new` and saved through `UsersRepository` or MicroORM's `Repository` directly, checks a plain password against the definition and throws `InvalidArgumentException` when it does not match. A stored hash is never checked. A validator the user model declares (`#[TableAttribute(validator: ...)]`) still runs after it; one set later with `setValidator()` replaces it.
 
 ```php
 <?php
