@@ -98,6 +98,13 @@ Not a plain change of casing: `UserField::uUpdated_at` is now `UserField::Update
 
 ## Bug Fixes
 
+- A model created with `new UserModel(...)` was saved without checking its password against the
+  service's `PasswordDefinition` (only users created or loaded by `UsersService` had it). The service
+  now sets the new `PasswordDefinitionValidator` (a MicroORM `EntityValidatorInterface`) on the users
+  repository, so every save, also through `UsersRepository` or MicroORM's `Repository`, checks a plain
+  password and throws `InvalidArgumentException` outside the rules; a stored hash is not checked.
+  A validator declared on the user model's `TableAttribute` still runs.
+
 - `UserPropertiesRepository` converted the user id for its queries without the database at
   hand (`getUpdateFunctionValue($userid, null)`), so a UUID user id was always written as
   `X'…'`. With byjg/micro-orm 7.0, which writes a UUID in the syntax of each database, the

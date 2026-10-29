@@ -16,12 +16,15 @@ use ByJG\Authenticate\Model\UserPropertiesModel;
 use ByJG\Authenticate\Model\UserToken;
 use ByJG\Authenticate\Repository\UserPropertiesRepository;
 use ByJG\Authenticate\Repository\UsersRepository;
+use ByJG\Authenticate\Validator\PasswordDefinitionValidator;
 use ByJG\JwtWrapper\JwtWrapper;
 use ByJG\JwtWrapper\JwtWrapperException;
+use ByJG\MicroOrm\Interface\EntityValidatorInterface;
 use ByJG\MicroOrm\Literal\Literal;
 use ByJG\MicroOrm\Query;
 use Exception;
 use InvalidArgumentException;
+use Override;
 use Throwable;
 
 /**
@@ -68,6 +71,18 @@ class UsersService implements UsersServiceInterface
         // Type assertion for Psalm - we've verified it's a PasswordMapperInterface or string
         /** @var PasswordMapperInterface|string $passwordUpdateFunction */
         $this->passwordDefinition?->setPasswordMapper($passwordUpdateFunction);
+
+        // Every save of the users repository checks a plain password against the definition,
+        // also a user created with new and saved without this service
+        if ($this->passwordDefinition !== null) {
+            $repository = $usersRepository->getRepository();
+            $modelValidator = $repository->getMapper()->getValidator();
+            if (is_string($modelValidator)) {
+                $modelValidator = new $modelValidator();
+            }
+            /** @var EntityValidatorInterface|null $modelValidator The repository checked it */
+            $repository->setValidator(new PasswordDefinitionValidator($this->passwordDefinition, $modelValidator));
+        }
 
         $propertyMapper = $propertiesRepository->getRepository()->getMapper();
         $propertyCheck = ($propertyMapper->getFieldMap(UserPropertyField::Userid->value) !== null) &&
@@ -116,7 +131,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function save(UserModel $model): UserModel
     {
         $newUser = false;
@@ -152,7 +167,7 @@ class UsersService implements UsersServiceInterface
      * @param string|null $role
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function addUser(string $name, string $userName, string $email, string $password, ?string $role = null): UserModel
     {
 
@@ -208,7 +223,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getById(string|Literal|int $userid): ?UserModel
     {
         $user = $this->usersRepository->getById($userid);
@@ -222,7 +237,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getByEmail(string $email): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Email->value);
@@ -240,7 +255,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getByUsername(string $username): ?UserModel
     {
         $fieldMap = $this->usersRepository->getMapper()->getFieldMap(UserField::Username->value);
@@ -258,7 +273,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getByLogin(string $login): ?UserModel
     {
         return match($this->loginField) {
@@ -307,7 +322,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function removeByLogin(string $login): bool
     {
         $user = $this->getByLogin($login);
@@ -323,7 +338,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function removeById(string|Literal|int $userid): bool
     {
         try {
@@ -340,7 +355,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function isValidUser(string $login, string $password): ?UserModel
     {
         $user = $this->getByLogin($login);
@@ -360,7 +375,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function rehashPasswordIfNeeded(UserModel $user, string $password): bool
     {
         $mapper = $this->passwordMapper();
@@ -407,7 +422,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function hasProperty(string|int|Literal $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
@@ -432,7 +447,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getProperty(string|Literal|int $userId, string $propertyName): array|string|UserPropertiesModel|null
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
@@ -456,7 +471,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function addProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool
     {
         $user = $this->getById($userId);
@@ -493,7 +508,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function setProperty(string|Literal|int $userId, string $propertyName, ?string $value): bool
     {
         $properties = $this->propertiesRepository->getByUserIdAndName($userId, $propertyName);
@@ -529,7 +544,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function removeProperty(string|Literal|int $userId, string $propertyName, ?string $value = null): bool
     {
         $user = $this->getById($userId);
@@ -543,7 +558,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function removeAllProperties(string $propertyName, ?string $value = null): void
     {
         $this->propertiesRepository->deleteByName($propertyName, $value);
@@ -552,7 +567,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getUsersByProperty(string $propertyName, string $value): array
     {
         return $this->getUsersByPropertySet([$propertyName => $value]);
@@ -561,7 +576,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function getUsersByPropertySet(array $propertiesArray): array
     {
         $userTable = $this->usersRepository->getTableName();
@@ -607,7 +622,7 @@ class UsersService implements UsersServiceInterface
         return $users;
     }
 
-    #[\Override]
+    #[Override]
     public function createInsecureAuthToken(
         string|UserModel $login,
         JwtWrapper       $jwtWrapper,
@@ -665,7 +680,7 @@ class UsersService implements UsersServiceInterface
     /**
      * @inheritDoc
      */
-    #[\Override]
+    #[Override]
     public function createAuthToken(
         string     $login,
         string     $password,
@@ -698,7 +713,7 @@ class UsersService implements UsersServiceInterface
      * @throws NotAuthenticatedException
      * @throws UserNotFoundException
      */
-    #[\Override]
+    #[Override]
     public function isValidToken(string $login, JwtWrapper $jwtWrapper, string $token): UserToken
     {
         $user = $this->getByLogin($login);
@@ -722,7 +737,7 @@ class UsersService implements UsersServiceInterface
         );
     }
 
-    #[\Override]
+    #[Override]
     public function getUsersEntity(array $fields): UserModel
     {
         $entity = $this->getUsersRepository()->getMapper()->getEntity($fields);

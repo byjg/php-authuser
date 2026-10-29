@@ -15,9 +15,12 @@ use ByJG\Authenticate\Service\UsersService;
 use ByJG\JwtWrapper\JwtHashHmacSecret;
 use ByJG\JwtWrapper\JwtWrapper;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Tests\Fixture\UserModelWithValidator;
 
 /**
- * A database created with SHA-1 passwords, read by UserModel's default mapper (bcrypt)
+ * A UsersService with the default password definition, over a database created with SHA-1
+ * passwords, read by UserModel's default mapper (bcrypt)
  */
 class PasswordUpgradeTest extends TestCase
 {
@@ -30,7 +33,7 @@ class PasswordUpgradeTest extends TestCase
      * @param string $passwordColumn The password column, as an older schema may have it
      * @param string|null $trigger A trigger to create after the tables
      */
-    private function createDatabase(string $passwordColumn = 'password varchar(255)', ?string $trigger = null): void
+    private function createDatabase(string $passwordColumn = 'password varchar(255)', ?string $trigger = null, string $userClass = UserModel::class): void
     {
         $this->executor = DatabaseExecutor::using(Factory::getDbInstance('sqlite://' . self::DATABASE));
         $this->executor->execute("create table users (
@@ -60,7 +63,7 @@ class PasswordUpgradeTest extends TestCase
         );
 
         $this->service = new UsersService(
-            new UsersRepository($this->executor, UserModel::class),
+            new UsersRepository($this->executor, $userClass),
             new UserPropertiesRepository($this->executor, UserPropertiesModel::class),
             LoginField::Username,
             new PasswordDefinition()
@@ -164,6 +167,74 @@ class PasswordUpgradeTest extends TestCase
         $this->assertSame(sha1('old'), $this->storedPassword());
         $this->login();
         $this->assertNotNull($this->service->isValidUser('old', 'old'), 'the user can still log in');
+    }
+
+    /**
+     * @param callable(UserModel): mixed $save
+     */
+    private function assertSaveChecksTheDefinition(callable $save): void
+    {
+        $user = new UserModel('New User', 'new@example.com', 'new', 'weak');
+        try {
+            $save($user);
+            $this->fail('A password outside the definition was saved');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertStringContainsString('Password does not match the password definition', $e->getMessage());
+        }
+        $this->assertNull($this->service->getByUsername('new'));
+
+        $user->setPassword('n3wPassw0rd');
+        $save($user);
+        $this->assertNotNull($this->service->isValidUser('new', 'n3wPassw0rd'));
+    }
+
+    /**
+     * A user created with new has no password definition: the service's save() checks its password
+     */
+    public function testServiceSaveChecksTheDefinition(): void
+    {
+        $this->createDatabase();
+
+        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $this->service->save($user));
+    }
+
+    /**
+     * Saved without the service, through the users repository or MicroORM's: still checked
+     */
+    public function testRepositorySaveChecksTheDefinition(): void
+    {
+        $this->createDatabase();
+
+        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $this->service->getUsersRepository()->save($user));
+        $this->executor->execute("delete from users where username = 'new'");
+        $this->assertSaveChecksTheDefinition(fn(UserModel $user) => $this->service->getUsersRepository()->getRepository()->save($user));
+    }
+
+    /**
+     * The validator the user model declares still runs
+     */
+    public function testTheValidatorOfTheModelStillRuns(): void
+    {
+        $this->createDatabase(userClass: UserModelWithValidator::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Blocked name');
+        $this->service->save(new UserModelWithValidator('Blocked', 'blocked@example.com', 'blocked', 'n3wPassw0rd'));
+    }
+
+    /**
+     * Saving a loaded user does not check its stored hash: an old SHA-1 password weaker than the
+     * definition is kept
+     */
+    public function testSaveKeepsAStoredHash(): void
+    {
+        $this->createDatabase();
+        $user = $this->service->getByUsername('old');
+        $user->setName('Renamed');
+
+        $this->service->save($user);
+
+        $this->assertSame(sha1('old'), $this->storedPassword());
     }
 
     /**
